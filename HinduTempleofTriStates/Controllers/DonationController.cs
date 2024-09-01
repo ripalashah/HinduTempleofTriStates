@@ -85,6 +85,11 @@ namespace TempleManagementSystem.Controllers
             return View(donation);
         }
 
+        private bool DonationExists(Guid id)
+        {
+            throw new NotImplementedException();
+        }
+
         // GET: Donation/Delete/5
         public async Task<IActionResult> Delete(Guid id)
         {
@@ -104,17 +109,15 @@ namespace TempleManagementSystem.Controllers
         public async Task<IActionResult> DeleteConfirmed(Guid id)
         {
             var donation = await _context.Donations.FindAsync(id);
-            if (donation != null)
+            if (donation == null)
             {
-                _context.Donations.Remove(donation);
-                await _context.SaveChangesAsync();
+                return NotFound();
             }
+
+            _context.Donations.Remove(donation);
+            await _context.SaveChangesAsync();
             return RedirectToAction(nameof(Index));
         }
 
-        private bool DonationExists(Guid id)
-        {
-            return _context.Donations.Any(e => e.Id == id);
-        }
     }
 }

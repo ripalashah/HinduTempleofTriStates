@@ -62,9 +62,12 @@
         </dd>
     </dl>
 
-    <form asp-action="DeleteConfirmed">
+    <form asp-action="Delete">
+        @Html.AntiForgeryToken()
         <input type="hidden" asp-for="Id" />
-        <input type="submit" value="Delete" class="btn btn-danger" />
-        <a asp-action="Index" class="btn btn-secondary">Cancel</a>
+        <div class="form-group">
+            <input type="submit" value="Delete" class="btn btn-danger" />
+            <a asp-action="Index" class="btn btn-secondary">Cancel</a>
+        </div> <!-- Added closing div -->
     </form>
 </div>
