@@ -1,0 +1,22 @@
+﻿@model TempleManagementSystem.Models.Donation
+
+@{
+    ViewData["Title"] = "Print Receipt";
+}
+
+<h1>Donation Receipt</h1>
+
+<p><strong>Donor Name:</strong> @Model.DonorName</p>
+<p><strong>Amount:</strong> @Model.Amount</p>
+<p><strong>Donation Type:</strong> @Model.DonationType</p>
+<p><strong>Date:</strong> @Model.Date.ToShortDateString()</p>
+<p><strong>Phone:</strong> @Model.Phone</p>
+<p><strong>City:</strong> @Model.City</p>
+<p><strong>State:</strong> @Model.State</p>
+<p><strong>Country:</strong> @Model.Country</p>
+
+<button type="button" onclick="window.print();" class="btn btn-info">Print Receipt</button>
+<input type="hidden" asp-for="Id" />
+<div class="form-group">
+   <a asp-action="Index" class="btn btn-secondary">Back to List</a>
+</div>

@@ -36,7 +36,18 @@ namespace TempleManagementSystem.Controllers
                 donation.Id = Guid.NewGuid();
                 _context.Add(donation);
                 await _context.SaveChangesAsync();
-                return RedirectToAction(nameof(Index));
+                return RedirectToAction(nameof(Confirmation), new { id = donation.Id });
+            }
+            return View(donation);
+        }
+
+        // GET: Donation/Confirmation
+        public async Task<IActionResult> Confirmation(Guid id)
+        {
+            var donation = await _context.Donations.FindAsync(id);
+            if (donation == null)
+            {
+                return NotFound();
             }
             return View(donation);
         }
@@ -68,6 +79,8 @@ namespace TempleManagementSystem.Controllers
                 {
                     _context.Update(donation);
                     await _context.SaveChangesAsync();
+                    // Redirect to print view after saving
+                    return RedirectToAction("PrintReceipt", new { id = donation.Id });
                 }
                 catch (DbUpdateConcurrencyException)
                 {
@@ -80,7 +93,18 @@ namespace TempleManagementSystem.Controllers
                         throw;
                     }
                 }
-                return RedirectToAction(nameof(Index));
+                
+            }
+            return View(donation);
+        }
+
+        // GET: Donation/PrintReceipt/5
+        public async Task<IActionResult> PrintReceipt(Guid id)
+        {
+            var donation = await _context.Donations.FindAsync(id);
+            if (donation == null)
+            {
+                return NotFound();
             }
             return View(donation);
         }

@@ -1,0 +1,18 @@
+﻿@model TempleManagementSystem.Models.Donation
+
+@{
+    ViewData["Title"] = "Donation Confirmation";
+}
+
+<h1>Donation Confirmation</h1>
+
+<p>Thank you for your donation, @Model.DonorName.</p>
+<p>Donation Amount: @Model.Amount</p>
+<p>Donation Type: @Model.DonationType</p>
+<p>Date: @Model.Date.ToShortDateString()</p>
+
+<button onclick="window.print()" class="btn btn-primary">Print Receipt</button>
+
+<p>
+    <a href="@Url.Action("Index")" class="btn btn-secondary">Back to Donations List</a>
+</p>
