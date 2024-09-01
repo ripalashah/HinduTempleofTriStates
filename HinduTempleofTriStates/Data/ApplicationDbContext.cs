@@ -10,6 +10,8 @@ namespace TempleManagementSystem.Data
         {
         }
 
-        public DbSet<Donation> Donations { get; set; }
+        public DbSet<Donation> Donations { get; set; } // Ensure this is correctly defined
+
+        // Other DbSets and configurations
     }
 }

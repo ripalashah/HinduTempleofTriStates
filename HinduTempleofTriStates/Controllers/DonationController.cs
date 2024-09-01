@@ -14,16 +14,19 @@ namespace TempleManagementSystem.Controllers
             _context = context;
         }
 
+        // GET: Donation/Index
         public async Task<IActionResult> Index()
         {
             return View(await _context.Donations.ToListAsync());
         }
 
+        // GET: Donation/Create
         public IActionResult Create()
         {
             return View();
         }
 
+        // POST: Donation/Create
         [HttpPost]
         [ValidateAntiForgeryToken]
         public async Task<IActionResult> Create([Bind("DonorName,Amount,DonationCategory,DonationType,Date,Phone,City,State,Country")] Donation donation)
@@ -38,6 +41,7 @@ namespace TempleManagementSystem.Controllers
             return View(donation);
         }
 
+        // GET: Donation/Edit/5
         public async Task<IActionResult> Edit(Guid id)
         {
             var donation = await _context.Donations.FindAsync(id);
@@ -48,6 +52,7 @@ namespace TempleManagementSystem.Controllers
             return View(donation);
         }
 
+        // POST: Donation/Edit/5
         [HttpPost]
         [ValidateAntiForgeryToken]
         public async Task<IActionResult> Edit(Guid id, [Bind("Id,DonorName,Amount,DonationCategory,DonationType,Date,Phone,City,State,Country")] Donation donation)
@@ -80,6 +85,7 @@ namespace TempleManagementSystem.Controllers
             return View(donation);
         }
 
+        // GET: Donation/Delete/5
         public async Task<IActionResult> Delete(Guid id)
         {
             var donation = await _context.Donations
@@ -92,13 +98,17 @@ namespace TempleManagementSystem.Controllers
             return View(donation);
         }
 
+        // POST: Donation/Delete/5
         [HttpPost, ActionName("Delete")]
         [ValidateAntiForgeryToken]
         public async Task<IActionResult> DeleteConfirmed(Guid id)
         {
             var donation = await _context.Donations.FindAsync(id);
-            _context.Donations.Remove(donation);
-            await _context.SaveChangesAsync();
+            if (donation != null)
+            {
+                _context.Donations.Remove(donation);
+                await _context.SaveChangesAsync();
+            }
             return RedirectToAction(nameof(Index));
         }
 
