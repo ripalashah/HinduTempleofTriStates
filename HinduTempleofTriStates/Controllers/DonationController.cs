@@ -1,7 +1,7 @@
-﻿using Microsoft.AspNetCore.Mvc;
+﻿using HinduTempleofTriStates.Data;
+using HinduTempleofTriStates.Models;
+using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
-using TempleManagementSystem.Data;
-using TempleManagementSystem.Models;
 
 namespace TempleManagementSystem.Controllers
 {

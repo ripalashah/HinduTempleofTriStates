@@ -1,0 +1,27 @@
+﻿@page
+@model             TrialBalanceModel
+@{
+    ViewData["Title"] = "Trial Balance";
+}
+
+<h1>@ViewData["Title"]</h1>
+
+<table class="table">
+    <thead>
+        <tr>
+            <th>Account</th>
+            <th>Debit</th>
+            <th>Credit</th>
+        </tr>
+    </thead>
+    <tbody>
+        @foreach (var account in Model.TrialBalanceAccounts)
+        {
+                <tr>
+                    <td>@account.AccountName</td>
+                    <td>@account.DebitTotal.ToString("C")</td>
+                    <td>@account.CreditTotal.ToString("C")</td>
+                </tr>
+        }
+    </tbody>
+</table>

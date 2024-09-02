@@ -1,7 +1,7 @@
 ﻿using System;
 using System.ComponentModel.DataAnnotations;
 
-namespace TempleManagementSystem.Models
+namespace HinduTempleofTriStates.Models
 {
     public class Donation
     {

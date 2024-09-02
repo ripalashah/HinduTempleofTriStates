@@ -12,8 +12,8 @@ using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 namespace HinduTempleofTriStates.Migrations
 {
     [DbContext(typeof(ApplicationDbContext))]
-    [Migration("20240901001210_InitialCreate")]
-    partial class InitialCreate
+    [Migration("20240902011117_AddAccountsModule")]
+    partial class AddAccountsModule
     {
         /// <inheritdoc />
         protected override void BuildTargetModel(ModelBuilder modelBuilder)
