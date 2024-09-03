@@ -1,0 +1,20 @@
+﻿@model IEnumerable<HinduTempleofTriStates.Models.Fund>
+
+<h2>Manage Funds</h2>
+<table class="table">
+    <thead>
+        <tr>
+            <th>Name</th>
+            <th>Balance</th>
+        </tr>
+    </thead>
+    <tbody>
+        @foreach (var fund in Model)
+        {
+            <tr>
+                <td>@fund.FundName</td>
+                <td>@fund.Balance</td>
+            </tr>
+        }
+    </tbody>
+</table>

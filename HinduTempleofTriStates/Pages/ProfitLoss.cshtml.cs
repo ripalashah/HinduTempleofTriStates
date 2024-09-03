@@ -1,14 +1,13 @@
 ﻿using HinduTempleofTriStates.Models;
 using Microsoft.AspNetCore.Mvc.RazorPages;
-using TempleManagementSystem.Models;
 
-namespace TempleManagementSystem.Pages.Reports
+namespace HinduTempleofTriStates.Pages
 {
     public class ProfitLossModel : PageModel
     {
-        private ProfitLossModel profitLossModel;
+        private ProfitLossModel? profitLossModel;
 
-        public ProfitLossModel GetProfitLossModel()
+        public ProfitLossModel? GetProfitLossModel()
         {
             return profitLossModel;
         }
@@ -18,7 +17,7 @@ namespace TempleManagementSystem.Pages.Reports
             profitLossModel = value;
         }
 
-        public List<ProfitLossItem> ProfitLossItems { get; private set; }
+        public List<ProfitLossItem>? ProfitLossItems { get; private set; }
 
         public ProfitLossItem GetProfitLossItem()
         {
@@ -26,9 +25,7 @@ namespace TempleManagementSystem.Pages.Reports
         }
 
         public ProfitLossItem GetProfitLossItem(ProfitLossItem profitLossItem) => profitLossItem;
-
-        public ProfitLossItem GetProfitLossItem(ProfitLossItem profitLossItem) => profitLossItem;
-
+               
         public void OnGet(ProfitLossItem profitLossItem)
         {
             // Initialize with sample data or fetch data from the database

@@ -1,25 +1,45 @@
 ﻿@page
-@model             ProfitLossModel
+@model HinduTempleofTriStates.Models.ProfitLossModel
+
 @{
-    ViewData["Title"] = "Profit and Loss";
+    ViewData["Title"] = "Profit and Loss Report";
+
+    // Calculate the total amount
+    decimal totalAmount = Model.ProfitLossItems != null ? Model.ProfitLossItems.Sum(item => item.Amount) : 0;
 }
 
 <h1>@ViewData["Title"]</h1>
 
-<table class="table">
-    <thead>
+<table class="table table-bordered">
+    <thead class="thead-dark">
         <tr>
-            <th>Category</th>
+            <th>Description</th>
             <th>Amount</th>
         </tr>
     </thead>
     <tbody>
-        @foreach (var item in Model.ProfitLossItems)
+        @if (Model.ProfitLossItems != null && Model.ProfitLossItems.Any())
+        {
+            foreach (var item in Model.ProfitLossItems)
+            {
+                <tr>
+                    <td>@item.Description</td>
+                    <td>@item.Amount.ToString("C")</td>
+                </tr>
+            }
+        }
+        else
         {
             <tr>
-                <td>@item.Category</td>
-                <td>@item.Amount.ToString("C")</td>
+                <td colspan="2" class="text-center">No data available.</td>
             </tr>
         }
     </tbody>
+    <tfoot>
+        <tr>
+            <th>Total</th>
+            <th>@totalAmount.ToString("C")</th>
+        </tr>
+    </tfoot>
 </table>
+

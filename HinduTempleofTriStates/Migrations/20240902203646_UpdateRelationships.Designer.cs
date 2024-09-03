@@ -4,6 +4,7 @@ using HinduTempleofTriStates.Data;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Infrastructure;
 using Microsoft.EntityFrameworkCore.Metadata;
+using Microsoft.EntityFrameworkCore.Migrations;
 using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 
 #nullable disable
@@ -11,9 +12,11 @@ using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 namespace HinduTempleofTriStates.Migrations
 {
     [DbContext(typeof(ApplicationDbContext))]
-    partial class ApplicationDbContextModelSnapshot : ModelSnapshot
+    [Migration("20240902203646_UpdateRelationships")]
+    partial class UpdateRelationships
     {
-        protected override void BuildModel(ModelBuilder modelBuilder)
+        /// <inheritdoc />
+        protected override void BuildTargetModel(ModelBuilder modelBuilder)
         {
 #pragma warning disable 612, 618
             modelBuilder
@@ -34,10 +37,6 @@ namespace HinduTempleofTriStates.Migrations
                         .IsRequired()
                         .HasMaxLength(100)
                         .HasColumnType("nvarchar(100)");
-
-                    b.Property<string>("AccountType")
-                        .IsRequired()
-                        .HasColumnType("nvarchar(max)");
 
                     b.Property<decimal>("Balance")
                         .HasColumnType("decimal(18,2)");
@@ -91,11 +90,11 @@ namespace HinduTempleofTriStates.Migrations
                         .ValueGeneratedOnAdd()
                         .HasColumnType("uniqueidentifier");
 
-                    b.Property<int>("AccountId")
+                    b.Property<int?>("AccountId")
                         .HasColumnType("int");
 
-                    b.Property<decimal>("Amount")
-                        .HasColumnType("decimal(18,2)");
+                    b.Property<double>("Amount")
+                        .HasColumnType("float");
 
                     b.Property<string>("City")
                         .IsRequired()
@@ -140,39 +139,6 @@ namespace HinduTempleofTriStates.Migrations
                     b.ToTable("Donations");
                 });
 
-            modelBuilder.Entity("HinduTempleofTriStates.Models.Fund", b =>
-                {
-                    b.Property<int>("Id")
-                        .ValueGeneratedOnAdd()
-                        .HasColumnType("int");
-
-                    SqlServerPropertyBuilderExtensions.UseIdentityColumn(b.Property<int>("Id"));
-
-                    b.Property<string>("AccountName")
-                        .IsRequired()
-                        .HasColumnType("nvarchar(max)");
-
-                    b.Property<decimal>("Amount")
-                        .HasColumnType("decimal(18,2)");
-
-                    b.Property<decimal>("Balance")
-                        .HasColumnType("decimal(18,2)");
-
-                    b.Property<string>("Description")
-                        .IsRequired()
-                        .HasMaxLength(250)
-                        .HasColumnType("nvarchar(250)");
-
-                    b.Property<string>("FundName")
-                        .IsRequired()
-                        .HasMaxLength(100)
-                        .HasColumnType("nvarchar(100)");
-
-                    b.HasKey("Id");
-
-                    b.ToTable("Funds");
-                });
-
             modelBuilder.Entity("HinduTempleofTriStates.Models.LedgerAccount", b =>
                 {
                     b.Property<int>("Id")
@@ -197,47 +163,6 @@ namespace HinduTempleofTriStates.Migrations
                     b.ToTable("LedgerAccounts");
                 });
 
-            modelBuilder.Entity("HinduTempleofTriStates.Models.LedgerEntry", b =>
-                {
-                    b.Property<int>("Id")
-                        .ValueGeneratedOnAdd()
-                        .HasColumnType("int");
-
-                    SqlServerPropertyBuilderExtensions.UseIdentityColumn(b.Property<int>("Id"));
-
-                    b.Property<string>("AccountName")
-                        .IsRequired()
-                        .HasColumnType("nvarchar(max)");
-
-                    b.Property<decimal>("Balance")
-                        .HasColumnType("decimal(18,2)");
-
-                    b.Property<decimal>("Credit")
-                        .HasColumnType("decimal(18,2)");
-
-                    b.Property<DateTime>("Date")
-                        .HasColumnType("datetime2");
-
-                    b.Property<decimal>("Debit")
-                        .HasColumnType("decimal(18,2)");
-
-                    b.Property<string>("Description")
-                        .IsRequired()
-                        .HasColumnType("nvarchar(max)");
-
-                    b.Property<Guid>("LedgerAccountId")
-                        .HasColumnType("uniqueidentifier");
-
-                    b.Property<int>("LedgerAccountId1")
-                        .HasColumnType("int");
-
-                    b.HasKey("Id");
-
-                    b.HasIndex("LedgerAccountId1");
-
-                    b.ToTable("LedgerEntry");
-                });
-
             modelBuilder.Entity("HinduTempleofTriStates.Models.Transaction", b =>
                 {
                     b.Property<int>("Id")
@@ -258,12 +183,6 @@ namespace HinduTempleofTriStates.Migrations
 
                     b.Property<int>("LedgerAccountId")
                         .HasColumnType("int");
-
-                    b.Property<bool>("Reconciled")
-                        .HasColumnType("bit");
-
-                    b.Property<DateTime?>("ReconciliationDate")
-                        .HasColumnType("datetime2");
 
                     b.Property<int>("TransactionType")
                         .HasColumnType("int");
@@ -287,29 +206,14 @@ namespace HinduTempleofTriStates.Migrations
 
             modelBuilder.Entity("HinduTempleofTriStates.Models.Donation", b =>
                 {
-                    b.HasOne("HinduTempleofTriStates.Models.Account", "Account")
+                    b.HasOne("HinduTempleofTriStates.Models.Account", null)
                         .WithMany("Donations")
-                        .HasForeignKey("AccountId")
-                        .OnDelete(DeleteBehavior.Cascade)
-                        .IsRequired();
+                        .HasForeignKey("AccountId");
 
                     b.HasOne("HinduTempleofTriStates.Models.LedgerAccount", "LedgerAccount")
                         .WithMany("Donations")
                         .HasForeignKey("LedgerAccountId")
                         .OnDelete(DeleteBehavior.Restrict);
-
-                    b.Navigation("Account");
-
-                    b.Navigation("LedgerAccount");
-                });
-
-            modelBuilder.Entity("HinduTempleofTriStates.Models.LedgerEntry", b =>
-                {
-                    b.HasOne("HinduTempleofTriStates.Models.LedgerAccount", "LedgerAccount")
-                        .WithMany("LedgerEntries")
-                        .HasForeignKey("LedgerAccountId1")
-                        .OnDelete(DeleteBehavior.Cascade)
-                        .IsRequired();
 
                     b.Navigation("LedgerAccount");
                 });
@@ -335,8 +239,6 @@ namespace HinduTempleofTriStates.Migrations
                     b.Navigation("CashTransactions");
 
                     b.Navigation("Donations");
-
-                    b.Navigation("LedgerEntries");
 
                     b.Navigation("Transactions");
                 });

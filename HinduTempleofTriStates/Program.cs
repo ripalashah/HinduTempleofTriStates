@@ -1,44 +1,62 @@
 using Microsoft.EntityFrameworkCore;
-using Microsoft.AspNetCore.Hosting;
+using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Hosting;
-using Microsoft.Extensions.Logging;
 using HinduTempleofTriStates.Data;
+using HinduTempleofTriStates.Repositories;
+using HinduTempleofTriStates.Services;
 
-// Create a web application builder
-var builder = WebApplication.CreateBuilder(args);
-
-// Add services to the container.
-builder.Services.AddControllersWithViews();
-
-// Register ApplicationDbContext with dependency injection container
-builder.Services.AddDbContext<ApplicationDbContext>(options =>
-    options.UseSqlServer(builder.Configuration.GetConnectionString("DefaultConnection"))
-           .LogTo(Console.WriteLine, LogLevel.Information)); // Logging SQL queries for debugging
-
-// Add any additional services required for the Accounts module here if needed
-// Example: builder.Services.AddScoped<IAccountService, AccountService>();
-
-// Build the application
-WebApplication app = builder.Build();
-
-// Configure the HTTP request pipeline.
-if (!app.Environment.IsDevelopment())
+internal class Program
 {
-    app.UseExceptionHandler("/Home/Error");
-    app.UseHsts();
+    private static void Main(string[] args)
+    {
+        var builder = WebApplication.CreateBuilder(args);
+
+        // Add services to the container.
+        builder.Services.AddControllersWithViews();
+
+        // Register ApplicationDbContext with dependency injection container
+        builder.Services.AddDbContext<ApplicationDbContext>(options =>
+            options.UseSqlServer(builder.Configuration.GetConnectionString("DefaultConnection"))
+                   .LogTo(Console.WriteLine, LogLevel.Information)); // Logging SQL queries for debugging
+
+        // Register repositories with dependency injection container
+        builder.Services.AddScoped<IAccountRepository, AccountRepository>();
+        builder.Services.AddScoped<ILedgerRepository, LedgerRepository>(); // Ensure you have ILedgerRepository and LedgerRepository
+        builder.Services.AddScoped<IDonationRepository, DonationRepository>(); // Register DonationRepository
+
+        // Register services with dependency injection container
+        builder.Services.AddScoped<LedgerService>(); // Register LedgerService
+        builder.Services.AddScoped<DonationService>(); // Register DonationService
+
+        // Build the application
+        var app = builder.Build();
+
+        // Configure the HTTP request pipeline.
+        if (!app.Environment.IsDevelopment())
+        {
+            app.UseExceptionHandler("/Home/Error");
+            app.UseHsts();
+        }
+
+        //app.UseHttpsRedirection();
+        app.UseStaticFiles();
+
+        app.UseRouting();
+
+        app.UseAuthorization();
+
+        // Configure endpoint routing
+        app.MapControllerRoute(
+            name: "default",
+            pattern: "{controller=Home}/{action=Index}/{id?}");
+
+        // Map additional routes if needed for the Accounts module
+        // Example:
+        // app.MapControllerRoute(
+        //     name: "accounts",
+        //     pattern: "Accounts/{action=Index}/{id?}",
+        //     defaults: new { controller = "Accounts" });
+
+        app.Run();
+    }
 }
-
-app.UseHttpsRedirection();
-app.UseStaticFiles();
-
-app.UseRouting();
-
-app.UseAuthorization();
-
-// Configure endpoint routing
-app.MapControllerRoute(
-    name: "default",
-    pattern: "{controller=Home}/{action=Index}/{id?}");
-
-// Run the application
-app.Run();

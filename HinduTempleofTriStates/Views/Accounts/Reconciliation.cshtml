@@ -1,0 +1,29 @@
+﻿@model IEnumerable<HinduTempleofTriStates.Models.Transaction>
+
+<h2>Reconciliation</h2>
+<table class="table">
+    <thead>
+        <tr>
+            <th>Description</th>
+            <th>Amount</th>
+            <th>Date</th>
+            <th>Action</th>
+        </tr>
+    </thead>
+    <tbody>
+        @foreach (var transaction in Model)
+        {
+            <tr>
+                <td>@transaction.Description</td>
+                <td>@transaction.Amount</td>
+                <td>@transaction.Date.ToShortDateString()</td>
+                <td>
+                    <form asp-action="Reconcile" method="post">
+                        <input type="hidden" name="transactionId" value="@transaction.Id" />
+                        <button type="submit" class="btn btn-primary">Reconcile</button>
+                    </form>
+                </td>
+            </tr>
+        }
+    </tbody>
+</table>

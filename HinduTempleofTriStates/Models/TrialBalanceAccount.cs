@@ -9,5 +9,7 @@
         public decimal DebitTotal { get; set; } // Add this property
         public decimal CreditTotal { get; set; } // Add this property
         public decimal NetBalance => DebitBalance - CreditBalance;
+        public double Debit { get; set; }
+        public double Credit { get; set; }
     }
 }

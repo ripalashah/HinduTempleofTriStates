@@ -1,5 +1,6 @@
 ﻿@page
-@model             GeneralLedgerModel
+@using HinduTempleofTriStates.Pages
+@model GeneralLedgerModel
 @{
     ViewData["Title"] = "General Ledger";
 }
@@ -20,14 +21,14 @@
     <tbody>
         @foreach (var entry in Model.GeneralLedgerEntries)
         {
-                <tr>
-                    <td>@entry.Date.ToShortDateString()</td>
-                    <td>@entry.Description</td>
-                    <td>@entry.AccountName</td>
-                    <td>@entry.Debit.ToString("C")</td>
-                    <td>@entry.Credit.ToString("C")</td>
-                    <td>@entry.Balance.ToString("C")</td>
-                </tr>
+            <tr>
+                <td>@entry.Date.ToShortDateString()</td>
+                <td>@entry.Description</td>
+                <td>@entry.AccountName</td>
+                <td>@entry.Debit.ToString("C")</td>
+                <td>@entry.Credit.ToString("C")</td>
+                <td>@entry.Balance.ToString("C")</td>
+            </tr>
         }
     </tbody>
 </table>

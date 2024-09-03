@@ -1,43 +1,60 @@
 ﻿using HinduTempleofTriStates.Data;
 using HinduTempleofTriStates.Models;
+using HinduTempleofTriStates.Services;
 using Microsoft.AspNetCore.Mvc;
+using Microsoft.AspNetCore.Mvc.Rendering;
 using Microsoft.EntityFrameworkCore;
+using System;
+using System.Linq;
+using System.Threading.Tasks;
 
-namespace TempleManagementSystem.Controllers
+namespace HinduTempleofTriStates.Controllers
 {
     public class DonationController : Controller
     {
         private readonly ApplicationDbContext _context;
+        private readonly DonationService _donationService;
 
-        public DonationController(ApplicationDbContext context)
+        public DonationController(ApplicationDbContext context, DonationService donationService)
         {
             _context = context;
+            _donationService = donationService;
         }
 
         // GET: Donation/Index
         public async Task<IActionResult> Index()
         {
-            return View(await _context.Donations.ToListAsync());
+            var donations = await _donationService.GetDonationsAsync();
+            return View(donations);
         }
 
         // GET: Donation/Create
         public IActionResult Create()
         {
+            ViewData["AccountId"] = new SelectList(_context.Accounts, "Id", "AccountName");
             return View();
         }
 
         // POST: Donation/Create
         [HttpPost]
         [ValidateAntiForgeryToken]
-        public async Task<IActionResult> Create([Bind("DonorName,Amount,DonationCategory,DonationType,Date,Phone,City,State,Country")] Donation donation)
+        public async Task<IActionResult> Create([Bind("DonorName,Amount,DonationCategory,DonationType,Date,Phone,City,State,Country,AccountId")] Donation donation)
         {
             if (ModelState.IsValid)
             {
-                donation.Id = Guid.NewGuid();
+                donation.Id = Guid.NewGuid(); // Changed to Guid
+                var account = await _context.Accounts.FindAsync(donation.AccountId);
+                if (account != null)
+                {
+                    account.Balance += donation.Amount; // Update account balance
+                    _context.Update(account);
+                }
+
                 _context.Add(donation);
                 await _context.SaveChangesAsync();
                 return RedirectToAction(nameof(Confirmation), new { id = donation.Id });
             }
+            ViewData["AccountId"] = new SelectList(_context.Accounts, "Id", "AccountName", donation.AccountId);
             return View(donation);
         }
 
@@ -60,13 +77,14 @@ namespace TempleManagementSystem.Controllers
             {
                 return NotFound();
             }
+            ViewData["AccountId"] = new SelectList(_context.Accounts, "Id", "AccountName", donation.AccountId);
             return View(donation);
         }
 
         // POST: Donation/Edit/5
         [HttpPost]
         [ValidateAntiForgeryToken]
-        public async Task<IActionResult> Edit(Guid id, [Bind("Id,DonorName,Amount,DonationCategory,DonationType,Date,Phone,City,State,Country")] Donation donation)
+        public async Task<IActionResult> Edit(Guid id, [Bind("Id,DonorName,Amount,DonationCategory,DonationType,Date,Phone,City,State,Country,AccountId")] Donation donation)
         {
             if (id != donation.Id)
             {
@@ -77,9 +95,25 @@ namespace TempleManagementSystem.Controllers
             {
                 try
                 {
+                    var existingDonation = await _context.Donations.AsNoTracking().FirstOrDefaultAsync(d => d.Id == id);
+                    if (existingDonation != null)
+                    {
+                        var account = await _context.Accounts.FindAsync(existingDonation.AccountId);
+                        if (account != null)
+                        {
+                            account.Balance -= existingDonation.Amount; // Revert previous amount
+                            _context.Update(account);
+                        }
+                        account = await _context.Accounts.FindAsync(donation.AccountId);
+                        if (account != null)
+                        {
+                            account.Balance += donation.Amount; // Update new amount
+                            _context.Update(account);
+                        }
+                    }
+
                     _context.Update(donation);
                     await _context.SaveChangesAsync();
-                    // Redirect to print view after saving
                     return RedirectToAction("PrintReceipt", new { id = donation.Id });
                 }
                 catch (DbUpdateConcurrencyException)
@@ -93,8 +127,8 @@ namespace TempleManagementSystem.Controllers
                         throw;
                     }
                 }
-                
             }
+            ViewData["AccountId"] = new SelectList(_context.Accounts, "Id", "AccountName", donation.AccountId);
             return View(donation);
         }
 
@@ -107,11 +141,6 @@ namespace TempleManagementSystem.Controllers
                 return NotFound();
             }
             return View(donation);
-        }
-
-        private bool DonationExists(Guid id)
-        {
-            throw new NotImplementedException();
         }
 
         // GET: Donation/Delete/5
@@ -143,5 +172,9 @@ namespace TempleManagementSystem.Controllers
             return RedirectToAction(nameof(Index));
         }
 
+        private bool DonationExists(Guid id)
+        {
+            return _context.Donations.Any(e => e.Id == id);
+        }
     }
 }

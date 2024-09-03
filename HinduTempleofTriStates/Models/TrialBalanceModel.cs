@@ -1,14 +1,22 @@
-﻿namespace HinduTempleofTriStates.Models
+﻿using System.Collections.Generic;
+
+namespace HinduTempleofTriStates.Models
 {
     public class TrialBalanceModel
     {
-        public List<TrialBalanceEntry> TrialBalanceEntries { get; set; } = new List<TrialBalanceEntry>();
-    }
-
-    public class TrialBalanceEntry
-    {
+        // List of TrialBalanceAccount objects
+        public List<TrialBalanceAccount> TrialBalanceAccounts { get; set; }
         public string AccountName { get; set; }
-        public decimal Debit { get; set; }
-        public decimal Credit { get; set; }
+        public double Debit { get; set; }
+        public double Credit { get; set; }
+
+
+        public decimal TotalDebits => (decimal)Debit;
+        public decimal TotalCredits => (decimal)Credit;
+        // Constructor to initialize the list
+        public TrialBalanceModel()
+        {
+            TrialBalanceAccounts = new List<TrialBalanceAccount>();
+        }
     }
 }

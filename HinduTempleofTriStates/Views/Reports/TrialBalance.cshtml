@@ -1,27 +1,47 @@
 ﻿@page
-@model             TrialBalanceModel
+@model HinduTempleofTriStates.Models.TrialBalanceModel
 @{
     ViewData["Title"] = "Trial Balance";
 }
 
 <h1>@ViewData["Title"]</h1>
 
-<table class="table">
-    <thead>
+<table class="table table-bordered">
+    <thead class="thead-dark">
         <tr>
-            <th>Account</th>
-            <th>Debit</th>
-            <th>Credit</th>
+            <th scope="col">Account</th>
+            <th scope="col">Debit</th>
+            <th scope="col">Credit</th>
         </tr>
     </thead>
     <tbody>
         @foreach (var account in Model.TrialBalanceAccounts)
         {
-                <tr>
-                    <td>@account.AccountName</td>
-                    <td>@account.DebitTotal.ToString("C")</td>
-                    <td>@account.CreditTotal.ToString("C")</td>
-                </tr>
+            <tr>
+                <td>@account.AccountName</td>
+                <td>@account.DebitTotal.ToString("C")</td>
+                <td>@account.CreditTotal.ToString("C")</td>
+            </tr>
         }
     </tbody>
+    <tfoot>
+        <tr>
+            <th>Total</th>
+            <th>@Model.TotalDebits.ToString("C")</th>
+            <th>@Model.TotalCredits.ToString("C")</th>
+        </tr>
+    </tfoot>
 </table>
+
+@if (Model.TotalDebits != Model.TotalCredits)
+{
+    <div class="alert alert-danger" role="alert">
+        Warning: The debits and credits are not balanced!
+    </div>
+}
+else
+{
+    <div class="alert alert-success" role="alert">
+        The trial balance is balanced.
+    </div>
+}

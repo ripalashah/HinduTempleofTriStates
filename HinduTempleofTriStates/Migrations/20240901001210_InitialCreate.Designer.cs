@@ -25,7 +25,7 @@ namespace HinduTempleofTriStates.Migrations
 
             SqlServerModelBuilderExtensions.UseIdentityColumns(modelBuilder);
 
-            modelBuilder.Entity("TempleManagementSystem.Models.Donation", b =>
+            modelBuilder.Entity("HinduTempleofTriStates.Models.Donation", b =>
                 {
                     b.Property<Guid>("Id")
                         .ValueGeneratedOnAdd()

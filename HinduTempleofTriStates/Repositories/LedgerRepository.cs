@@ -18,26 +18,26 @@ namespace HinduTempleofTriStates.Repositories
             return await _context.LedgerAccounts.ToListAsync();
         }
 
-        public async Task<LedgerAccount?> GetAccountByIdAsync(int id)
+        public async Task<LedgerAccount?> GetAccountByIdAsync(Guid id)
         {
             return await _context.LedgerAccounts.FindAsync(id);
         }
 
         public async Task AddAccountAsync(LedgerAccount account)
         {
-            await _context.LedgerAccounts.AddAsync(account);
+            _context.LedgerAccounts.Add(account);
             await _context.SaveChangesAsync();
         }
 
         public async Task UpdateAccountAsync(LedgerAccount account)
         {
-            _context.LedgerAccounts.Update(account);
+            _context.Entry(account).State = EntityState.Modified;
             await _context.SaveChangesAsync();
         }
 
-        public async Task DeleteAccountAsync(int id)
+        public async Task DeleteAccountAsync(Guid id)
         {
-            var account = await GetAccountByIdAsync(id);
+            var account = await _context.LedgerAccounts.FindAsync(id);
             if (account != null)
             {
                 _context.LedgerAccounts.Remove(account);
@@ -45,15 +45,17 @@ namespace HinduTempleofTriStates.Repositories
             }
         }
 
-        public async Task AddTransactionAsync(Transaction transaction)
+        public async Task<IEnumerable<Transaction>> GetTransactionsByAccountIdAsync(Guid id)
         {
-            await _context.Transactions.AddAsync(transaction);
-            await _context.SaveChangesAsync();
+            return await _context.Transactions
+                .Where(t => t.LedgerAccountId == id)
+                .ToListAsync();
         }
 
-        public async Task<IEnumerable<Transaction>> GetTransactionsByAccountIdAsync(int accountId)
+        public async Task AddTransactionAsync(Transaction transaction)
         {
-            return await _context.Transactions.Where(t => t.LedgerAccountId == accountId).ToListAsync();
+            _context.Transactions.Add(transaction);
+            await _context.SaveChangesAsync();
         }
     }
 }

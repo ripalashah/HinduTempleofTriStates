@@ -22,4 +22,15 @@ namespace HinduTempleofTriStates.Pages
             });
         }
     }
+
+    public class GeneralLedgerEntry
+    {
+        public DateTime Date { get; set; }
+        public required string Description { get; set; }
+        public required string AccountName { get; set; }
+        public decimal Debit { get; set; }
+        public decimal Credit { get; set; }
+        public decimal Balance { get; set; }
+        public object? EntryId { get; internal set; }
+    }
 }

@@ -1,5 +1,6 @@
-﻿using HinduTempleofTriStates.Models;
-using Microsoft.EntityFrameworkCore;
+﻿using Microsoft.EntityFrameworkCore;
+using HinduTempleofTriStates.Models;
+using HinduTempleofTriStates.Pages;
 
 namespace HinduTempleofTriStates.Data
 {
@@ -10,34 +11,58 @@ namespace HinduTempleofTriStates.Data
         {
         }
 
-        // Existing DbSet for Donations
         public DbSet<Donation> Donations { get; set; }
-
-        // Add DbSet for LedgerAccounts
+        public DbSet<Account> Accounts { get; set; }
         public DbSet<LedgerAccount> LedgerAccounts { get; set; }
-
-        // Add DbSet for Transactions
         public DbSet<Transaction> Transactions { get; set; }
-
-        // Add DbSet for Funds
+        public DbSet<CashTransaction> CashTransactions { get; set; }
         public DbSet<Fund> Funds { get; set; }
-        public DbSet<TrialBalanceAccount> TrialBalanceAccounts { get; set; } = default!;
-        public DbSet<ProfitLossItem> ProfitLossItems { get; set; } = default!;
-        public DbSet<GeneralLedgerEntry> GeneralLedgerEntries { get; set; } = default!;
-        public DbSet<CashTransaction> CashTransactions { get; set; } = default!;
+        public DbSet<GeneralLedgerEntry> GeneralLedgerEntries { get; set; }
 
-        // Optionally override OnModelCreating to customize model creation
         protected override void OnModelCreating(ModelBuilder modelBuilder)
         {
             base.OnModelCreating(modelBuilder);
 
-            // Configure LedgerAccount-Transaction relationship
-            modelBuilder.Entity<LedgerAccount>()
-                .HasMany(l => l.Transactions)
-                .WithOne(t => t.LedgerAccount)
-                .HasForeignKey(t => t.LedgerAccountId);
+            modelBuilder.Entity<Account>()
+                .Property(a => a.Balance)
+                .HasColumnType("decimal(18,2)");
 
-            // Other custom configurations (if needed)
+            modelBuilder.Entity<LedgerAccount>()
+                .Property(l => l.Balance)
+                .HasColumnType("decimal(18,2)");
+
+            modelBuilder.Entity<Transaction>()
+                .Property(t => t.Amount)
+                .HasColumnType("decimal(18,2)");
+
+            // Donations to LedgerAccount
+            modelBuilder.Entity<Donation>()
+                .HasOne(d => d.LedgerAccount)
+                .WithMany(l => l.Donations)
+                .HasForeignKey(d => d.LedgerAccountId)
+                .OnDelete(DeleteBehavior.Restrict);
+
+            // Transactions to LedgerAccount
+            modelBuilder.Entity<Transaction>()
+                .HasOne(t => t.LedgerAccount)
+                .WithMany(l => l.Transactions)
+                .HasForeignKey(t => t.LedgerAccountId)
+                .OnDelete(DeleteBehavior.Restrict);
+
+            // CashTransactions to LedgerAccount
+            modelBuilder.Entity<CashTransaction>()
+                .HasOne(ct => ct.LedgerAccount)
+                .WithMany(l => l.CashTransactions)
+                .HasForeignKey(ct => ct.LedgerAccountId)
+                .OnDelete(DeleteBehavior.Restrict);
+
+            // GeneralLedgerEntry EntryId Configuration
+            modelBuilder.Entity<GeneralLedgerEntry>().HasNoKey()
+                .Property(g => g.EntryId)
+                .HasConversion(
+                    v => v.ToString(),
+                    v => Guid.Parse(v))
+                .HasColumnName("EntryId");
         }
     }
 }

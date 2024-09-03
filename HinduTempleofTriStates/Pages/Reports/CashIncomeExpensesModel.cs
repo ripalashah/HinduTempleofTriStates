@@ -15,7 +15,7 @@ namespace HinduTempleofTriStates.Pages.Reports
                 Description = "Sample Transaction",
                 Income = 100.00m,
                 Expense = 50.00m,
-                Type = "Sample Type" // Ensure all required properties are set
+                TransactionType = "Sample Type" // Ensure all required properties are set
             });
         }
     }
@@ -26,6 +26,6 @@ namespace HinduTempleofTriStates.Pages.Reports
         public string Description { get; set; } = string.Empty;
         public decimal Income { get; set; }
         public decimal Expense { get; set; }
-        public string Type { get; set; } = string.Empty; // Ensure this is included if required
+        public string TransactionType { get; set; } = string.Empty; // Ensure this is included if required
     }
 }
