@@ -1,5 +1,6 @@
 ﻿@page
-@model HinduTempleofTriStates.Models.TrialBalanceModel
+@model TrialBalanceModel
+
 @{
     ViewData["Title"] = "Trial Balance";
 }
@@ -36,12 +37,12 @@
 @if (Model.TotalDebits != Model.TotalCredits)
 {
     <div class="alert alert-danger" role="alert">
-        Warning: The debits and credits are not balanced!
+        <strong>Warning:</strong> The debits and credits are not balanced!
     </div>
 }
 else
 {
     <div class="alert alert-success" role="alert">
-        The trial balance is balanced.
+        <strong>Success:</strong> The trial balance is balanced.
     </div>
 }

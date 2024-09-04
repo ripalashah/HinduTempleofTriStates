@@ -1,5 +1,5 @@
 ﻿using HinduTempleofTriStates.Models;
-using HinduTempleofTriStates.Pages;
+using HinduTempleofTriStates.Data;
 using System;
 using System.Collections.Generic;
 using System.Threading.Tasks;
@@ -10,10 +10,10 @@ namespace HinduTempleofTriStates.Repositories
     {
         // CRUD operations for Account
         Task<IEnumerable<Account>> GetAllAccountsAsync();
-        Task<Account?> GetAccountByIdAsync(int id);
+        Task<Account?> GetAccountByIdAsync(Guid id); // Changed from int to Guid
         Task AddAccountAsync(Account account);
         Task UpdateAccountAsync(Account account);
-        Task DeleteAccountAsync(int id);
+        Task DeleteAccountAsync(Guid id); // Changed from int to Guid
 
         // Additional methods for Funds
         Task AddFundAsync(Fund fund);
@@ -22,7 +22,10 @@ namespace HinduTempleofTriStates.Repositories
         // Additional methods for Transactions
         Task ReconcileTransactionAsync(Guid transactionId);
         Task<IEnumerable<Transaction>> GetUnreconciledTransactionsAsync();
+
+        // Methods for General Ledger Entries
         Task<IEnumerable<GeneralLedgerEntry>> GetAllGeneralLedgerEntriesAsync();
-        Task<GeneralLedgerEntry> GetGeneralLedgerEntryByIdAsync(int id);
+        Task<GeneralLedgerEntry?> GetGeneralLedgerEntryByIdAsync(Guid id); // Changed from int to Guid
+        Task<IEnumerable<GeneralLedgerEntry>> GetEntriesAsync(Guid accountId);
     }
 }

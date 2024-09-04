@@ -1,12 +1,14 @@
 ﻿using System.ComponentModel.DataAnnotations;
 using System.ComponentModel.DataAnnotations.Schema;
 
+
 namespace HinduTempleofTriStates.Models
 {
-    public class LedgerEntry
+    public class GeneralLedgerEntry
     {
-        public int Id { get; set; }
+        public Guid Id { get; set; }
         [NotMapped] // This attribute excludes the property from being mapped to the database
+        public Guid AccountId { get; set; }
         public required object EntryId { get; set; }
         public required string AccountName { get; set; }
         public DateTime Date { get; set; }
@@ -18,6 +20,5 @@ namespace HinduTempleofTriStates.Models
         public Guid LedgerAccountId { get; set; }
 
         
-        public LedgerAccount LedgerAccount { get; set; }
     }
 }

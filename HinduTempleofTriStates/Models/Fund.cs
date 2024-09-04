@@ -4,7 +4,7 @@ namespace HinduTempleofTriStates.Models
 {
     public class Fund
     {
-        public int Id { get; set; }
+        public Guid Id { get; set; }
 
         public required string AccountName { get; set; }
         public decimal Balance { get; set; }

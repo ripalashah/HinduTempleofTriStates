@@ -2,6 +2,8 @@
 using Microsoft.EntityFrameworkCore;
 using HinduTempleofTriStates.Data;
 using HinduTempleofTriStates.Models;
+using System;
+using System.Linq;
 using System.Threading.Tasks;
 using HinduTempleofTriStates.Repositories;
 using HinduTempleofTriStates.Services;
@@ -14,7 +16,7 @@ namespace HinduTempleofTriStates.Controllers
         private readonly IAccountRepository _accountRepository;
         private readonly LedgerService _ledgerService;
 
-        // Single constructor to satisfy DI container
+        // Constructor to satisfy Dependency Injection (DI) container
         public AccountsController(ApplicationDbContext context, IAccountRepository accountRepository, LedgerService ledgerService)
         {
             _context = context;
@@ -30,7 +32,7 @@ namespace HinduTempleofTriStates.Controllers
         }
 
         // GET: Accounts/Details/5
-        public async Task<IActionResult> Details(int id)
+        public async Task<IActionResult> Details(Guid id)
         {
             var account = await _context.Accounts
                 .FirstOrDefaultAsync(m => m.Id == id);
@@ -52,10 +54,11 @@ namespace HinduTempleofTriStates.Controllers
         // POST: Accounts/Create
         [HttpPost]
         [ValidateAntiForgeryToken]
-        public async Task<IActionResult> Create([Bind("Id,AccountName,Balance")] Account account)
+        public async Task<IActionResult> Create([Bind("AccountName,Balance")] Account account)
         {
             if (ModelState.IsValid)
             {
+                account.Id = Guid.NewGuid();  // Generate a new Guid for the account
                 _context.Add(account);
                 await _context.SaveChangesAsync();
                 return RedirectToAction(nameof(Index));
@@ -64,7 +67,7 @@ namespace HinduTempleofTriStates.Controllers
         }
 
         // GET: Accounts/Edit/5
-        public async Task<IActionResult> Edit(int id)
+        public async Task<IActionResult> Edit(Guid id)
         {
             var account = await _context.Accounts.FindAsync(id);
             if (account == null)
@@ -77,7 +80,7 @@ namespace HinduTempleofTriStates.Controllers
         // POST: Accounts/Edit/5
         [HttpPost]
         [ValidateAntiForgeryToken]
-        public async Task<IActionResult> Edit(int id, [Bind("Id,AccountName,Balance")] Account account)
+        public async Task<IActionResult> Edit(Guid id, [Bind("Id,AccountName,Balance")] Account account)
         {
             if (id != account.Id)
             {
@@ -108,7 +111,7 @@ namespace HinduTempleofTriStates.Controllers
         }
 
         // GET: Accounts/Delete/5
-        public async Task<IActionResult> Delete(int id)
+        public async Task<IActionResult> Delete(Guid id)
         {
             var account = await _context.Accounts
                 .FirstOrDefaultAsync(m => m.Id == id);
@@ -124,7 +127,7 @@ namespace HinduTempleofTriStates.Controllers
         // POST: Accounts/Delete/5
         [HttpPost, ActionName("Delete")]
         [ValidateAntiForgeryToken]
-        public async Task<IActionResult> DeleteConfirmed(int id)
+        public async Task<IActionResult> DeleteConfirmed(Guid id)
         {
             var account = await _context.Accounts.FindAsync(id);
             _context.Accounts.Remove(account);
@@ -147,7 +150,7 @@ namespace HinduTempleofTriStates.Controllers
             if (ModelState.IsValid)
             {
                 await _accountRepository.AddFundAsync(fund);
-                return RedirectToAction("ManageFunds");
+                return RedirectToAction(nameof(ManageFunds));
             }
             return View(fund);
         }
@@ -166,7 +169,7 @@ namespace HinduTempleofTriStates.Controllers
         public async Task<IActionResult> Reconcile(Guid transactionId)
         {
             await _accountRepository.ReconcileTransactionAsync(transactionId);
-            return RedirectToAction("Reconciliation");
+            return RedirectToAction(nameof(Reconciliation));
         }
 
         // GET: Accounts/Reconciliation
@@ -177,7 +180,7 @@ namespace HinduTempleofTriStates.Controllers
             return View(transactions);
         }
 
-        private bool AccountExists(int id)
+        private bool AccountExists(Guid id)
         {
             return _context.Accounts.Any(e => e.Id == id);
         }

@@ -37,12 +37,16 @@ internal class Program
             app.UseExceptionHandler("/Home/Error");
             app.UseHsts();
         }
+        else
+        {
+            app.UseDeveloperExceptionPage();
+        }
 
-        //app.UseHttpsRedirection();
+        // Uncomment the following line if you want to enforce HTTPS redirection
+        // app.UseHttpsRedirection();
+
         app.UseStaticFiles();
-
         app.UseRouting();
-
         app.UseAuthorization();
 
         // Configure endpoint routing

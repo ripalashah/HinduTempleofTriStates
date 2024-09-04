@@ -4,35 +4,37 @@
     ViewData["Title"] = "Donations List";
 }
 
-<h1>Donations List</h1>
+<div class="container mt-4">
+    <h1>@ViewData["Title"]</h1>
 
-<p>
-    <a asp-action="Create" class="btn btn-primary">Add Donation</a>
-</p>
+    <p>
+        <a asp-action="Create" class="btn btn-primary">Add Donation</a>
+    </p>
 
-<table class="table">
-    <thead>
-        <tr>
-            <th>Donor Name</th>
-            <th>Amount</th>
-            <th>Donation Type</th>
-            <th>Date</th>
-            <th>Actions</th>
-        </tr>
-    </thead>
-    <tbody>
-        @foreach (var donation in Model)
-        {
+    <table class="table table-striped">
+        <thead>
             <tr>
-                <td>@donation.DonorName</td>
-                <td>@donation.Amount.ToString("C")</td>
-                <td>@donation.DonationType</td>
-                <td>@donation.Date.ToShortDateString()</td>
-                <td>
-                    <a asp-action="Edit" asp-route-id="@donation.Id" class="btn btn-sm btn-warning">Edit</a>
-                    <a asp-action="Delete" asp-route-id="@donation.Id" class="btn btn-sm btn-danger">Delete</a>
-                </td>
+                <th>Donor Name</th>
+                <th>Amount</th>
+                <th>Donation Type</th>
+                <th>Date</th>
+                <th>Actions</th>
             </tr>
-        }
-    </tbody>
-</table>
+        </thead>
+        <tbody>
+            @foreach (var donation in Model)
+            {
+                <tr>
+                    <td>@donation.DonorName</td>
+                    <td>@donation.Amount.ToString("C")</td>
+                    <td>@donation.DonationType</td>
+                    <td>@donation.Date.ToShortDateString()</td>
+                    <td>
+                        <a asp-action="Edit" asp-route-id="@donation.Id" class="btn btn-sm btn-warning">Edit</a>
+                        <a asp-action="Delete" asp-route-id="@donation.Id" class="btn btn-sm btn-danger">Delete</a>
+                    </td>
+                </tr>
+            }
+        </tbody>
+    </table>
+</div>

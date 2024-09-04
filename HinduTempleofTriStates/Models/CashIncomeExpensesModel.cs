@@ -1,5 +1,4 @@
 ﻿using System.Collections.Generic;
-using HinduTempleofTriStates.Models;
 using System.Linq;
 
 namespace HinduTempleofTriStates.Models

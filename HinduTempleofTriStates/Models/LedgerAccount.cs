@@ -6,7 +6,7 @@ namespace HinduTempleofTriStates.Models
     public class LedgerAccount
     {
         [Key]
-        public int Id { get; set; }
+        public Guid Id { get; set; }
 
         [Required]
         public required string AccountName { get; set; }
@@ -25,5 +25,12 @@ namespace HinduTempleofTriStates.Models
         // Navigation property for related CashTransactions
         public virtual ICollection<CashTransaction> CashTransactions { get; set; } = new List<CashTransaction>();
         public required ICollection<LedgerEntry> LedgerEntries { get; set; }
+        
+        [Required(ErrorMessage = "The AccountId field is required.")]
+        public Guid AccountId { get; set; }
+    }
+
+    public class LedgerEntry
+    {
     }
 }

@@ -1,6 +1,10 @@
-﻿using HinduTempleofTriStates.Data;
-using HinduTempleofTriStates.Models;
+﻿using System;
+using System.Collections.Generic;
+using System.Linq;
+using System.Threading.Tasks;
 using Microsoft.EntityFrameworkCore;
+using HinduTempleofTriStates.Data;
+using HinduTempleofTriStates.Models;
 
 namespace HinduTempleofTriStates.Repositories
 {
@@ -13,14 +17,15 @@ namespace HinduTempleofTriStates.Repositories
             _context = context;
         }
 
+        public async Task<LedgerAccount> GetAccountByIdAsync(Guid id)
+        {
+            var account = await _context.LedgerAccounts.FindAsync(id);
+            return account ?? throw new KeyNotFoundException("Account not found"); // Ensure non-nullable return
+        }
+
         public async Task<IEnumerable<LedgerAccount>> GetAllAccountsAsync()
         {
             return await _context.LedgerAccounts.ToListAsync();
-        }
-
-        public async Task<LedgerAccount?> GetAccountByIdAsync(Guid id)
-        {
-            return await _context.LedgerAccounts.FindAsync(id);
         }
 
         public async Task AddAccountAsync(LedgerAccount account)
@@ -31,7 +36,7 @@ namespace HinduTempleofTriStates.Repositories
 
         public async Task UpdateAccountAsync(LedgerAccount account)
         {
-            _context.Entry(account).State = EntityState.Modified;
+            _context.LedgerAccounts.Update(account);
             await _context.SaveChangesAsync();
         }
 
@@ -45,10 +50,10 @@ namespace HinduTempleofTriStates.Repositories
             }
         }
 
-        public async Task<IEnumerable<Transaction>> GetTransactionsByAccountIdAsync(Guid id)
+        public async Task<IEnumerable<Transaction>> GetTransactionsByAccountIdAsync(Guid accountId)
         {
             return await _context.Transactions
-                .Where(t => t.LedgerAccountId == id)
+                .Where(t => t.AccountId == accountId)
                 .ToListAsync();
         }
 

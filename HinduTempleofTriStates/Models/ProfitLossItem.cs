@@ -2,7 +2,7 @@
 {
     public class ProfitLossModel
     {
-        public List<ProfitLossItem> ProfitLossItems { get; set; } = [];
+        public List<ProfitLossItem> ProfitLossItems { get; set; } = new List<ProfitLossItem>();
     }
 
     public class ProfitLossItem

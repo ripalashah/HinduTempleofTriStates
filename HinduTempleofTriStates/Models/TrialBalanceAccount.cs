@@ -2,7 +2,7 @@
 {
     public class TrialBalanceAccount
     {
-        public int Id { get; set; }
+        public Guid Id { get; set; }
         public required string AccountName { get; set; }
         public decimal DebitBalance { get; set; }
         public decimal CreditBalance { get; set; }

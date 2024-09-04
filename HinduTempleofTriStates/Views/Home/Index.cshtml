@@ -7,5 +7,11 @@
 <div class="text-center">
     <h1 class="display-4">Welcome to the Temple Management System</h1>
     <p class="lead">Manage temple operations, donations, and more.</p>
-</div>
 
+    <div class="mt-4">
+        <a asp-controller="Donations" asp-action="Index" class="btn btn-primary btn-lg">View Donations</a>
+        <a asp-controller="Accounts" asp-action="Index" class="btn btn-success btn-lg">Manage Accounts</a>
+        <a asp-controller="Funds" asp-action="Index" class="btn btn-info btn-lg">Manage Funds</a>
+        <a asp-controller="Transactions" asp-action="Index" class="btn btn-warning btn-lg">Reconciliation</a>
+    </div>
+</div>

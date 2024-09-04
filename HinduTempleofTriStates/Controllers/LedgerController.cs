@@ -1,6 +1,8 @@
 ﻿using HinduTempleofTriStates.Models;
 using Microsoft.AspNetCore.Mvc;
 using HinduTempleofTriStates.Services;
+using System;
+using System.Collections.Generic;
 using System.Threading.Tasks;
 
 namespace HinduTempleofTriStates.Controllers
@@ -16,7 +18,7 @@ namespace HinduTempleofTriStates.Controllers
             _ledgerService = ledgerService;
         }
 
-        // Get all ledger accounts
+        // GET: api/ledger
         [HttpGet]
         public async Task<IActionResult> GetAllAccounts()
         {
@@ -24,52 +26,59 @@ namespace HinduTempleofTriStates.Controllers
             return Ok(accounts);
         }
 
-        // Get a ledger account by Id
+        // GET: api/ledger/{id}
         [HttpGet("{id}")]
-        public async Task<IActionResult> GetAccount(Guid id) // Changed to Guid
+        public async Task<IActionResult> GetAccount(Guid id)
         {
             var account = await _ledgerService.GetAccountByIdAsync(id);
             if (account == null)
             {
                 return NotFound();
             }
-
             return Ok(account);
         }
 
-        // Add a new ledger account
+        // POST: api/ledger
         [HttpPost]
         public async Task<IActionResult> AddAccount([FromBody] LedgerAccount account)
         {
             if (account == null)
             {
-                return BadRequest();
+                return BadRequest("Account cannot be null.");
+            }
+            if (!ModelState.IsValid)
+            {
+                return BadRequest(ModelState);
             }
 
             await _ledgerService.AddAccountAsync(account);
             return CreatedAtAction(nameof(GetAccount), new { id = account.Id }, account);
         }
 
-        // Add a new transaction
+        // POST: api/ledger/transaction
         [HttpPost("transaction")]
         public async Task<IActionResult> AddTransaction([FromBody] Transaction transaction)
         {
             if (transaction == null)
             {
-                return BadRequest();
+                return BadRequest("Transaction cannot be null.");
+            }
+            if (!ModelState.IsValid)
+            {
+                return BadRequest(ModelState);
             }
 
             await _ledgerService.AddTransactionAsync(transaction);
             return Ok();
         }
 
-        // Update an existing ledger account
+        // PUT: api/ledger/{id}
         [HttpPut("{id}")]
-        public async Task<IActionResult> UpdateAccount(Guid id, [FromBody] LedgerAccount account) // Changed to Guid
+        public async Task<IActionResult> UpdateAccount(Guid id, [FromBody] LedgerAccount account)
         {
             if (account == null || id != account.Id)
             {
-                return BadRequest();
+                return BadRequest("Invalid account data.");
             }
 
             var existingAccount = await _ledgerService.GetAccountByIdAsync(id);
@@ -82,9 +91,9 @@ namespace HinduTempleofTriStates.Controllers
             return NoContent();
         }
 
-        // Delete a ledger account by Id
+        // DELETE: api/ledger/{id}
         [HttpDelete("{id}")]
-        public async Task<IActionResult> DeleteAccount(Guid id) // Changed to Guid
+        public async Task<IActionResult> DeleteAccount(Guid id)
         {
             var account = await _ledgerService.GetAccountByIdAsync(id);
             if (account == null)
@@ -96,11 +105,15 @@ namespace HinduTempleofTriStates.Controllers
             return NoContent();
         }
 
-        // Get all transactions for a specific ledger account
+        // GET: api/ledger/{id}/transactions
         [HttpGet("{id}/transactions")]
-        public async Task<IActionResult> GetTransactionsByAccountId(Guid id) // Changed to Guid
+        public async Task<IActionResult> GetTransactionsByAccountId(Guid id)
         {
             var transactions = await _ledgerService.GetTransactionsByAccountIdAsync(id);
+            if (transactions == null)
+            {
+                return NotFound();
+            }
             return Ok(transactions);
         }
     }

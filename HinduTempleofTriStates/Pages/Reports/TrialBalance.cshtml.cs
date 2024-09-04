@@ -1,9 +1,9 @@
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.AspNetCore.Mvc.RazorPages;
 
-namespace HinduTempleofTriStates.Views.Reports
+namespace HinduTempleofTriStates.Pages.Reports
 {
-    public class CashIncomeExpensesModel : PageModel
+    public class TrialBalanceModel : PageModel
     {
         public void OnGet()
         {
