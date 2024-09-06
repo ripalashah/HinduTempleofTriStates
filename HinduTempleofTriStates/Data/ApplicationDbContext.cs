@@ -42,14 +42,8 @@ namespace HinduTempleofTriStates.Data
                 .HasColumnType("decimal(18,2)");
 
             modelBuilder.Entity<CashTransaction>()
-                .Property(ct => ct.Expense)
-                .HasColumnType("decimal(18,2)");
-                 // Backing field (if necessary)
-                
-
-            modelBuilder.Entity<CashTransaction>()
-                .Property(ct => ct.Income)
-                .HasColumnType("decimal(18,2)");
+                .Ignore(ct => ct.Expense)
+                .Ignore(ct => ct.Income);
 
             modelBuilder.Entity<Fund>()
                 .Property(f => f.Amount)
@@ -60,8 +54,8 @@ namespace HinduTempleofTriStates.Data
                 .HasColumnType("decimal(18,2)");
 
             modelBuilder.Entity<GeneralLedgerEntry>()
-                .Property(g => g.Balance)
-                .HasColumnType("decimal(18,2)");
+                .Ignore(g => g.Balance);
+                
 
             modelBuilder.Entity<GeneralLedgerEntry>()
                 .Property(g => g.Credit)

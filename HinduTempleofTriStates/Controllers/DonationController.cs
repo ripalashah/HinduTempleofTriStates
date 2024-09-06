@@ -14,28 +14,39 @@ namespace HinduTempleofTriStates.Controllers
     public class DonationController : Controller
     {
         private readonly ApplicationDbContext _context;
-        private readonly DonationService _donationService;
+        private readonly IDonationService _donationService;  // Use interface for better abstraction
         private readonly ILogger<DonationController> _logger;
-
-        public DonationController(ApplicationDbContext context, DonationService donationService, ILogger<DonationController> logger)
+        
+        public DonationController(ApplicationDbContext context, IDonationService donationService, ILogger<DonationController> logger)
         {
             _context = context;
             _donationService = donationService;
             _logger = logger;
         }
 
+        // List all donations
         public async Task<IActionResult> Index()
         {
-            var donations = await _donationService.GetDonationsAsync();
-            return View(donations);
+            try
+            {
+                var donations = await _donationService.GetDonationsAsync();
+                return View(donations);
+            }
+            catch (Exception ex)
+            {
+                _logger.LogError(ex, "Error fetching donations");
+                return BadRequest("Unable to load donations. Please try again later.");
+            }
         }
 
+        // Display form to create a donation
         public IActionResult Create()
         {
             ViewData["LedgerAccountId"] = new SelectList(_context.LedgerAccounts, "Id", "AccountName");
             return View();
         }
 
+        // Handle the post request to create a new donation
         [HttpPost]
         [ValidateAntiForgeryToken]
         public async Task<IActionResult> Create([Bind("DonorName,Amount,DonationCategory,DonationType,Date,Phone,City,State,Country,LedgerAccountId")] Donation donation)
@@ -44,25 +55,22 @@ namespace HinduTempleofTriStates.Controllers
             {
                 try
                 {
-                    donation.Id = Guid.NewGuid();
-                    var ledgerAccount = await _context.LedgerAccounts.FindAsync(donation.LedgerAccountId);
-
-                    if (ledgerAccount != null)
-                    {
-                        _context.Add(donation);
-                        await _context.SaveChangesAsync();
-                        return RedirectToAction(nameof(Confirmation), new { id = donation.Id });
-                    }
+                    donation.Id = Guid.NewGuid();  // Assign new GUID to donation
+                    _context.Add(donation);  // Add donation to the context
+                    await _context.SaveChangesAsync();  // Save changes to the database
+                    return RedirectToAction(nameof(Confirmation), new { id = donation.Id });
                 }
                 catch (Exception ex)
                 {
                     _logger.LogError(ex, "Error creating donation");
+                    ModelState.AddModelError("", "Unable to create donation. Please try again.");
                 }
             }
             ViewData["LedgerAccountId"] = new SelectList(_context.LedgerAccounts, "Id", "AccountName", donation.LedgerAccountId);
             return View(donation);
         }
 
+        // Display confirmation after successful donation
         public async Task<IActionResult> Confirmation(Guid id)
         {
             var donation = await _donationService.GetDonationByIdAsync(id);
@@ -73,6 +81,7 @@ namespace HinduTempleofTriStates.Controllers
             return View(donation);
         }
 
+        // Display form to edit an existing donation
         public async Task<IActionResult> Edit(Guid id)
         {
             var donation = await _donationService.GetDonationByIdAsync(id);
@@ -84,6 +93,7 @@ namespace HinduTempleofTriStates.Controllers
             return View(donation);
         }
 
+        // Handle the post request to update the donation
         [HttpPost]
         [ValidateAntiForgeryToken]
         public async Task<IActionResult> Edit(Guid id, [Bind("Id,DonorName,Amount,DonationCategory,DonationType,Date,Phone,City,State,Country,LedgerAccountId")] Donation donation)
@@ -97,20 +107,9 @@ namespace HinduTempleofTriStates.Controllers
             {
                 try
                 {
-                    var existingDonation = await _context.Donations.AsNoTracking().FirstOrDefaultAsync(d => d.Id == id);
-
-                    if (existingDonation != null)
-                    {
-                        var oldAccount = await _context.LedgerAccounts.FindAsync(existingDonation.LedgerAccountId);
-                        var newAccount = await _context.LedgerAccounts.FindAsync(donation.LedgerAccountId);
-
-                        if (oldAccount != null && newAccount != null)
-                        {
-                            _context.Update(donation);
-                            await _context.SaveChangesAsync();
-                            return RedirectToAction(nameof(PrintReceipt), new { id = donation.Id });
-                        }
-                    }
+                    _context.Update(donation);  // Update the donation in the context
+                    await _context.SaveChangesAsync();  // Save the updated donation
+                    return RedirectToAction(nameof(PrintReceipt), new { id = donation.Id });
                 }
                 catch (DbUpdateConcurrencyException ex)
                 {
@@ -129,6 +128,7 @@ namespace HinduTempleofTriStates.Controllers
             return View(donation);
         }
 
+        // Display donation receipt for printing
         public async Task<IActionResult> PrintReceipt(Guid id)
         {
             var donation = await _donationService.GetDonationByIdAsync(id);
@@ -139,6 +139,7 @@ namespace HinduTempleofTriStates.Controllers
             return View(donation);
         }
 
+        // Display confirmation page to delete a donation
         public async Task<IActionResult> Delete(Guid id)
         {
             var donation = await _donationService.GetDonationByIdAsync(id);
@@ -149,6 +150,7 @@ namespace HinduTempleofTriStates.Controllers
             return View(donation);
         }
 
+        // Handle the post request to delete a donation
         [HttpPost, ActionName("Delete")]
         [ValidateAntiForgeryToken]
         public async Task<IActionResult> DeleteConfirmed(Guid id)
@@ -171,6 +173,7 @@ namespace HinduTempleofTriStates.Controllers
             }
         }
 
+        // Check if a donation exists by ID
         private bool DonationExists(Guid id)
         {
             return _context.Donations.Any(e => e.Id == id);
