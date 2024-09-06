@@ -16,7 +16,7 @@ namespace HinduTempleofTriStates.Views.CashTransactions
         }
 
         [BindProperty]
-        public CashTransaction CashTransaction { get; set; } = new CashTransaction();
+        public CashTransaction CashTransaction { get; set; } = new CashTransaction { Description = string.Empty };
 
         public async Task<IActionResult> OnPostAsync()
         {

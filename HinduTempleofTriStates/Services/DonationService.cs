@@ -103,5 +103,15 @@ namespace HinduTempleofTriStates.Services
                    && donation.Amount > 0
                    && donation.Date != DateTime.MinValue;
         }
+
+        internal void AddDonation(object donation)
+        {
+            throw new NotImplementedException();
+        }
+
+        public static implicit operator DonationService(Donation v)
+        {
+            throw new NotImplementedException();
+        }
     }
 }

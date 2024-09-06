@@ -7,7 +7,7 @@ namespace HinduTempleofTriStates.Models
     public class Account
     {
         public Guid Id { get; set; }
-        public required string AccountType { get; set; }
+        public AccountTypeEnum AccountType { get; set; }
 
         [Required]
         [StringLength(100)] // Limit the length of the account name
@@ -20,5 +20,6 @@ namespace HinduTempleofTriStates.Models
         public ICollection<Donation> Donations { get; set; } = new List<Donation>(); // Navigation property
                                                                                      // Navigation property to handle transactions related to this account
         public virtual ICollection<Transaction> Transactions { get; set; } = new List<Transaction>();
+                
     }
 }

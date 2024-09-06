@@ -51,5 +51,6 @@ namespace HinduTempleofTriStates.Models
 
         public string? ModifiedBy { get; set; }
         public DateTime? ModifiedAt { get; set; }
+        public TransactionType Type { get; internal set; }
     }
 }

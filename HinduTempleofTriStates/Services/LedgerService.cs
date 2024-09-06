@@ -66,7 +66,7 @@ namespace HinduTempleofTriStates.Services
             var account = await _context.LedgerAccounts.FindAsync(donation.LedgerAccountId);
             if (account == null) throw new Exception("Account not found");
 
-            account.Balance += donation.Amount;
+            account.Balance += (decimal)donation.Amount;
             _context.Donations.Add(donation);
             _context.LedgerAccounts.Update(account);
 

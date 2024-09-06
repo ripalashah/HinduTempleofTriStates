@@ -29,7 +29,7 @@ namespace HinduTempleofTriStates.Models
         public AccountTypeEnum AccountType { get; set; }
 
         // Balance calculation (total credits minus total debits)
-        public decimal Balance => CreditTotal - DebitTotal;
+        
 
         public decimal DebitTotal => Transactions.Sum(t => t.Debit);
         public decimal CreditTotal => Transactions.Sum(t => t.Credit);
@@ -45,5 +45,6 @@ namespace HinduTempleofTriStates.Models
         public DateTime UpdatedDate { get; set; } = DateTime.UtcNow;
         public required string CreatedBy { get; set; }
         public required string UpdatedBy { get; set; }
+        public decimal Balance { get; set; }
     }
 }

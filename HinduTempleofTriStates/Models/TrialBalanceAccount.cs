@@ -16,8 +16,8 @@ namespace HinduTempleofTriStates.Models
         public decimal CreditBalance { get; set; }
 
         // Total Debit and Credit for the account
-        public decimal DebitTotal => DebitBalance;
-        public decimal CreditTotal => CreditBalance;
+        public decimal DebitTotal { get; set; }
+        public decimal CreditTotal { get; set; }
 
         // Net balance is Debit - Credit
         public decimal NetBalance => DebitBalance - CreditBalance;

@@ -4,7 +4,7 @@ using HinduTempleofTriStates.Models;
 using HinduTempleofTriStates.Services;
 using System.Threading.Tasks;
 
-namespace HinduTempleofTriStates.Models.Donation
+namespace HinduTempleofTriStates.Models
 {
     public class CreateModel : PageModel
     {
@@ -18,14 +18,14 @@ namespace HinduTempleofTriStates.Models.Donation
         [BindProperty]
         public DonationService Donation { get; set; } = new Donation();
 
-        public async Task<IActionResult> OnPostAsync()
+        public IActionResult OnPost()
         {
             if (!ModelState.IsValid)
             {
                 return Page();
             }
 
-            await _donationService.AddDonationAsync(Donation);
+            _donationService.AddDonation(Donation);
             return RedirectToPage("Index");
         }
     }

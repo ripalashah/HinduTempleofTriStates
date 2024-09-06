@@ -16,9 +16,12 @@ namespace HinduTempleofTriStates.Views.Accounts
         }
 
         [BindProperty]
-        public Account Account { get; set; } = new Account(); // Initialize an empty account model
-
-        public IActionResult OnGet()
+        public Account Account { get; set; } = new Account // Initialize an empty account model
+            { 
+                AccountType = AccountTypeEnum.Asset,  // Set a default AccountType
+                AccountName = string.Empty            // Set an empty string as the default AccountName
+            };
+    public IActionResult OnGet()
         {
             // Load any necessary data for the page
             return Page();

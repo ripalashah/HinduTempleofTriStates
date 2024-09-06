@@ -29,7 +29,7 @@ namespace HinduTempleofTriStates.Services
                 model.ProfitLossItems.Add(new ProfitLossItem
                 {
                     Description = $"Donation from {donation.DonorName}",
-                    Amount = donation.Amount
+                    Amount = (decimal)donation.Amount
                 });
             }
 

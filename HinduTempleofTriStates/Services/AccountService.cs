@@ -14,7 +14,16 @@ namespace HinduTempleofTriStates.Services
         }
 
         // Fetch an account by ID
-        public async Task<Account> GetAccountByIdAsync(Guid accountId) => await _context.Accounts.FindAsync(accountId);
+        public async Task<Account> GetAccountByIdAsync(Guid accountId)
+        {
+            var account = await _context.Accounts.FindAsync(accountId);
+            if (account == null)
+            {
+                throw new Exception("Account not found");
+            }
+            return account;
+        }
+
 
         // Update account balance by crediting or debiting
         public async Task UpdateAccountBalanceAsync(Guid accountId, decimal amount, bool isCredit)

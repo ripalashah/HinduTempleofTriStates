@@ -1,11 +1,8 @@
 using Microsoft.AspNetCore.Identity;
 using Microsoft.EntityFrameworkCore;
-using Microsoft.Extensions.DependencyInjection;
-using Microsoft.Extensions.Hosting;
 using HinduTempleofTriStates.Data;
 using HinduTempleofTriStates.Repositories;
 using HinduTempleofTriStates.Services;
-using Microsoft.Extensions.Logging;
 
 internal class Program
 {
@@ -31,7 +28,7 @@ internal class Program
         builder.Services.AddScoped<ILedgerRepository, LedgerRepository>(); // Ledger repository
         builder.Services.AddScoped<IDonationRepository, DonationRepository>(); // Donation repository
         builder.Services.AddScoped<IFundRepository, FundRepository>(); // Fund repository (new)
-
+        builder.Services.AddScoped<CashTransactionService>();
         // Register services with dependency injection container
         builder.Services.AddScoped<LedgerService>(); // LedgerService
         builder.Services.AddScoped<DonationService>(); // DonationService
