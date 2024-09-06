@@ -4,7 +4,7 @@ using HinduTempleofTriStates.Services;
 using System.Collections.Generic;
 using System.Threading.Tasks;
 
-namespace HinduTempleofTriStates.Models.Donation1
+namespace HinduTempleofTriStates.Models
 {
     public class IndexModel : PageModel
     {

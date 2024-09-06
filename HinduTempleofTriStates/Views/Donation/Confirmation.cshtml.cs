@@ -1,7 +1,7 @@
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.AspNetCore.Mvc.RazorPages;
 
-namespace HinduTempleofTriStates.Views.Donation
+namespace HinduTempleofTriStates.Model
 {
     public class ConfirmationModel : PageModel
     {

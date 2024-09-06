@@ -21,7 +21,7 @@ namespace HinduTempleofTriStates.Views.Ledger
         // Fetch the LedgerAccount to display its details before deletion
         public async Task<IActionResult> OnGetAsync(Guid id)
         {
-            LedgerAccount = await _ledgerService.GetAccountByIdAsync(id);
+            LedgerAccount = await _ledgerService.GetLedgerAccountByIdAsync(id);
 
             if (LedgerAccount == null)
             {

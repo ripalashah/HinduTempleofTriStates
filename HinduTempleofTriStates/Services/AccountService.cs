@@ -44,11 +44,31 @@ namespace HinduTempleofTriStates.Services
             await _context.SaveChangesAsync();
         }
 
+        public async Task UpdateAccountAsync(Account account)
+        {
+            var existingAccount = await GetAccountByIdAsync(account.Id);
+            if (existingAccount == null)
+            {
+                throw new Exception("Account not found");
+            }
+
+            existingAccount.AccountName = account.AccountName;
+            existingAccount.Balance = account.Balance;
+            existingAccount.AccountType = account.AccountType;
+            existingAccount.UpdatedDate = DateTime.UtcNow;
+
+            _context.Accounts.Update(existingAccount);
+            await _context.SaveChangesAsync();
+        }
         // Validate a transaction to prevent overdrafts, invalid amounts, etc.
         public async Task<bool> ValidateTransactionAsync(Guid accountId, decimal amount)
         {
             var account = await GetAccountByIdAsync(accountId);
             return account != null && account.Balance >= amount;
+        }
+        public async Task<List<Account>> GetAllAccountsAsync()
+        {
+            return await _context.Accounts.ToListAsync();
         }
 
         // Add a transaction to the account and ledger

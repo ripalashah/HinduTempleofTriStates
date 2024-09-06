@@ -13,15 +13,21 @@ namespace HinduTempleofTriStates.Views.Ledger
         public EditModel(LedgerService ledgerService)
         {
             _ledgerService = ledgerService;
+
         }
 
         [BindProperty]
         public LedgerAccount LedgerAccount { get; set; }
 
-        // Fetch the existing LedgerAccount data when the page is loaded
-        public async Task<IActionResult> OnGetAsync(Guid id)
+        public LedgerService Get_ledgerService()
         {
-            LedgerAccount = await _ledgerService.GetAccountByIdAsync(id);
+            return _ledgerService;
+        }
+
+        // Fetch the existing LedgerAccount data when the page is loaded
+        public async Task<IActionResult> OnGetAsync(Guid id, LedgerService _ledgerService)
+        {
+            LedgerAccount = await _ledgerService.GetLedgerAccountByIdAsync(id);
 
             if (LedgerAccount == null)
             {
@@ -39,7 +45,7 @@ namespace HinduTempleofTriStates.Views.Ledger
                 return Page(); // Redisplay form with validation messages
             }
 
-            await _ledgerService.UpdateAccountAsync(LedgerAccount); // Update the account in the database
+            await _ledgerService.UpdateLedgerAccountAsync(LedgerAccount); // Update the account in the database
             return RedirectToPage("Index");
         }
     }

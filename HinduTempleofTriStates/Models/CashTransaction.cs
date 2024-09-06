@@ -12,6 +12,7 @@ namespace HinduTempleofTriStates.Models
 
     public class CashTransaction
     {
+        [Key]
         public Guid Id { get; set; }
 
         [Required]
@@ -21,15 +22,19 @@ namespace HinduTempleofTriStates.Models
         public required string Description { get; set; }
 
         [DataType(DataType.Currency)]
-        public decimal Amount { get; set; } // Total amount for income or expense
+        [Required]
+        public decimal Amount { get; set; } // The amount will represent either income or expense.
 
+        [NotMapped]
         [DataType(DataType.Currency)]
         public decimal Income => Type == CashTransactionType.Income ? Amount : 0m;
 
+        [NotMapped]
         [DataType(DataType.Currency)]
         public decimal Expense => Type == CashTransactionType.Expense ? Amount : 0m;
 
-        public CashTransactionType Type { get; set; } // Enum for transaction type
+        [Required]
+        public CashTransactionType Type { get; set; } // Enum for transaction type (Income or Expense)
 
         // Foreign Key to LedgerAccount
         public Guid? LedgerAccountId { get; set; }

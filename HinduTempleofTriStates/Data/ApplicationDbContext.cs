@@ -44,6 +44,8 @@ namespace HinduTempleofTriStates.Data
             modelBuilder.Entity<CashTransaction>()
                 .Property(ct => ct.Expense)
                 .HasColumnType("decimal(18,2)");
+                 // Backing field (if necessary)
+                
 
             modelBuilder.Entity<CashTransaction>()
                 .Property(ct => ct.Income)
@@ -119,7 +121,7 @@ namespace HinduTempleofTriStates.Data
                 {
                     Id = accountId,
                     AccountName = "Default Account",
-                    AccountType = "Checking",
+                    AccountType = AccountTypeEnum.Checking,
                     Balance = 0
                 }
             );

@@ -53,7 +53,7 @@ namespace HinduTempleofTriStates.Controllers
         [HttpGet("{id}")]
         public async Task<IActionResult> GetAccount(Guid id)
         {
-            var account = await _ledgerService.GetAccountByIdAsync(id);
+            var account = await _ledgerService.GetLedgerAccountByIdAsync(id);
             if (account == null)
             {
                 return NotFound();
@@ -106,13 +106,13 @@ namespace HinduTempleofTriStates.Controllers
                 return BadRequest("Invalid account data.");
             }
 
-            var existingAccount = await _ledgerService.GetAccountByIdAsync(id);
+            var existingAccount = await _ledgerService.GetLedgerAccountByIdAsync(id);
             if (existingAccount == null)
             {
                 return NotFound();
             }
 
-            await _ledgerService.UpdateAccountAsync(account);
+            await _ledgerService.UpdateLedgerAccountAsync(account);
             return NoContent();
         }
 
@@ -120,7 +120,7 @@ namespace HinduTempleofTriStates.Controllers
         [HttpDelete("{id}")]
         public async Task<IActionResult> DeleteAccount(Guid id)
         {
-            var account = await _ledgerService.GetAccountByIdAsync(id);
+            var account = await _ledgerService.GetLedgerAccountByIdAsync(id);
             if (account == null)
             {
                 return NotFound();

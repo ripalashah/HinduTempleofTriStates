@@ -16,7 +16,7 @@ namespace HinduTempleofTriStates.Views.Ledger
         }
 
         [BindProperty]
-        public LedgerAccount LedgerAccount { get; set; }
+        public required LedgerAccount LedgerAccount { get; set; }
 
         // Handles the GET request to display the empty form
         public IActionResult OnGet()

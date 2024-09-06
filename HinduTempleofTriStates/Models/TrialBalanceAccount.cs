@@ -27,7 +27,10 @@ namespace HinduTempleofTriStates.Models
     {
         // List of TrialBalanceAccount objects
         public List<TrialBalanceAccount> TrialBalanceAccounts { get; set; } = new List<TrialBalanceAccount>();
-
+        public TrialBalanceModel()
+        {
+            TrialBalanceAccounts = new List<TrialBalanceAccount>(); // Initialize
+        }
         // Calculated properties for the entire trial balance
         public decimal TotalDebits => TrialBalanceAccounts.Sum(a => a.DebitTotal);
         public decimal TotalCredits => TrialBalanceAccounts.Sum(a => a.CreditTotal);
