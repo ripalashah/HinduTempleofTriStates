@@ -24,51 +24,45 @@ namespace HinduTempleofTriStates.Controllers
             _logger = logger;
         }
 
-        // GET: Donation/Index
         public async Task<IActionResult> Index()
         {
             var donations = await _donationService.GetDonationsAsync();
             return View(donations);
         }
 
-        // GET: Donation/Create
         public IActionResult Create()
         {
-            ViewData["AccountId"] = new SelectList(_context.Accounts, "Id", "AccountName");
+            ViewData["LedgerAccountId"] = new SelectList(_context.LedgerAccounts, "Id", "AccountName");
             return View();
         }
 
-        // POST: Donation/Create
         [HttpPost]
         [ValidateAntiForgeryToken]
-        public async Task<IActionResult> Create([Bind("DonorName,Amount,DonationCategory,DonationType,Date,Phone,City,State,Country,AccountId")] Donation donation)
+        public async Task<IActionResult> Create([Bind("DonorName,Amount,DonationCategory,DonationType,Date,Phone,City,State,Country,LedgerAccountId")] Donation donation)
         {
             if (ModelState.IsValid)
             {
                 try
                 {
-                    donation.Id = Guid.NewGuid(); // Generate a new Guid for the donation
-                    var account = await _context.Accounts.FindAsync(donation.AccountId);
-                    if (account != null)
+                    donation.Id = Guid.NewGuid();
+                    var ledgerAccount = await _context.LedgerAccounts.FindAsync(donation.LedgerAccountId);
+
+                    if (ledgerAccount != null)
                     {
-                        account.Balance += donation.Amount; // Update account balance
-                        _context.Update(account);
+                        _context.Add(donation);
+                        await _context.SaveChangesAsync();
+                        return RedirectToAction(nameof(Confirmation), new { id = donation.Id });
                     }
-                    _context.Add(donation);
-                    await _context.SaveChangesAsync();
-                    return RedirectToAction(nameof(Confirmation), new { id = donation.Id });
                 }
                 catch (Exception ex)
                 {
                     _logger.LogError(ex, "Error creating donation");
-                    // Optionally add a user-friendly message or redirect to an error page
                 }
             }
-            ViewData["AccountId"] = new SelectList(_context.Accounts, "Id", "AccountName", donation.AccountId);
+            ViewData["LedgerAccountId"] = new SelectList(_context.LedgerAccounts, "Id", "AccountName", donation.LedgerAccountId);
             return View(donation);
         }
 
-        // GET: Donation/Confirmation
         public async Task<IActionResult> Confirmation(Guid id)
         {
             var donation = await _donationService.GetDonationByIdAsync(id);
@@ -79,7 +73,6 @@ namespace HinduTempleofTriStates.Controllers
             return View(donation);
         }
 
-        // GET: Donation/Edit/5
         public async Task<IActionResult> Edit(Guid id)
         {
             var donation = await _donationService.GetDonationByIdAsync(id);
@@ -87,14 +80,13 @@ namespace HinduTempleofTriStates.Controllers
             {
                 return NotFound();
             }
-            ViewData["AccountId"] = new SelectList(_context.Accounts, "Id", "AccountName", donation.AccountId);
+            ViewData["LedgerAccountId"] = new SelectList(_context.LedgerAccounts, "Id", "AccountName", donation.LedgerAccountId);
             return View(donation);
         }
 
-        // POST: Donation/Edit/5
         [HttpPost]
         [ValidateAntiForgeryToken]
-        public async Task<IActionResult> Edit(Guid id, [Bind("Id,DonorName,Amount,DonationCategory,DonationType,Date,Phone,City,State,Country,AccountId")] Donation donation)
+        public async Task<IActionResult> Edit(Guid id, [Bind("Id,DonorName,Amount,DonationCategory,DonationType,Date,Phone,City,State,Country,LedgerAccountId")] Donation donation)
         {
             if (id != donation.Id)
             {
@@ -106,26 +98,19 @@ namespace HinduTempleofTriStates.Controllers
                 try
                 {
                     var existingDonation = await _context.Donations.AsNoTracking().FirstOrDefaultAsync(d => d.Id == id);
+
                     if (existingDonation != null)
                     {
-                        var account = await _context.Accounts.FindAsync(existingDonation.AccountId);
-                        if (account != null)
-                        {
-                            account.Balance -= existingDonation.Amount; // Revert previous amount
-                            _context.Update(account);
-                        }
+                        var oldAccount = await _context.LedgerAccounts.FindAsync(existingDonation.LedgerAccountId);
+                        var newAccount = await _context.LedgerAccounts.FindAsync(donation.LedgerAccountId);
 
-                        account = await _context.Accounts.FindAsync(donation.AccountId);
-                        if (account != null)
+                        if (oldAccount != null && newAccount != null)
                         {
-                            account.Balance += donation.Amount; // Update new amount
-                            _context.Update(account);
+                            _context.Update(donation);
+                            await _context.SaveChangesAsync();
+                            return RedirectToAction(nameof(PrintReceipt), new { id = donation.Id });
                         }
                     }
-
-                    _context.Update(donation);
-                    await _context.SaveChangesAsync();
-                    return RedirectToAction(nameof(PrintReceipt), new { id = donation.Id });
                 }
                 catch (DbUpdateConcurrencyException ex)
                 {
@@ -140,11 +125,10 @@ namespace HinduTempleofTriStates.Controllers
                     }
                 }
             }
-            ViewData["AccountId"] = new SelectList(_context.Accounts, "Id", "AccountName", donation.AccountId);
+            ViewData["LedgerAccountId"] = new SelectList(_context.LedgerAccounts, "Id", "AccountName", donation.LedgerAccountId);
             return View(donation);
         }
 
-        // GET: Donation/PrintReceipt/5
         public async Task<IActionResult> PrintReceipt(Guid id)
         {
             var donation = await _donationService.GetDonationByIdAsync(id);
@@ -155,7 +139,6 @@ namespace HinduTempleofTriStates.Controllers
             return View(donation);
         }
 
-        // GET: Donation/Delete/5
         public async Task<IActionResult> Delete(Guid id)
         {
             var donation = await _donationService.GetDonationByIdAsync(id);
@@ -166,7 +149,6 @@ namespace HinduTempleofTriStates.Controllers
             return View(donation);
         }
 
-        // POST: Donation/Delete/5
         [HttpPost, ActionName("Delete")]
         [ValidateAntiForgeryToken]
         public async Task<IActionResult> DeleteConfirmed(Guid id)

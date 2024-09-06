@@ -7,8 +7,6 @@
 <div class="container mt-4">
     <h1>@ViewData["Title"]</h1>
 
-    <h4>Donation</h4>
-    <hr />
     <form asp-action="Edit">
         <div class="form-group">
             <label asp-for="DonorName" class="control-label"></label>
@@ -31,7 +29,6 @@
         <div class="form-group">
             <label asp-for="DonationType" class="control-label"></label>
             <select asp-for="DonationType" class="form-control">
-                <option value="">Select Donation Type</option>
                 <option value="Cash">Cash</option>
                 <option value="Product">Product</option>
                 <option value="Credit Card">Credit Card</option>
@@ -42,49 +39,23 @@
         </div>
 
         <div class="form-group">
-            <label asp-for="Date" class="control-label"></label>
-            <input asp-for="Date" type="date" class="form-control" />
-            <span asp-validation-for="Date" class="text-danger"></span>
+            <label asp-for="LedgerAccountId" class="control-label"></label>
+            <select asp-for="LedgerAccountId" class="form-control" asp-items="ViewBag.LedgerAccounts"></select>
+            <span asp-validation-for="LedgerAccountId" class="text-danger"></span>
         </div>
 
-        <div class="form-group">
-            <label asp-for="Phone" class="control-label"></label>
-            <input asp-for="Phone" class="form-control" />
-            <span asp-validation-for="Phone" class="text-danger"></span>
-        </div>
-
-        <div class="form-group">
-            <label asp-for="City" class="control-label"></label>
-            <input asp-for="City" class="form-control" />
-            <span asp-validation-for="City" class="text-danger"></span>
-        </div>
-
-        <div class="form-group">
-            <label asp-for="State" class="control-label"></label>
-            <input asp-for="State" class="form-control" />
-            <span asp-validation-for="State" class="text-danger"></span>
-        </div>
-
-        <div class="form-group">
-            <label asp-for="Country" class="control-label"></label>
-            <input asp-for="Country" class="form-control" />
-            <span asp-validation-for="Country" class="text-danger"></span>
-        </div>
-
-        <div class="form-group">
-            <label asp-for="AccountId" class="control-label"></label>
-            <select asp-for="AccountId" class="form-control" asp-items="ViewBag.AccountId"></select>
-            <span asp-validation-for="AccountId" class="text-danger"></span>
-        </div>
-
-        <input type="hidden" asp-for="Id" />
         <div class="form-group">
             <input type="submit" value="Save" class="btn btn-primary" />
-            <a href="@Url.Action("Index")" class="btn btn-secondary">Back to List</a>
         </div>
     </form>
-</div>
 
-@section Scripts {
-    @await Html.RenderPartialAsync("_ValidationScriptsPartial")
-}
+    <div>
+        <a asp-action="Index">Back to List</a>
+    </div>
+
+    @section Scripts {
+        @{
+            await Html.RenderPartialAsync("_ValidationScriptsPartial");
+        }
+    }
+</div>

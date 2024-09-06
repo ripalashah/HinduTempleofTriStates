@@ -16,20 +16,18 @@
                 <strong>Date:</strong> @Model.Date.ToShortDateString()
             </p>
 
-            <div class="d-flex justify-content-between">
+            <div class="d-flex justify-content-between no-print">
                 <button onclick="window.print()" class="btn btn-primary">Print Receipt</button>
-                <a href="@Url.Action("Index")" class="btn btn-secondary">Back to Donations List</a>
+                <a href="@Url.Action("Index", "Donation")" class="btn btn-secondary">Back to Donations List</a>
             </div>
         </div>
     </div>
 </div>
 
-@section Styles {
-    <style>
-        @media print {
-            .no-print {
-                display: none;
-            }
+<style>
+    @media print {
+        .no-print {
+            display: none;
         }
-    </style>
-}
+    }
+</style>

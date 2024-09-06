@@ -40,6 +40,10 @@ namespace HinduTempleofTriStates.Repositories
         {
             return await _context.Accounts.ToListAsync();
         }
+        public async Task<bool> AccountExistsAsync(Guid id)
+        {
+            return await _context.Accounts.AnyAsync(a => a.Id == id);
+        }
 
         // Add a new Account
         public async Task AddAccountAsync(Account account)
@@ -58,7 +62,7 @@ namespace HinduTempleofTriStates.Repositories
         // Delete an Account by its ID
         public async Task DeleteAccountAsync(Guid id)
         {
-            var account = await GetAccountByIdAsync(id);
+            var account = await _context.Accounts.FindAsync(id);
             if (account != null)
             {
                 _context.Accounts.Remove(account);

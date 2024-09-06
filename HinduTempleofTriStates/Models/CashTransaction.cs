@@ -9,27 +9,27 @@ namespace HinduTempleofTriStates.Models
         Income,
         Expense
     }
+
     public class CashTransaction
     {
         public Guid Id { get; set; }
+
+        [Required]
         public DateTime Date { get; set; }
 
         [Required]
         public required string Description { get; set; }
 
         [DataType(DataType.Currency)]
-        public decimal Amount { get; set; }
+        public decimal Amount { get; set; } // Total amount for income or expense
 
         [DataType(DataType.Currency)]
-        public decimal Income { get; set; }
+        public decimal Income => Type == CashTransactionType.Income ? Amount : 0m;
 
         [DataType(DataType.Currency)]
-        public decimal Expense { get; set; }
+        public decimal Expense => Type == CashTransactionType.Expense ? Amount : 0m;
 
-        public CashTransactionType Type { get; set; }
-
-        [Required]
-        public required string TransactionType { get; set; } // "Income" or "Expense"
+        public CashTransactionType Type { get; set; } // Enum for transaction type
 
         // Foreign Key to LedgerAccount
         public Guid? LedgerAccountId { get; set; }
@@ -37,14 +37,13 @@ namespace HinduTempleofTriStates.Models
         [ForeignKey("LedgerAccountId")]
         public LedgerAccount? LedgerAccount { get; set; } // Navigation property
 
-        // Parameterized constructor
-        public CashTransaction(DateTime date, string description, decimal income, decimal expense, string type)
+        // Constructor for Income/Expense transaction
+        public CashTransaction(DateTime date, string description, decimal amount, CashTransactionType type)
         {
             Date = date;
             Description = description;
-            Income = income;
-            Expense = expense;
-            TransactionType = type;
+            Amount = amount;
+            Type = type;
         }
 
         // Default constructor for EF Core

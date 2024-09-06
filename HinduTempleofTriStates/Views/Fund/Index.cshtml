@@ -1,0 +1,40 @@
+﻿@model IEnumerable<HinduTempleofTriStates.Models.Fund>
+
+@{
+    ViewData["Title"] = "Fund List";
+}
+
+<h1>Fund List</h1>
+
+<p>
+    <a asp-action="Create" class="btn btn-primary">Create New Fund</a>
+</p>
+
+<table class="table">
+    <thead>
+        <tr>
+            <th>Account Name</th>
+            <th>Fund Name</th>
+            <th>Amount</th>
+            <th>Balance</th>
+            <th>Description</th>
+            <th></th>
+        </tr>
+    </thead>
+    <tbody>
+        @foreach (var fund in Model)
+        {
+            <tr>
+                <td>@fund.AccountName</td>
+                <td>@fund.FundName</td>
+                <td>@fund.Amount.ToString("C")</td>
+                <td>@fund.Balance.ToString("C")</td>
+                <td>@fund.Description</td>
+                <td>
+                    <a asp-action="Edit" asp-route-id="@fund.Id" class="btn btn-warning">Edit</a>
+                    <a asp-action="Delete" asp-route-id="@fund.Id" class="btn btn-danger">Delete</a>
+                </td>
+            </tr>
+        }
+    </tbody>
+</table>

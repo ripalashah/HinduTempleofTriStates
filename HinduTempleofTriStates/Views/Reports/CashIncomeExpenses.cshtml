@@ -1,14 +1,17 @@
-﻿@page
-@model HinduTempleofTriStates.Models.CashIncomeExpensesModel
+﻿@model HinduTempleofTriStates.Models.CashIncomeExpensesModel
 
-@{
-    ViewData["Title"] = "Cash Income & Expenses";
-}
+<h1>Cash Income and Expenses Report</h1>
 
-<h1>@ViewData["Title"]</h1>
+<div class="card">
+    <div class="card-body">
+        <h4>Total Income: @Model.TotalIncome.ToString("C")</h4>
+        <h4>Total Expenses: @Model.TotalExpense.ToString("C")</h4>
+        <h4>Net Balance: @Model.NetBalance.ToString("C")</h4>
+    </div>
+</div>
 
-<table class="table table-bordered">
-    <thead class="thead-dark">
+<table class="table">
+    <thead>
         <tr>
             <th>Date</th>
             <th>Description</th>
@@ -17,39 +20,14 @@
         </tr>
     </thead>
     <tbody>
-        @if (Model.CashTransactions != null && Model.CashTransactions.Any())
-        {
-            foreach (var entry in Model.CashTransactions)
-            {
-                <tr>
-                    <td>@entry.Date.ToShortDateString()</td>
-                    <td>@entry.Description</td>
-                    <td>@entry.Income.ToString("C")</td>
-                    <td>@entry.Expense.ToString("C")</td>
-                </tr>
-            }
-        }
-        else
+        @foreach (var transaction in Model.CashTransactions)
         {
             <tr>
-                <td colspan="4" class="text-center">No transactions available.</td>
+                <td>@transaction.Date.ToShortDateString()</td>
+                <td>@transaction.Description</td>
+                <td>@(transaction.Type == HinduTempleofTriStates.Models.CashTransactionType.Income ? transaction.Amount.ToString("C") : "-")</td>
+                <td>@(transaction.Type == HinduTempleofTriStates.Models.CashTransactionType.Expense ? transaction.Amount.ToString("C") : "-")</td>
             </tr>
         }
     </tbody>
-    <tfoot>
-        <tr>
-            <th>Total</th>
-            <th></th>
-            <th>
-                @Model.TotalIncome.ToString("C")
-            </th>
-            <th>
-                @Model.TotalExpense.ToString("C")
-            </th>
-        </tr>
-    </tfoot>
 </table>
-
-<div class="mt-4">
-    <a asp-action="ExportToPdf" class="btn btn-secondary">Export to PDF</a>
-</div>

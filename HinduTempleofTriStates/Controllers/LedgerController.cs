@@ -2,14 +2,11 @@
 using Microsoft.AspNetCore.Mvc;
 using HinduTempleofTriStates.Services;
 using System;
-using System.Collections.Generic;
 using System.Threading.Tasks;
 
 namespace HinduTempleofTriStates.Controllers
 {
-    [Route("api/[controller]")]
-    [ApiController]
-    public class LedgerController : ControllerBase
+    public class LedgerController : Controller
     {
         private readonly LedgerService _ledgerService;
 
@@ -18,15 +15,41 @@ namespace HinduTempleofTriStates.Controllers
             _ledgerService = ledgerService;
         }
 
-        // GET: api/ledger
+        // GET: Ledger/Create
+        public IActionResult Create()
+        {
+            return View();
+        }
+
+        // POST: Ledger/Create
+        [HttpPost]
+        [ValidateAntiForgeryToken]
+        public async Task<IActionResult> Create(LedgerAccount ledgerAccount)
+        {
+            if (ModelState.IsValid)
+            {
+                await _ledgerService.AddAccountAsync(ledgerAccount);
+                return RedirectToAction(nameof(Index));
+            }
+            return View(ledgerAccount);
+        }
+
+        // GET: Ledger/Index
+        public async Task<IActionResult> Index()
+        {
+            var accounts = await _ledgerService.GetAllAccountsAsync();
+            return View(accounts);
+        }
+
+        // GET: /ledger
         [HttpGet]
         public async Task<IActionResult> GetAllAccounts()
         {
             var accounts = await _ledgerService.GetAllAccountsAsync();
-            return Ok(accounts);
+            return Ok(accounts); // For API purposes, returning Ok with data
         }
 
-        // GET: api/ledger/{id}
+        // GET: /ledger/{id}
         [HttpGet("{id}")]
         public async Task<IActionResult> GetAccount(Guid id)
         {
@@ -38,7 +61,7 @@ namespace HinduTempleofTriStates.Controllers
             return Ok(account);
         }
 
-        // POST: api/ledger
+        // POST: /ledger
         [HttpPost]
         public async Task<IActionResult> AddAccount([FromBody] LedgerAccount account)
         {
@@ -46,6 +69,7 @@ namespace HinduTempleofTriStates.Controllers
             {
                 return BadRequest("Account cannot be null.");
             }
+
             if (!ModelState.IsValid)
             {
                 return BadRequest(ModelState);
@@ -55,7 +79,7 @@ namespace HinduTempleofTriStates.Controllers
             return CreatedAtAction(nameof(GetAccount), new { id = account.Id }, account);
         }
 
-        // POST: api/ledger/transaction
+        // POST: /ledger/transaction
         [HttpPost("transaction")]
         public async Task<IActionResult> AddTransaction([FromBody] Transaction transaction)
         {
@@ -63,6 +87,7 @@ namespace HinduTempleofTriStates.Controllers
             {
                 return BadRequest("Transaction cannot be null.");
             }
+
             if (!ModelState.IsValid)
             {
                 return BadRequest(ModelState);
@@ -72,7 +97,7 @@ namespace HinduTempleofTriStates.Controllers
             return Ok();
         }
 
-        // PUT: api/ledger/{id}
+        // PUT: /ledger/{id}
         [HttpPut("{id}")]
         public async Task<IActionResult> UpdateAccount(Guid id, [FromBody] LedgerAccount account)
         {
@@ -91,7 +116,7 @@ namespace HinduTempleofTriStates.Controllers
             return NoContent();
         }
 
-        // DELETE: api/ledger/{id}
+        // DELETE: /ledger/{id}
         [HttpDelete("{id}")]
         public async Task<IActionResult> DeleteAccount(Guid id)
         {
@@ -105,7 +130,7 @@ namespace HinduTempleofTriStates.Controllers
             return NoContent();
         }
 
-        // GET: api/ledger/{id}/transactions
+        // GET: /ledger/{id}/transactions
         [HttpGet("{id}/transactions")]
         public async Task<IActionResult> GetTransactionsByAccountId(Guid id)
         {

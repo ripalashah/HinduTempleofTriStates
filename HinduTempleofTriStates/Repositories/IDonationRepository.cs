@@ -7,10 +7,12 @@ namespace HinduTempleofTriStates.Repositories
 {
     public interface IDonationRepository
     {
+        Task<List<Donation>> GetDonationsAsync();
         Task<IEnumerable<Donation>> GetAllDonationsAsync();
         Task<Donation?> GetDonationByIdAsync(Guid id);
         Task AddDonationAsync(Donation donation);
         Task UpdateDonationAsync(Donation donation);
-        Task DeleteDonationAsync(Guid id);
+        Task DeleteDonationAsync(Donation donation);
+        Task<bool> DonationExistsAsync(Guid id);
     }
 }

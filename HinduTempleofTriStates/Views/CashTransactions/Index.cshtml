@@ -1,0 +1,30 @@
+﻿@model IEnumerable<HinduTempleofTriStates.Models.CashTransaction>
+
+<h1>Cash Transactions</h1>
+
+<p>
+    <a asp-action="Create" class="btn btn-primary">Add New Transaction</a>
+</p>
+
+<table class="table">
+    <thead>
+        <tr>
+            <th>Date</th>
+            <th>Description</th>
+            <th>Amount</th>
+            <th>Type</th>
+            <th></th>
+        </tr>
+    </thead>
+    <tbody>
+        @foreach (var transaction in Model)
+        {
+            <tr>
+                <td>@transaction.Date.ToShortDateString()</td>
+                <td>@transaction.Description</td>
+                <td>@transaction.Amount.ToString("C")</td>
+                <td>@transaction.Type</td>
+            </tr>
+        }
+    </tbody>
+</table>

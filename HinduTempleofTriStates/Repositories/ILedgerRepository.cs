@@ -2,7 +2,6 @@
 using System.Collections.Generic;
 using System.Threading.Tasks;
 using HinduTempleofTriStates.Models;
-using HinduTempleofTriStates.Data;
 
 namespace HinduTempleofTriStates.Repositories
 {
@@ -15,5 +14,6 @@ namespace HinduTempleofTriStates.Repositories
         Task DeleteAccountAsync(Guid id);
         Task<IEnumerable<Transaction>> GetTransactionsByAccountIdAsync(Guid accountId);
         Task AddTransactionAsync(Transaction transaction);
+        Task<IList<LedgerAccount>> GetAllLedgerAccountsAsync();
     }
 }

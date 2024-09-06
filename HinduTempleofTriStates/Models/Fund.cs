@@ -6,6 +6,9 @@ namespace HinduTempleofTriStates.Models
     {
         public Guid Id { get; set; }
 
+        [Required]
+        public Guid AccountId { get; set; }  // Link to the account
+
         public required string AccountName { get; set; }
         public decimal Balance { get; set; }
 

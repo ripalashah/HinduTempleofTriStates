@@ -1,6 +1,6 @@
 ﻿using Microsoft.EntityFrameworkCore;
 using HinduTempleofTriStates.Models;
-using HinduTempleofTriStates.Pages;
+using System;
 
 namespace HinduTempleofTriStates.Data
 {
@@ -10,21 +10,22 @@ namespace HinduTempleofTriStates.Data
             : base(options)
         {
         }
+
         public DbSet<GeneralLedgerEntry> GeneralLedgerEntries { get; set; }
         public DbSet<LedgerAccount> LedgerAccounts { get; set; }
         public DbSet<Transaction> Transactions { get; set; }
         public DbSet<Donation> Donations { get; set; }
         public DbSet<Account> Accounts { get; set; }
-        
         public DbSet<CashTransaction> CashTransactions { get; set; }
         public DbSet<Fund> Funds { get; set; }
-        
+
         protected override void OnModelCreating(ModelBuilder modelBuilder)
         {
             base.OnModelCreating(modelBuilder);
 
             // Configure decimal precision for financial fields
             modelBuilder.Entity<Account>()
+                .ToTable("Accounts")
                 .Property(a => a.Balance)
                 .HasColumnType("decimal(18,2)");
 
@@ -36,42 +37,113 @@ namespace HinduTempleofTriStates.Data
                 .Property(t => t.Amount)
                 .HasColumnType("decimal(18,2)");
 
-            // Donations to LedgerAccount relationship
+            modelBuilder.Entity<CashTransaction>()
+                .Property(ct => ct.Amount)
+                .HasColumnType("decimal(18,2)");
+
+            modelBuilder.Entity<CashTransaction>()
+                .Property(ct => ct.Expense)
+                .HasColumnType("decimal(18,2)");
+
+            modelBuilder.Entity<CashTransaction>()
+                .Property(ct => ct.Income)
+                .HasColumnType("decimal(18,2)");
+
+            modelBuilder.Entity<Fund>()
+                .Property(f => f.Amount)
+                .HasColumnType("decimal(18,2)");
+
+            modelBuilder.Entity<Fund>()
+                .Property(f => f.Balance)
+                .HasColumnType("decimal(18,2)");
+
+            modelBuilder.Entity<GeneralLedgerEntry>()
+                .Property(g => g.Balance)
+                .HasColumnType("decimal(18,2)");
+
+            modelBuilder.Entity<GeneralLedgerEntry>()
+                .Property(g => g.Credit)
+                .HasColumnType("decimal(18,2)");
+
+            modelBuilder.Entity<GeneralLedgerEntry>()
+                .HasOne(gl => gl.LedgerAccount)
+                .WithMany(l => l.GeneralLedgerEntries)
+                .HasForeignKey(gl => gl.LedgerAccountId);
+            modelBuilder.Entity<GeneralLedgerEntry>()
+                .Property(g => g.Debit)
+                .HasColumnType("decimal(18,2)");
+
             modelBuilder.Entity<Donation>()
                 .HasOne(d => d.LedgerAccount)
                 .WithMany(l => l.Donations)
                 .HasForeignKey(d => d.LedgerAccountId)
                 .OnDelete(DeleteBehavior.Restrict);
 
-            // Transactions to LedgerAccount relationship
+            // Configure relationships for Transactions
             modelBuilder.Entity<Transaction>()
                 .HasOne(t => t.LedgerAccount)
                 .WithMany(l => l.Transactions)
                 .HasForeignKey(t => t.LedgerAccountId)
                 .OnDelete(DeleteBehavior.Restrict);
 
-            // CashTransactions to LedgerAccount relationship
+            // Configure relationships for Cash Transactions
             modelBuilder.Entity<CashTransaction>()
                 .HasOne(ct => ct.LedgerAccount)
                 .WithMany(l => l.CashTransactions)
                 .HasForeignKey(ct => ct.LedgerAccountId)
                 .OnDelete(DeleteBehavior.Restrict);
 
-            // GeneralLedgerEntry configuration
+            // Configure GeneralLedgerEntry relationships
             modelBuilder.Entity<GeneralLedgerEntry>()
-            .HasKey(g => g.EntryId); // Define EntryId as the primary key
+                .HasKey(g => g.Id);
 
-            modelBuilder.Entity<GeneralLedgerEntry>()
-                .Property(g => g.EntryId)
-                .HasConversion(
-                    v => v.ToString(),
-                    v => Guid.Parse(v))
-                .HasColumnName("EntryId");
+            // Seed data for Ledger Account, Account, and Donation
+            var ledgerAccountId = Guid.NewGuid();
+            var accountId = Guid.NewGuid();
 
+            modelBuilder.Entity<LedgerAccount>().HasData(
+                new LedgerAccount
+                {
+                    Id = ledgerAccountId,
+                    AccountName = "Default Ledger",
+                    AccountType = AccountTypeEnum.Checking, // Changed from string to Enum
+                    CreatedBy = "System", // Required field
+                    UpdatedBy = "System", // Required field
+                    CreatedDate = DateTime.UtcNow,
+                    UpdatedDate = DateTime.UtcNow
+                }
+            );
 
-            // Optional: Add indexes for performance
-            // modelBuilder.Entity<Account>().HasIndex(a => a.AccountName);
-            // modelBuilder.Entity<Donation>().HasIndex(d => d.DonorName);
+            modelBuilder.Entity<Account>().HasData(
+                new Account
+                {
+                    Id = accountId,
+                    AccountName = "Default Account",
+                    AccountType = "Checking",
+                    Balance = 0
+                }
+            );
+
+            modelBuilder.Entity<Donation>().HasData(
+                new Donation
+                {
+                    Id = Guid.NewGuid(),
+                    DonorName = "John Doe",
+                    Amount = 100,
+                    DonationCategory = "General",
+                    DonationType = "One-Time",
+                    Date = DateTime.Now,
+                    Phone = "123-456-7890",
+                    City = "Anytown",
+                    State = "Anystate",
+                    Country = "Anycountry",
+                    LedgerAccountId = ledgerAccountId
+                }
+            );
+
+            // Configure indexes for performance
+            modelBuilder.Entity<Account>().HasIndex(a => a.AccountName);
+            modelBuilder.Entity<Donation>().HasIndex(d => d.DonorName);
         }
     }
 }

@@ -19,8 +19,8 @@ namespace HinduTempleofTriStates.Repositories
 
         public async Task<LedgerAccount> GetAccountByIdAsync(Guid id)
         {
-            var account = await _context.LedgerAccounts.FindAsync(id);
-            return account ?? throw new KeyNotFoundException("Account not found"); // Ensure non-nullable return
+            return await _context.LedgerAccounts.FindAsync(id)
+                   ?? throw new KeyNotFoundException("Account not found");
         }
 
         public async Task<IEnumerable<LedgerAccount>> GetAllAccountsAsync()
@@ -53,7 +53,7 @@ namespace HinduTempleofTriStates.Repositories
         public async Task<IEnumerable<Transaction>> GetTransactionsByAccountIdAsync(Guid accountId)
         {
             return await _context.Transactions
-                .Where(t => t.AccountId == accountId)
+                .Where(t => t.LedgerAccountId == accountId)
                 .ToListAsync();
         }
 
@@ -61,6 +61,11 @@ namespace HinduTempleofTriStates.Repositories
         {
             _context.Transactions.Add(transaction);
             await _context.SaveChangesAsync();
+        }
+
+        public async Task<IList<LedgerAccount>> GetAllLedgerAccountsAsync()
+        {
+            return await _context.LedgerAccounts.ToListAsync();
         }
     }
 }

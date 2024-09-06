@@ -11,6 +11,7 @@ namespace HinduTempleofTriStates.Repositories
         // CRUD operations for Account
         Task<IEnumerable<Account>> GetAllAccountsAsync();
         Task<Account?> GetAccountByIdAsync(Guid id); // Changed from int to Guid
+        Task<bool> AccountExistsAsync(Guid id); // Add this line to define the method
         Task AddAccountAsync(Account account);
         Task UpdateAccountAsync(Account account);
         Task DeleteAccountAsync(Guid id); // Changed from int to Guid

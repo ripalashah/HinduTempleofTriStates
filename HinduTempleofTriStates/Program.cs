@@ -1,9 +1,11 @@
+using Microsoft.AspNetCore.Identity;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Hosting;
 using HinduTempleofTriStates.Data;
 using HinduTempleofTriStates.Repositories;
 using HinduTempleofTriStates.Services;
+using Microsoft.Extensions.Logging;
 
 internal class Program
 {
@@ -11,22 +13,36 @@ internal class Program
     {
         var builder = WebApplication.CreateBuilder(args);
 
-        // Add services to the container.
+        // Add services to the container for MVC controllers, views, and Razor Pages
         builder.Services.AddControllersWithViews();
-
+        builder.Services.AddRazorPages(); // Adds support for Razor Pages
+        builder.Services.AddScoped<ICashTransactionService, CashTransactionService>();
+        // Get the connection string from appsettings.json
+        var connectionString = builder.Configuration.GetConnectionString("DefaultConnection");
+        Console.WriteLine($"Connection String: {connectionString}");
+        builder.Services.AddScoped<IAccountService, AccountService>();
         // Register ApplicationDbContext with dependency injection container
         builder.Services.AddDbContext<ApplicationDbContext>(options =>
-            options.UseSqlServer(builder.Configuration.GetConnectionString("DefaultConnection"))
+            options.UseSqlServer(connectionString)
                    .LogTo(Console.WriteLine, LogLevel.Information)); // Logging SQL queries for debugging
 
         // Register repositories with dependency injection container
-        builder.Services.AddScoped<IAccountRepository, AccountRepository>();
-        builder.Services.AddScoped<ILedgerRepository, LedgerRepository>(); // Ensure you have ILedgerRepository and LedgerRepository
-        builder.Services.AddScoped<IDonationRepository, DonationRepository>(); // Register DonationRepository
+        builder.Services.AddScoped<IAccountRepository, AccountRepository>(); // Account repository
+        builder.Services.AddScoped<ILedgerRepository, LedgerRepository>(); // Ledger repository
+        builder.Services.AddScoped<IDonationRepository, DonationRepository>(); // Donation repository
+        builder.Services.AddScoped<IFundRepository, FundRepository>(); // Fund repository (new)
 
         // Register services with dependency injection container
-        builder.Services.AddScoped<LedgerService>(); // Register LedgerService
-        builder.Services.AddScoped<DonationService>(); // Register DonationService
+        builder.Services.AddScoped<LedgerService>(); // LedgerService
+        builder.Services.AddScoped<DonationService>(); // DonationService
+        builder.Services.AddScoped<FundService>(); // FundService (new)
+        builder.Services.AddScoped<IReportService, ReportService>();
+
+
+        // Add Identity (use AddIdentity instead of AddDefaultIdentity)
+        builder.Services.AddIdentity<IdentityUser, IdentityRole>()
+            .AddEntityFrameworkStores<ApplicationDbContext>()
+            .AddDefaultTokenProviders();
 
         // Build the application
         var app = builder.Build();
@@ -35,32 +51,30 @@ internal class Program
         if (!app.Environment.IsDevelopment())
         {
             app.UseExceptionHandler("/Home/Error");
-            app.UseHsts();
+            app.UseHsts(); // Use HSTS in production
         }
         else
         {
-            app.UseDeveloperExceptionPage();
+            app.UseDeveloperExceptionPage(); // Developer exception page for detailed errors in development
         }
 
         // Uncomment the following line if you want to enforce HTTPS redirection
         // app.UseHttpsRedirection();
 
-        app.UseStaticFiles();
-        app.UseRouting();
-        app.UseAuthorization();
+        app.UseStaticFiles(); // Serve static files from the wwwroot folder
+        app.UseRouting(); // Enable routing
+        app.UseAuthentication(); // Enable authentication
+        app.UseAuthorization(); // Enable authorization
 
-        // Configure endpoint routing
+        // Map Razor Pages routes
+        app.MapRazorPages();
+
+        // Map default MVC controller route
         app.MapControllerRoute(
             name: "default",
             pattern: "{controller=Home}/{action=Index}/{id?}");
 
-        // Map additional routes if needed for the Accounts module
-        // Example:
-        // app.MapControllerRoute(
-        //     name: "accounts",
-        //     pattern: "Accounts/{action=Index}/{id?}",
-        //     defaults: new { controller = "Accounts" });
-
+        // Run the application
         app.Run();
     }
 }

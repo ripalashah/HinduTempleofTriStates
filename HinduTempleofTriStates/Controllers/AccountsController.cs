@@ -1,25 +1,22 @@
 ﻿using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
-using HinduTempleofTriStates.Data;
 using HinduTempleofTriStates.Models;
+using HinduTempleofTriStates.Services;
 using System;
 using System.Linq;
 using System.Threading.Tasks;
 using HinduTempleofTriStates.Repositories;
-using HinduTempleofTriStates.Services;
 
 namespace HinduTempleofTriStates.Controllers
 {
     public class AccountsController : Controller
     {
-        private readonly ApplicationDbContext _context;
         private readonly IAccountRepository _accountRepository;
         private readonly LedgerService _ledgerService;
 
         // Constructor to satisfy Dependency Injection (DI) container
-        public AccountsController(ApplicationDbContext context, IAccountRepository accountRepository, LedgerService ledgerService)
+        public AccountsController(IAccountRepository accountRepository, LedgerService ledgerService)
         {
-            _context = context;
             _accountRepository = accountRepository;
             _ledgerService = ledgerService;
         }
@@ -27,16 +24,14 @@ namespace HinduTempleofTriStates.Controllers
         // GET: Accounts
         public async Task<IActionResult> Index()
         {
-            var accounts = await _context.Accounts.ToListAsync();
+            var accounts = await _accountRepository.GetAllAccountsAsync();
             return View(accounts);
         }
 
         // GET: Accounts/Details/5
         public async Task<IActionResult> Details(Guid id)
         {
-            var account = await _context.Accounts
-                .FirstOrDefaultAsync(m => m.Id == id);
-
+            var account = await _accountRepository.GetAccountByIdAsync(id);
             if (account == null)
             {
                 return NotFound();
@@ -54,14 +49,20 @@ namespace HinduTempleofTriStates.Controllers
         // POST: Accounts/Create
         [HttpPost]
         [ValidateAntiForgeryToken]
-        public async Task<IActionResult> Create([Bind("AccountName,Balance")] Account account)
+        public async Task<IActionResult> Create([Bind("AccountName,Balance,AccountType")] Account account)
         {
             if (ModelState.IsValid)
             {
                 account.Id = Guid.NewGuid();  // Generate a new Guid for the account
-                _context.Add(account);
-                await _context.SaveChangesAsync();
-                return RedirectToAction(nameof(Index));
+                try
+                {
+                    await _accountRepository.AddAccountAsync(account);
+                    return RedirectToAction(nameof(Index));
+                }
+                catch (Exception ex)
+                {
+                    ModelState.AddModelError("", $"Error creating account: {ex.Message}");
+                }
             }
             return View(account);
         }
@@ -69,7 +70,7 @@ namespace HinduTempleofTriStates.Controllers
         // GET: Accounts/Edit/5
         public async Task<IActionResult> Edit(Guid id)
         {
-            var account = await _context.Accounts.FindAsync(id);
+            var account = await _accountRepository.GetAccountByIdAsync(id);
             if (account == null)
             {
                 return NotFound();
@@ -80,7 +81,7 @@ namespace HinduTempleofTriStates.Controllers
         // POST: Accounts/Edit/5
         [HttpPost]
         [ValidateAntiForgeryToken]
-        public async Task<IActionResult> Edit(Guid id, [Bind("Id,AccountName,Balance")] Account account)
+        public async Task<IActionResult> Edit(Guid id, [Bind("Id,AccountName,Balance,AccountType")] Account account)
         {
             if (id != account.Id)
             {
@@ -91,12 +92,12 @@ namespace HinduTempleofTriStates.Controllers
             {
                 try
                 {
-                    _context.Update(account);
-                    await _context.SaveChangesAsync();
+                    await _accountRepository.UpdateAccountAsync(account);
+                    return RedirectToAction(nameof(Index));
                 }
                 catch (DbUpdateConcurrencyException)
                 {
-                    if (!AccountExists(account.Id))
+                    if (!await AccountExistsAsync(account.Id))
                     {
                         return NotFound();
                     }
@@ -105,7 +106,6 @@ namespace HinduTempleofTriStates.Controllers
                         throw;
                     }
                 }
-                return RedirectToAction(nameof(Index));
             }
             return View(account);
         }
@@ -113,14 +113,11 @@ namespace HinduTempleofTriStates.Controllers
         // GET: Accounts/Delete/5
         public async Task<IActionResult> Delete(Guid id)
         {
-            var account = await _context.Accounts
-                .FirstOrDefaultAsync(m => m.Id == id);
-
+            var account = await _accountRepository.GetAccountByIdAsync(id);
             if (account == null)
             {
                 return NotFound();
             }
-
             return View(account);
         }
 
@@ -129,10 +126,21 @@ namespace HinduTempleofTriStates.Controllers
         [ValidateAntiForgeryToken]
         public async Task<IActionResult> DeleteConfirmed(Guid id)
         {
-            var account = await _context.Accounts.FindAsync(id);
-            _context.Accounts.Remove(account);
-            await _context.SaveChangesAsync();
-            return RedirectToAction(nameof(Index));
+            var account = await _accountRepository.GetAccountByIdAsync(id);
+            if (account == null)
+            {
+                return NotFound();
+            }
+            try
+            {
+                await _accountRepository.DeleteAccountAsync(id);
+                return RedirectToAction(nameof(Index));
+            }
+            catch (DbUpdateException ex)
+            {
+                ModelState.AddModelError("", $"Unable to delete account: {ex.Message}");
+            }
+            return View(account);
         }
 
         // GET: Accounts/CreateFund
@@ -180,9 +188,9 @@ namespace HinduTempleofTriStates.Controllers
             return View(transactions);
         }
 
-        private bool AccountExists(Guid id)
+        private async Task<bool> AccountExistsAsync(Guid id)
         {
-            return _context.Accounts.Any(e => e.Id == id);
+            return await _accountRepository.AccountExistsAsync(id);
         }
     }
 }
