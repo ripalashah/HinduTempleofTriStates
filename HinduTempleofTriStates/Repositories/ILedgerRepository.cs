@@ -1,15 +1,19 @@
-﻿using HinduTempleofTriStates.Models;
+﻿using System;
+using System.Collections.Generic;
+using System.Threading.Tasks;
+using HinduTempleofTriStates.Models;
 
 namespace HinduTempleofTriStates.Repositories
 {
     public interface ILedgerRepository
     {
+        Task<LedgerAccount> GetAccountByIdAsync(Guid id);
         Task<IEnumerable<LedgerAccount>> GetAllAccountsAsync();
-        Task<LedgerAccount?> GetAccountByIdAsync(int id); // Allow nullable return type
         Task AddAccountAsync(LedgerAccount account);
         Task UpdateAccountAsync(LedgerAccount account);
-        Task DeleteAccountAsync(int id);
+        Task DeleteAccountAsync(Guid id);
+        Task<IEnumerable<Transaction>> GetTransactionsByAccountIdAsync(Guid accountId);
         Task AddTransactionAsync(Transaction transaction);
-        Task<IEnumerable<Transaction>> GetTransactionsByAccountIdAsync(int accountId);
+        Task<IList<LedgerAccount>> GetAllLedgerAccountsAsync();
     }
 }

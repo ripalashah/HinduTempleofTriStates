@@ -1,6 +1,10 @@
-﻿using HinduTempleofTriStates.Data;
-using HinduTempleofTriStates.Models;
+﻿using System;
+using System.Collections.Generic;
+using System.Linq;
+using System.Threading.Tasks;
 using Microsoft.EntityFrameworkCore;
+using HinduTempleofTriStates.Data;
+using HinduTempleofTriStates.Models;
 
 namespace HinduTempleofTriStates.Repositories
 {
@@ -13,19 +17,20 @@ namespace HinduTempleofTriStates.Repositories
             _context = context;
         }
 
+        public async Task<LedgerAccount> GetAccountByIdAsync(Guid id)
+        {
+            return await _context.LedgerAccounts.FindAsync(id)
+                   ?? throw new KeyNotFoundException("Account not found");
+        }
+
         public async Task<IEnumerable<LedgerAccount>> GetAllAccountsAsync()
         {
             return await _context.LedgerAccounts.ToListAsync();
         }
 
-        public async Task<LedgerAccount?> GetAccountByIdAsync(int id)
-        {
-            return await _context.LedgerAccounts.FindAsync(id);
-        }
-
         public async Task AddAccountAsync(LedgerAccount account)
         {
-            await _context.LedgerAccounts.AddAsync(account);
+            _context.LedgerAccounts.Add(account);
             await _context.SaveChangesAsync();
         }
 
@@ -35,9 +40,9 @@ namespace HinduTempleofTriStates.Repositories
             await _context.SaveChangesAsync();
         }
 
-        public async Task DeleteAccountAsync(int id)
+        public async Task DeleteAccountAsync(Guid id)
         {
-            var account = await GetAccountByIdAsync(id);
+            var account = await _context.LedgerAccounts.FindAsync(id);
             if (account != null)
             {
                 _context.LedgerAccounts.Remove(account);
@@ -45,15 +50,22 @@ namespace HinduTempleofTriStates.Repositories
             }
         }
 
+        public async Task<IEnumerable<Transaction>> GetTransactionsByAccountIdAsync(Guid accountId)
+        {
+            return await _context.Transactions
+                .Where(t => t.LedgerAccountId == accountId)
+                .ToListAsync();
+        }
+
         public async Task AddTransactionAsync(Transaction transaction)
         {
-            await _context.Transactions.AddAsync(transaction);
+            _context.Transactions.Add(transaction);
             await _context.SaveChangesAsync();
         }
 
-        public async Task<IEnumerable<Transaction>> GetTransactionsByAccountIdAsync(int accountId)
+        public async Task<IList<LedgerAccount>> GetAllLedgerAccountsAsync()
         {
-            return await _context.Transactions.Where(t => t.LedgerAccountId == accountId).ToListAsync();
+            return await _context.LedgerAccounts.ToListAsync();
         }
     }
 }

@@ -1,18 +1,33 @@
-﻿@model             Donation
+﻿@model HinduTempleofTriStates.Models.Donation
 
 @{
     ViewData["Title"] = "Donation Confirmation";
 }
 
-<h1>Donation Confirmation</h1>
+<div class="container mt-4">
+    <h1>@ViewData["Title"]</h1>
 
-<p>Thank you for your donation, @Model.DonorName.</p>
-<p>Donation Amount: @Model.Amount</p>
-<p>Donation Type: @Model.DonationType</p>
-<p>Date: @Model.Date.ToShortDateString()</p>
+    <div class="card shadow-sm p-4 mb-4">
+        <div class="card-body">
+            <h4 class="card-title">Thank you for your donation, @Model.DonorName!</h4>
+            <p class="card-text">
+                <strong>Donation Amount:</strong> @Model.Amount.ToString("C")<br />
+                <strong>Donation Type:</strong> @Model.DonationType<br />
+                <strong>Date:</strong> @Model.Date.ToShortDateString()
+            </p>
 
-<button onclick="window.print()" class="btn btn-primary">Print Receipt</button>
+            <div class="d-flex justify-content-between no-print">
+                <button onclick="window.print()" class="btn btn-primary">Print Receipt</button>
+                <a href="@Url.Action("Index", "Donation")" class="btn btn-secondary">Back to Donations List</a>
+            </div>
+        </div>
+    </div>
+</div>
 
-<p>
-    <a href="@Url.Action("Index")" class="btn btn-secondary">Back to Donations List</a>
-</p>
+<style>
+    @media print {
+        .no-print {
+            display: none;
+        }
+    }
+</style>

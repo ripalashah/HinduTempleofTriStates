@@ -1,0 +1,45 @@
+﻿@model HinduTempleofTriStates.Models.Account
+
+@{
+    ViewData["Title"] = "Create Account";
+}
+
+<h1>@ViewData["Title"]</h1>
+
+<div class="card shadow-sm p-4">
+    <form asp-action="Create">
+        <div class="form-group">
+            <label asp-for="AccountName" class="control-label"></label>
+            <input asp-for="AccountName" class="form-control" placeholder="Enter Account Name" />
+            <span asp-validation-for="AccountName" class="text-danger"></span>
+        </div>
+
+        <div class="form-group">
+            <label asp-for="Balance" class="control-label"></label>
+            <input asp-for="Balance" class="form-control" placeholder="Enter Initial Balance" />
+            <span asp-validation-for="Balance" class="text-danger"></span>
+        </div>
+
+        <div class="form-group">
+            <label asp-for="AccountType" class="control-label"></label>
+            <select asp-for="AccountType" class="form-control">
+                <option value="">-- Select Account Type --</option>
+                <option value="Asset">Asset</option>
+                <option value="Liability">Liability</option>
+                <option value="Equity">Equity</option>
+                <option value="Revenue">Revenue</option>
+                <option value="Expense">Expense</option>
+            </select>
+            <span asp-validation-for="AccountType" class="text-danger"></span>
+        </div>
+
+        <div class="form-group mt-3">
+            <input type="submit" value="Create" class="btn btn-primary" />
+            <a asp-action="Index" class="btn btn-secondary ml-2">Back to List</a>
+        </div>
+    </form>
+</div>
+
+@section Scripts {
+    <partial name="_ValidationScriptsPartial" />
+}

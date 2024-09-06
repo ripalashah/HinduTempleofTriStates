@@ -1,0 +1,32 @@
+﻿@model HinduTempleofTriStates.Models.Fund
+
+@{
+    ViewData["Title"] = "Create Fund";
+}
+
+<h2>@ViewData["Title"]</h2>
+
+<div class="card shadow-sm p-4">
+    <form asp-action="CreateFund" method="post">
+        <div class="form-group">
+            <label asp-for="AccountName" class="control-label"></label>
+            <input asp-for="AccountName" class="form-control" placeholder="Enter Fund Name" />
+            <span asp-validation-for="AccountName" class="text-danger"></span>
+        </div>
+
+        <div class="form-group">
+            <label asp-for="Balance" class="control-label"></label>
+            <input asp-for="Balance" class="form-control" placeholder="Enter Initial Balance" />
+            <span asp-validation-for="Balance" class="text-danger"></span>
+        </div>
+
+        <div class="form-group mt-3">
+            <button type="submit" class="btn btn-primary">Create</button>
+            <a asp-action="Index" class="btn btn-secondary ml-2">Back to List</a>
+        </div>
+    </form>
+</div>
+
+@section Scripts {
+    <partial name="_ValidationScriptsPartial" />
+}

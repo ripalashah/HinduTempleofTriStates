@@ -1,41 +1,81 @@
-﻿using HinduTempleofTriStates.Models;
-using HinduTempleofTriStates.Repositories;
-using TempleManagementSystem.Models;
+﻿using HinduTempleofTriStates.Data;
+using HinduTempleofTriStates.Models;
+using Microsoft.EntityFrameworkCore;
+using System;
+using System.Collections.Generic;
+using System.Threading.Tasks;
 
-namespace TempleManagementSystem.Services
+namespace HinduTempleofTriStates.Services
 {
     public class LedgerService
     {
-        private readonly ILedgerRepository _ledgerRepository;
+        private readonly ApplicationDbContext _context;
 
-        public LedgerService(ILedgerRepository ledgerRepository)
+        public LedgerService(ApplicationDbContext context)
         {
-            _ledgerRepository = ledgerRepository;
+            _context = context;
         }
 
         public async Task<IEnumerable<LedgerAccount>> GetAllAccountsAsync()
         {
-            return await _ledgerRepository.GetAllAccountsAsync();
+            return await _context.LedgerAccounts.ToListAsync();
         }
 
-        public async Task<LedgerAccount> GetAccountByIdAsync(int id)
+        public async Task<LedgerAccount?> GetAccountByIdAsync(Guid id)
         {
-            return await _ledgerRepository.GetAccountByIdAsync(id);
+            return await _context.LedgerAccounts.FindAsync(id);
         }
 
         public async Task AddAccountAsync(LedgerAccount account)
         {
-            await _ledgerRepository.AddAccountAsync(account);
+            _context.LedgerAccounts.Add(account);
+            await _context.SaveChangesAsync();
+        }
+
+        public async Task UpdateAccountAsync(LedgerAccount account)
+        {
+            _context.Entry(account).State = EntityState.Modified;
+            await _context.SaveChangesAsync();
+        }
+
+        public async Task DeleteAccountAsync(Guid id)
+        {
+            var account = await _context.LedgerAccounts.FindAsync(id);
+            if (account != null)
+            {
+                _context.LedgerAccounts.Remove(account);
+                await _context.SaveChangesAsync();
+            }
+        }
+
+        public async Task<IEnumerable<Transaction>> GetTransactionsByAccountIdAsync(Guid id)
+        {
+            return await _context.Transactions
+                .Where(t => t.LedgerAccountId == id)
+                .ToListAsync();
         }
 
         public async Task AddTransactionAsync(Transaction transaction)
         {
-            await _ledgerRepository.AddTransactionAsync(transaction);
+            _context.Transactions.Add(transaction);
+            await _context.SaveChangesAsync();
         }
 
-        public async Task<IEnumerable<Transaction>> GetTransactionsByAccountIdAsync(int accountId)
+        public async Task AddDonationAsync(Donation donation)
         {
-            return await _ledgerRepository.GetTransactionsByAccountIdAsync(accountId);
+            var account = await _context.LedgerAccounts.FindAsync(donation.LedgerAccountId);
+            if (account == null) throw new Exception("Account not found");
+
+            account.Balance += (decimal)donation.Amount;
+            _context.Donations.Add(donation);
+            _context.LedgerAccounts.Update(account);
+
+            await _context.SaveChangesAsync();
+        }
+
+        public async Task<IEnumerable<Donation>> GetDonationsByAccountIdAsync(Guid accountId)
+        {
+            return await _context.Donations.Where(d => d.LedgerAccountId == accountId).ToListAsync();
         }
     }
 }

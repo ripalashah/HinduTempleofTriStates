@@ -1,24 +1,32 @@
-﻿@page
-@model             ProfitLossModel
-@{
-    ViewData["Title"] = "Profit and Loss";
-}
+﻿@model HinduTempleofTriStates.Models.CashIncomeExpensesModel
 
-<h1>@ViewData["Title"]</h1>
+<h1>Profit and Loss Report</h1>
+
+<div class="card">
+    <div class="card-body">
+        <h4>Total Income: @Model.TotalIncome.ToString("C")</h4>
+        <h4>Total Expenses: @Model.TotalExpense.ToString("C")</h4>
+        <h4>Profit/Loss: @(Model.TotalIncome - Model.TotalExpense).ToString("C")</h4>
+    </div>
+</div>
 
 <table class="table">
     <thead>
         <tr>
-            <th>Category</th>
-            <th>Amount</th>
+            <th>Date</th>
+            <th>Description</th>
+            <th>Income</th>
+            <th>Expense</th>
         </tr>
     </thead>
     <tbody>
-        @foreach (var item in Model.ProfitLossItems)
+        @foreach (var transaction in Model.CashTransactions)
         {
             <tr>
-                <td>@item.Category</td>
-                <td>@item.Amount.ToString("C")</td>
+                <td>@transaction.Date.ToShortDateString()</td>
+                <td>@transaction.Description</td>
+                <td>@(transaction.Type == HinduTempleofTriStates.Models.CashTransactionType.Income ? transaction.Amount.ToString("C") : "-")</td>
+                <td>@(transaction.Type == HinduTempleofTriStates.Models.CashTransactionType.Expense ? transaction.Amount.ToString("C") : "-")</td>
             </tr>
         }
     </tbody>

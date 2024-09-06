@@ -1,0 +1,35 @@
+﻿@model IEnumerable<HinduTempleofTriStates.Models.LedgerAccount>
+
+@{
+    ViewData["Title"] = "Ledger Accounts";
+}
+
+<h1>Ledger Accounts</h1>
+
+<p>
+    <a class="btn btn-primary" asp-action="Create">Create New Ledger Account</a>
+</p>
+
+<table class="table">
+    <thead>
+        <tr>
+            <th>
+                Account Name
+            </th>
+            <th></th>
+        </tr>
+    </thead>
+    <tbody>
+        @foreach (var item in Model)
+        {
+            <tr>
+                <td>
+                    @item.AccountName
+                </td>
+                <td>
+                    <!-- Actions (View/Edit/Delete) can be added here -->
+                </td>
+            </tr>
+        }
+    </tbody>
+</table>
