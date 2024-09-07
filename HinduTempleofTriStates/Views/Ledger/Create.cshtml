@@ -4,18 +4,42 @@
     ViewData["Title"] = "Create Ledger Account";
 }
 
-<h1>Create Ledger Account</h1>
+<h2>Create Ledger Account</h2>
 
-<form asp-action="Create">
+<form asp-action="Create" method="post">
     <div class="form-group">
-        @Html.LabelFor(model => model.AccountName)
-        @Html.TextBoxFor(model => model.AccountName, new { @class = "form-control" })
-        @Html.ValidationMessageFor(model => model.AccountName)
+        <label asp-for="AccountName" class="control-label"></label>
+        <input asp-for="AccountName" class="form-control" />
+        <span asp-validation-for="AccountName" class="text-danger"></span>
     </div>
 
     <div class="form-group">
-        <button type="submit" class="btn btn-primary">Create</button>
+        <label asp-for="AccountType" class="control-label"></label>
+        <select asp-for="AccountType" class="form-control">
+            <option value="">-- Select Account Type --</option>
+            @foreach (var type in Enum.GetValues(typeof(HinduTempleofTriStates.Models.AccountTypeEnum)))
+            {
+                <option value="@type">@type</option>
+            }
+        </select>
+        <span asp-validation-for="AccountType" class="text-danger"></span>
+    </div>
+
+    <div class="form-group">
+        <label asp-for="Balance" class="control-label"></label>
+        <input asp-for="Balance" class="form-control" />
+        <span asp-validation-for="Balance" class="text-danger"></span>
+    </div>
+
+    <!-- Hidden fields for CreatedBy and UpdatedBy -->
+    <input type="hidden" asp-for="CreatedBy" value="System" />
+    <input type="hidden" asp-for="UpdatedBy" value="System" />
+
+    <div class="form-group">
+        <input type="submit" value="Create" class="btn btn-primary" />
     </div>
 </form>
 
-<a href="@Url.Action("Index", "Ledger")">Back to List</a>
+@section Scripts {
+    <partial name="_ValidationScriptsPartial" />
+}

@@ -5,6 +5,7 @@ using System.Diagnostics;
 
 namespace HinduTempleofTriStates.Controllers
 {
+    
     public class HomeController : Controller
     {
         private readonly ILogger<HomeController> _logger;
@@ -16,6 +17,7 @@ namespace HinduTempleofTriStates.Controllers
         }
 
         // Action for the default home page (Index)
+        
         public IActionResult Index()
         {
             // Log an informational message when the Index page is accessed
@@ -24,6 +26,7 @@ namespace HinduTempleofTriStates.Controllers
         }
 
         // Action for the Privacy page
+        
         public IActionResult Privacy()
         {
             // Log an informational message when the Privacy page is accessed

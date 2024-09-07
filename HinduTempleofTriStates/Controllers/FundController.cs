@@ -6,6 +6,7 @@ using System.Threading.Tasks;
 
 namespace HinduTempleofTriStates.Controllers
 {
+    [Route("funds")]
     public class FundController : Controller
     {
         private readonly FundService _fundService;
@@ -16,6 +17,9 @@ namespace HinduTempleofTriStates.Controllers
         }
 
         // GET: Fund
+        [HttpGet]
+        [Route("")]
+        [Route("Index")]
         public async Task<IActionResult> Index()
         {
             var funds = await _fundService.GetAllFundsAsync();
@@ -23,6 +27,8 @@ namespace HinduTempleofTriStates.Controllers
         }
 
         // GET: Fund/Create
+        [HttpGet]
+        [Route("Create")]
         public IActionResult Create()
         {
             return View();
@@ -31,10 +37,12 @@ namespace HinduTempleofTriStates.Controllers
         // POST: Fund/Create
         [HttpPost]
         [ValidateAntiForgeryToken]
+        [Route("Create")]
         public async Task<IActionResult> Create([Bind("AccountName,FundName,Balance,Amount,Description")] Fund fund)
         {
             if (ModelState.IsValid)
             {
+                fund.Id = Guid.NewGuid();
                 await _fundService.AddFundAsync(fund);
                 return RedirectToAction(nameof(Index));
             }
@@ -42,6 +50,8 @@ namespace HinduTempleofTriStates.Controllers
         }
 
         // GET: Fund/Edit/5
+        [HttpGet]
+        [Route("Edit/{id:guid}")]
         public async Task<IActionResult> Edit(Guid id)
         {
             var fund = await _fundService.GetFundByIdAsync(id);
@@ -55,6 +65,7 @@ namespace HinduTempleofTriStates.Controllers
         // POST: Fund/Edit/5
         [HttpPost]
         [ValidateAntiForgeryToken]
+        [Route("Edit/{id:guid}")]
         public async Task<IActionResult> Edit(Guid id, [Bind("Id,AccountName,FundName,Balance,Amount,Description")] Fund fund)
         {
             if (id != fund.Id)
@@ -71,6 +82,8 @@ namespace HinduTempleofTriStates.Controllers
         }
 
         // GET: Fund/Delete/5
+        [HttpGet]
+        [Route("Delete/{id:guid}")]
         public async Task<IActionResult> Delete(Guid id)
         {
             var fund = await _fundService.GetFundByIdAsync(id);
@@ -84,6 +97,7 @@ namespace HinduTempleofTriStates.Controllers
         // POST: Fund/Delete/5
         [HttpPost, ActionName("Delete")]
         [ValidateAntiForgeryToken]
+        [Route("DeleteConfirmed/{id:guid}")]
         public async Task<IActionResult> DeleteConfirmed(Guid id)
         {
             await _fundService.DeleteFundAsync(id);

@@ -10,10 +10,17 @@ internal class Program
     {
         var builder = WebApplication.CreateBuilder(args);
 
+        // Add services to the container
+        builder.Services.AddControllersWithViews();
+
+        // Configure logging
+        builder.Logging.ClearProviders();
+        builder.Logging.AddConsole();
+        builder.Logging.AddDebug();
         // Add services to the container for MVC controllers, views, and Razor Pages
         builder.Services.AddControllersWithViews();
         builder.Services.AddRazorPages(); // Adds support for Razor Pages
-
+        builder.Logging.AddFile("Logs/app-log.txt");
         // Dependency injection for your services and repositories
         builder.Services.AddScoped<ICashTransactionService, CashTransactionService>(); // CashTransaction Service
         builder.Services.AddScoped<IAccountService, AccountService>(); // Account Service
@@ -22,6 +29,7 @@ internal class Program
         builder.Services.AddScoped<FundService>(); // Fund Service
         builder.Services.AddScoped<IReportService, ReportService>(); // Report Service
         builder.Services.AddScoped<IDonationService, DonationService>();
+        builder.Services.AddScoped<ICashTransactionRepository, CashTransactionRepository>();
         // Register repositories with DI
         builder.Services.AddScoped<IAccountRepository, AccountRepository>(); // Account repository
         builder.Services.AddScoped<ILedgerRepository, LedgerRepository>(); // Ledger repository
@@ -68,7 +76,27 @@ internal class Program
             Secure = CookieSecurePolicy.Always,
             MinimumSameSitePolicy = SameSiteMode.Strict
         });
+        // Add route logging middleware
+        app.Use(async (context, next) =>
+        {
+            // Log the current route that is being accessed
+            var endpoint = context.GetEndpoint();
+            if (endpoint != null)
+            {
+                Console.WriteLine($"Route accessed: {endpoint.DisplayName}");
+            }
+            await next();
+        });
 
+        // Inspect routing table on request to /routes
+        app.MapGet("/routes", async context =>
+        {
+            var endpointDataSource = app.Services.GetRequiredService<EndpointDataSource>();
+            foreach (var endpoint in endpointDataSource.Endpoints)
+            {
+                await context.Response.WriteAsync(endpoint.DisplayName + "\n");
+            }
+        });
         // Map default MVC controller route
         app.MapControllerRoute(
             name: "default",

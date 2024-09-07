@@ -11,12 +11,13 @@ using System.Threading.Tasks;
 
 namespace HinduTempleofTriStates.Controllers
 {
+    [Route("[controller]")]
     public class DonationController : Controller
     {
         private readonly ApplicationDbContext _context;
-        private readonly IDonationService _donationService;  // Use interface for better abstraction
+        private readonly IDonationService _donationService;
         private readonly ILogger<DonationController> _logger;
-        
+
         public DonationController(ApplicationDbContext context, IDonationService donationService, ILogger<DonationController> logger)
         {
             _context = context;
@@ -25,11 +26,15 @@ namespace HinduTempleofTriStates.Controllers
         }
 
         // List all donations
+        [HttpGet]
+        [Route("")]
+        [Route("Index")]
         public async Task<IActionResult> Index()
         {
             try
             {
                 var donations = await _donationService.GetDonationsAsync();
+                _logger.LogInformation("Fetched donation list successfully.");
                 return View(donations);
             }
             catch (Exception ex)
@@ -40,15 +45,19 @@ namespace HinduTempleofTriStates.Controllers
         }
 
         // Display form to create a donation
-        public IActionResult Create()
+        [HttpGet]
+        [Route("Create")]
+        public async Task<IActionResult> Create()
         {
-            ViewData["LedgerAccountId"] = new SelectList(_context.LedgerAccounts, "Id", "AccountName");
+            var ledgerAccounts = await _context.LedgerAccounts.ToListAsync();
+            ViewBag.LedgerAccounts = new SelectList(ledgerAccounts, "Id", "AccountName");
             return View();
         }
 
         // Handle the post request to create a new donation
         [HttpPost]
         [ValidateAntiForgeryToken]
+        [Route("Create")]
         public async Task<IActionResult> Create([Bind("DonorName,Amount,DonationCategory,DonationType,Date,Phone,City,State,Country,LedgerAccountId")] Donation donation)
         {
             if (ModelState.IsValid)
@@ -66,11 +75,17 @@ namespace HinduTempleofTriStates.Controllers
                     ModelState.AddModelError("", "Unable to create donation. Please try again.");
                 }
             }
-            ViewData["LedgerAccountId"] = new SelectList(_context.LedgerAccounts, "Id", "AccountName", donation.LedgerAccountId);
+
+            // Reload the LedgerAccounts list in case of error
+            var ledgerAccounts = await _context.LedgerAccounts.ToListAsync();
+            ViewBag.LedgerAccounts = new SelectList(ledgerAccounts, "Id", "AccountName", donation.LedgerAccountId);
+
             return View(donation);
         }
 
         // Display confirmation after successful donation
+        [HttpGet]
+        [Route("Confirmation/{id:guid}")]
         public async Task<IActionResult> Confirmation(Guid id)
         {
             var donation = await _donationService.GetDonationByIdAsync(id);
@@ -82,6 +97,8 @@ namespace HinduTempleofTriStates.Controllers
         }
 
         // Display form to edit an existing donation
+        [HttpGet]
+        [Route("Edit/{id:guid}")]
         public async Task<IActionResult> Edit(Guid id)
         {
             var donation = await _donationService.GetDonationByIdAsync(id);
@@ -89,13 +106,16 @@ namespace HinduTempleofTriStates.Controllers
             {
                 return NotFound();
             }
-            ViewData["LedgerAccountId"] = new SelectList(_context.LedgerAccounts, "Id", "AccountName", donation.LedgerAccountId);
+
+            var ledgerAccounts = await _context.LedgerAccounts.ToListAsync();
+            ViewBag.LedgerAccounts = new SelectList(ledgerAccounts, "Id", "AccountName", donation.LedgerAccountId);
             return View(donation);
         }
 
         // Handle the post request to update the donation
         [HttpPost]
         [ValidateAntiForgeryToken]
+        [Route("Edit/{id:guid}")]
         public async Task<IActionResult> Edit(Guid id, [Bind("Id,DonorName,Amount,DonationCategory,DonationType,Date,Phone,City,State,Country,LedgerAccountId")] Donation donation)
         {
             if (id != donation.Id)
@@ -124,11 +144,15 @@ namespace HinduTempleofTriStates.Controllers
                     }
                 }
             }
-            ViewData["LedgerAccountId"] = new SelectList(_context.LedgerAccounts, "Id", "AccountName", donation.LedgerAccountId);
+
+            var ledgerAccounts = await _context.LedgerAccounts.ToListAsync();
+            ViewBag.LedgerAccounts = new SelectList(ledgerAccounts, "Id", "AccountName", donation.LedgerAccountId);
             return View(donation);
         }
 
         // Display donation receipt for printing
+        [HttpGet]
+        [Route("PrintReceipt/{id:guid}")]
         public async Task<IActionResult> PrintReceipt(Guid id)
         {
             var donation = await _donationService.GetDonationByIdAsync(id);
@@ -137,40 +161,6 @@ namespace HinduTempleofTriStates.Controllers
                 return NotFound();
             }
             return View(donation);
-        }
-
-        // Display confirmation page to delete a donation
-        public async Task<IActionResult> Delete(Guid id)
-        {
-            var donation = await _donationService.GetDonationByIdAsync(id);
-            if (donation == null)
-            {
-                return NotFound();
-            }
-            return View(donation);
-        }
-
-        // Handle the post request to delete a donation
-        [HttpPost, ActionName("Delete")]
-        [ValidateAntiForgeryToken]
-        public async Task<IActionResult> DeleteConfirmed(Guid id)
-        {
-            try
-            {
-                var donation = await _donationService.GetDonationByIdAsync(id);
-                if (donation == null)
-                {
-                    return NotFound();
-                }
-
-                await _donationService.DeleteDonationAsync(id);
-                return RedirectToAction(nameof(Index));
-            }
-            catch (Exception ex)
-            {
-                _logger.LogError(ex, "Error deleting donation");
-                return BadRequest("An error occurred while deleting the donation.");
-            }
         }
 
         // Check if a donation exists by ID

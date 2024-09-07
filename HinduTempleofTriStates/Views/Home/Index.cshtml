@@ -4,14 +4,93 @@
     ViewData["Title"] = "Temple Management System";
 }
 
-<div class="text-center">
-    <h1 class="display-4">Welcome to the Temple Management System</h1>
-    <p class="lead">Manage temple operations, donations, and more.</p>
+<!-- Main container -->
+<div class="container my-5">
+    <div class="text-center mb-4">
+        <h1 class="display-4 text-primary">Welcome to the Temple Management System</h1>
+        <p class="lead">Efficiently manage temple operations, donations, funds, and reports.</p>
+    </div>
 
-    <div class="mt-4">
-        <a asp-controller="Donations" asp-action="Index" class="btn btn-primary btn-lg">View Donations</a>
-        <a asp-controller="Accounts" asp-action="Index" class="btn btn-success btn-lg">Manage Accounts</a>
-        <a asp-controller="Funds" asp-action="Index" class="btn btn-info btn-lg">Manage Funds</a>
-        <a asp-controller="Transactions" asp-action="Index" class="btn btn-warning btn-lg">Reconciliation</a>
+    <!-- Row of buttons -->
+    <div class="row justify-content-center">
+        <!-- Donations -->
+        <div class="col-md-4 mb-3">
+            <div class="card shadow-sm">
+                <div class="card-body text-center">
+                    <a asp-controller="Donation" asp-action="Index" class="btn btn-primary btn-lg btn-block">
+                        <i class="fas fa-donate"></i> View Donations
+                    </a>
+                </div>
+            </div>
+        </div>
+
+        <!-- Manage Accounts -->
+        <div class="col-md-4 mb-3">
+            <div class="card shadow-sm">
+                <div class="card-body text-center">
+                    <a asp-controller="Accounts" asp-action="Index" class="btn btn-success btn-lg btn-block">
+                        <i class="fas fa-book"></i> Manage Accounts
+                    </a>
+                </div>
+            </div>
+        </div>
+
+        <!-- Manage Funds -->
+        <div class="col-md-4 mb-3">
+            <div class="card shadow-sm">
+                <div class="card-body text-center">
+                    <a asp-controller="Fund" asp-action="Index" class="btn btn-info btn-lg btn-block">
+                        <i class="fas fa-piggy-bank"></i> Manage Funds
+                    </a>
+                </div>
+            </div>
+        </div>
+
+        <!-- Reconciliation -->
+        <div class="col-md-4 mb-3">
+            <div class="card shadow-sm">
+                <div class="card-body text-center">
+                    <a asp-controller="CashTransactions" asp-action="Index" class="btn btn-warning btn-lg btn-block">
+                        <i class="fas fa-exchange-alt"></i> Reconciliation
+                    </a>
+                </div>
+            </div>
+        </div>
+
+        <!-- Reports Section -->
+        <div class="col-md-4 mb-3">
+            <div class="card shadow-sm">
+                <div class="card-body text-center">
+                    <a asp-controller="Reports" asp-action="CashIncomeExpenses" class="btn btn-dark btn-lg btn-block">
+                        <i class="fas fa-chart-line"></i> Cash Income & Expenses Report
+                    </a>
+                </div>
+            </div>
+        </div>
+
+        <div class="col-md-4 mb-3">
+            <div class="card shadow-sm">
+                <div class="card-body text-center">
+                    <a asp-controller="Reports" asp-action="ProfitLoss" class="btn btn-dark btn-lg btn-block">
+                        <i class="fas fa-balance-scale"></i> Profit & Loss Report
+                    </a>
+                </div>
+            </div>
+        </div>
+
+        <div class="col-md-4 mb-3">
+            <div class="card shadow-sm">
+                <div class="card-body text-center">
+                    <a asp-controller="Reports" asp-action="TrialBalance" class="btn btn-dark btn-lg btn-block">
+                        <i class="fas fa-calculator"></i> Trial Balance Report
+                    </a>
+                </div>
+            </div>
+        </div>
     </div>
 </div>
+
+<!-- Footer -->
+<footer class="text-center py-4 mt-5">
+    <p class="mb-0">&copy; 2024 - TempleManagementSystem</p>
+</footer>
