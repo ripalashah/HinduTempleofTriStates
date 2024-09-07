@@ -2,7 +2,7 @@
 
 <h1>Create Cash Transaction</h1>
 
-<form asp-action="Create">
+<form asp-action="Create" method="post">
     <div class="form-group">
         <label asp-for="Date" class="control-label"></label>
         <input asp-for="Date" class="form-control" />
@@ -32,11 +32,15 @@
 
     <div class="form-group">
         <label asp-for="LedgerAccountId" class="control-label"></label>
-        <select asp-for="LedgerAccountId" class="form-control" asp-items="ViewBag.LedgerAccountId">
-            <option value="">Select Ledger Account</option>
+        <select asp-for="LedgerAccountId" class="form-control" asp-items="ViewBag.LedgerAccounts">
+            <option value="">-- Select Ledger Account --</option>
         </select>
         <span asp-validation-for="LedgerAccountId" class="text-danger"></span>
     </div>
 
     <button type="submit" class="btn btn-primary">Create</button>
 </form>
+
+@section Scripts {
+    <partial name="_ValidationScriptsPartial" />
+}

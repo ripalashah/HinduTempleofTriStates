@@ -1,9 +1,11 @@
 ﻿using Microsoft.AspNetCore.Mvc;
+using Microsoft.AspNetCore.Mvc.Rendering;
 using HinduTempleofTriStates.Models;
 using HinduTempleofTriStates.Repositories;
+using HinduTempleofTriStates.Services;
 using System;
-using System.Threading.Tasks;
 using System.Linq;
+using System.Threading.Tasks;
 
 namespace HinduTempleofTriStates.Controllers
 {
@@ -11,10 +13,12 @@ namespace HinduTempleofTriStates.Controllers
     public class CashTransactionsController : Controller
     {
         private readonly ICashTransactionRepository _transactionRepository;
+        private readonly LedgerService _ledgerService;
 
-        public CashTransactionsController(ICashTransactionRepository transactionRepository)
+        public CashTransactionsController(ICashTransactionRepository transactionRepository, LedgerService ledgerService)
         {
             _transactionRepository = transactionRepository;
+            _ledgerService = ledgerService;
         }
 
         // GET: CashTransactions
@@ -30,8 +34,10 @@ namespace HinduTempleofTriStates.Controllers
         // GET: CashTransactions/Create
         [HttpGet]
         [Route("Create")]
-        public IActionResult Create()
+        public async Task<IActionResult> Create()
         {
+            var ledgerAccounts = await _ledgerService.GetAllAccountsAsync();
+            ViewBag.LedgerAccounts = new SelectList(ledgerAccounts, "Id", "AccountName");
             return View();
         }
 
@@ -47,6 +53,10 @@ namespace HinduTempleofTriStates.Controllers
                 await _transactionRepository.AddCashTransactionAsync(transaction);
                 return RedirectToAction(nameof(Index));
             }
+
+            var ledgerAccounts = await _ledgerService.GetAllAccountsAsync();
+            ViewBag.LedgerAccounts = new SelectList(ledgerAccounts, "Id", "AccountName");
+
             return View(transaction);
         }
 

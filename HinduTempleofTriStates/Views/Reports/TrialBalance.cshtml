@@ -1,13 +1,21 @@
-﻿@model HinduTempleofTriStates.Views.Reports.TrialBalanceModel
+﻿@model HinduTempleofTriStates.Models.TrialBalanceModel
 
 <h1>Trial Balance Report</h1>
 
-<table class="table table-bordered">
+<div class="card">
+    <div class="card-body">
+        <h4>Total Debits: @Model.TotalDebits.ToString("C")</h4>
+        <h4>Total Credits: @Model.TotalCredits.ToString("C")</h4>
+        <h4>Net Balance: @Model.NetBalance.ToString("C")</h4>
+    </div>
+</div>
+
+<table class="table">
     <thead>
         <tr>
             <th>Account Name</th>
-            <th>Debit Balance</th>
-            <th>Credit Balance</th>
+            <th>Debit Total</th>
+            <th>Credit Total</th>
             <th>Net Balance</th>
         </tr>
     </thead>
@@ -16,16 +24,10 @@
         {
             <tr>
                 <td>@account.AccountName</td>
-                <td>@(account.DebitBalance > 0 ? account.DebitBalance.ToString("C") : "-")</td>
-                <td>@(account.CreditBalance > 0 ? account.CreditBalance.ToString("C") : "-")</td>
+                <td>@account.DebitTotal.ToString("C")</td>
+                <td>@account.CreditTotal.ToString("C")</td>
                 <td>@account.NetBalance.ToString("C")</td>
             </tr>
         }
     </tbody>
 </table>
-
-<div class="mt-4">
-    <h4>Total Debits: @Model.TotalDebits.ToString("C")</h4>
-    <h4>Total Credits: @Model.TotalCredits.ToString("C")</h4>
-    <h4>Net Balance: @Model.NetBalance.ToString("C")</h4>
-</div>

@@ -15,7 +15,7 @@ namespace HinduTempleofTriStates.Services
             _context = context;
         }
 
-        // Generate General Ledger Report
+        // General Ledger Report
         public async Task<GeneralLedgerModel> GenerateGeneralLedgerAsync()
         {
             var generalLedgerEntries = await _context.GeneralLedgerEntries
@@ -38,7 +38,7 @@ namespace HinduTempleofTriStates.Services
             };
         }
 
-        // Generate Profit and Loss Report
+        // Profit and Loss Report
         public async Task<ProfitLossModel> GenerateProfitLossAsync()
         {
             var profitLossItems = await _context.Transactions
@@ -56,15 +56,16 @@ namespace HinduTempleofTriStates.Services
             };
         }
 
-        // Generate Trial Balance Report
+        // Trial Balance Report
         public async Task<TrialBalanceModel> GenerateTrialBalanceAsync()
         {
             var trialBalanceAccounts = await _context.LedgerAccounts
+                .Include(a => a.Transactions)
                 .Select(account => new TrialBalanceAccount
                 {
                     AccountName = account.AccountName,
-                    DebitBalance = account.Transactions.Where(t => t.Debit > 0).Sum(t => t.Debit),
-                    CreditBalance = account.Transactions.Where(t => t.Credit > 0).Sum(t => t.Credit)
+                    DebitBalance = account.Transactions.Where(t => t.TransactionType == TransactionType.Debit).Sum(t => t.Amount),
+                    CreditBalance = account.Transactions.Where(t => t.TransactionType == TransactionType.Credit).Sum(t => t.Amount)
                 }).ToListAsync();
 
             return new TrialBalanceModel
@@ -73,7 +74,7 @@ namespace HinduTempleofTriStates.Services
             };
         }
 
-        // Generate Cash Income and Expenses Report
+        // Cash Income and Expenses Report
         public async Task<CashIncomeExpensesModel> GetCashIncomeExpensesAsync()
         {
             var cashTransactions = await _context.CashTransactions.ToListAsync();
@@ -84,4 +85,5 @@ namespace HinduTempleofTriStates.Services
             };
         }
     }
+
 }

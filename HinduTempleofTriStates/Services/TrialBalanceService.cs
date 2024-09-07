@@ -25,11 +25,11 @@ namespace HinduTempleofTriStates.Services
             {
                 var debit = await _context.Transactions
                     .Where(t => t.LedgerAccountId == account.Id && t.TransactionType == TransactionType.Debit)
-                    .SumAsync(t => t.Amount);
+                    .SumAsync(t => (decimal?)t.Amount) ?? 0m;
 
                 var credit = await _context.Transactions
                     .Where(t => t.LedgerAccountId == account.Id && t.TransactionType == TransactionType.Credit)
-                    .SumAsync(t => t.Amount);
+                    .SumAsync(t => (decimal?)t.Amount) ?? 0m;
 
                 model.TrialBalanceAccounts.Add(new TrialBalanceAccount
                 {
@@ -43,4 +43,5 @@ namespace HinduTempleofTriStates.Services
             return model;
         }
     }
+
 }

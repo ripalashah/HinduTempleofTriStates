@@ -1,5 +1,5 @@
-﻿using Microsoft.EntityFrameworkCore;
-using HinduTempleofTriStates.Models;
+﻿using HinduTempleofTriStates.Models;
+using Microsoft.EntityFrameworkCore;
 using System;
 
 namespace HinduTempleofTriStates.Data
@@ -41,6 +41,7 @@ namespace HinduTempleofTriStates.Data
                 .Property(ct => ct.Amount)
                 .HasColumnType("decimal(18,2)");
 
+            // Ignore properties that are not mapped to the database
             modelBuilder.Entity<CashTransaction>()
                 .Ignore(ct => ct.Expense)
                 .Ignore(ct => ct.Income);
@@ -55,19 +56,20 @@ namespace HinduTempleofTriStates.Data
 
             modelBuilder.Entity<GeneralLedgerEntry>()
                 .Ignore(g => g.Balance);
-                
 
             modelBuilder.Entity<GeneralLedgerEntry>()
                 .Property(g => g.Credit)
                 .HasColumnType("decimal(18,2)");
 
             modelBuilder.Entity<GeneralLedgerEntry>()
+                .Property(g => g.Debit)
+                .HasColumnType("decimal(18,2)");
+
+            // Configure relationships
+            modelBuilder.Entity<GeneralLedgerEntry>()
                 .HasOne(gl => gl.LedgerAccount)
                 .WithMany(l => l.GeneralLedgerEntries)
                 .HasForeignKey(gl => gl.LedgerAccountId);
-            modelBuilder.Entity<GeneralLedgerEntry>()
-                .Property(g => g.Debit)
-                .HasColumnType("decimal(18,2)");
 
             modelBuilder.Entity<Donation>()
                 .HasOne(d => d.LedgerAccount)
@@ -75,14 +77,12 @@ namespace HinduTempleofTriStates.Data
                 .HasForeignKey(d => d.LedgerAccountId)
                 .OnDelete(DeleteBehavior.Restrict);
 
-            // Configure relationships for Transactions
             modelBuilder.Entity<Transaction>()
                 .HasOne(t => t.LedgerAccount)
                 .WithMany(l => l.Transactions)
                 .HasForeignKey(t => t.LedgerAccountId)
                 .OnDelete(DeleteBehavior.Restrict);
 
-            // Configure relationships for Cash Transactions
             modelBuilder.Entity<CashTransaction>()
                 .HasOne(ct => ct.LedgerAccount)
                 .WithMany(l => l.CashTransactions)
