@@ -9,6 +9,7 @@ namespace HinduTempleofTriStates.Services
         Task<bool> ValidateTransactionAsync(Guid accountId, decimal amount);
         Task AddTransactionAsync(Guid accountId, Transaction transaction);
         Task AddAccountAsync(Account account);
-       
+        Task UpdateAccountAsync(Account account);
+
     }
 }

@@ -9,6 +9,7 @@ using HinduTempleofTriStates.Repositories;
 
 namespace HinduTempleofTriStates.Controllers
 {
+    [Route("[controller]")]
     public class AccountsController : Controller
     {
         private readonly IAccountRepository _accountRepository;
@@ -22,6 +23,9 @@ namespace HinduTempleofTriStates.Controllers
         }
 
         // GET: Accounts
+        [HttpGet]
+        [Route("")]
+        [Route("Index")]
         public async Task<IActionResult> Index()
         {
             var accounts = await _accountRepository.GetAllAccountsAsync();
@@ -41,6 +45,8 @@ namespace HinduTempleofTriStates.Controllers
         }
 
         // GET: Accounts/Create
+        [HttpGet]
+        [Route("Create")]
         public IActionResult Create()
         {
             return View();
@@ -49,6 +55,7 @@ namespace HinduTempleofTriStates.Controllers
         // POST: Accounts/Create
         [HttpPost]
         [ValidateAntiForgeryToken]
+        [Route("Create")]
         public async Task<IActionResult> Create([Bind("AccountName,Balance,AccountType")] Account account)
         {
             if (ModelState.IsValid)
@@ -68,6 +75,8 @@ namespace HinduTempleofTriStates.Controllers
         }
 
         // GET: Accounts/Edit/5
+        [HttpGet]
+        [Route("Edit/{id:guid}")]
         public async Task<IActionResult> Edit(Guid id)
         {
             var account = await _accountRepository.GetAccountByIdAsync(id);
@@ -81,6 +90,7 @@ namespace HinduTempleofTriStates.Controllers
         // POST: Accounts/Edit/5
         [HttpPost]
         [ValidateAntiForgeryToken]
+        [Route("Edit/{id:guid}")]
         public async Task<IActionResult> Edit(Guid id, [Bind("Id,AccountName,Balance,AccountType")] Account account)
         {
             if (id != account.Id)
@@ -111,6 +121,8 @@ namespace HinduTempleofTriStates.Controllers
         }
 
         // GET: Accounts/Delete/5
+        [HttpGet]
+        [Route("Delete/{id:guid}")]
         public async Task<IActionResult> Delete(Guid id)
         {
             var account = await _accountRepository.GetAccountByIdAsync(id);

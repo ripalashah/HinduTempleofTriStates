@@ -21,7 +21,7 @@ namespace HinduTempleofTriStates.Services
             return await _context.LedgerAccounts.ToListAsync();
         }
 
-        public async Task<LedgerAccount?> GetAccountByIdAsync(Guid id)
+        public async Task<LedgerAccount?> GetLedgerAccountByIdAsync(Guid id)
         {
             return await _context.LedgerAccounts.FindAsync(id);
         }
@@ -32,7 +32,7 @@ namespace HinduTempleofTriStates.Services
             await _context.SaveChangesAsync();
         }
 
-        public async Task UpdateAccountAsync(LedgerAccount account)
+        public async Task UpdateLedgerAccountAsync(LedgerAccount account)
         {
             _context.Entry(account).State = EntityState.Modified;
             await _context.SaveChangesAsync();

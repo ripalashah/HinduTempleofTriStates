@@ -14,6 +14,7 @@ namespace HinduTempleofTriStates.Views.Reports
         public TrialBalanceModel(FinancialReportService financialReportService)
         {
             _financialReportService = financialReportService;
+            TrialBalanceAccounts = new List<TrialBalanceAccount>();
         }
 
         public List<TrialBalanceAccount> TrialBalanceAccounts { get; set; }

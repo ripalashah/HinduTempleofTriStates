@@ -20,6 +20,6 @@ namespace HinduTempleofTriStates.Models
         public ICollection<Donation> Donations { get; set; } = new List<Donation>(); // Navigation property
                                                                                      // Navigation property to handle transactions related to this account
         public virtual ICollection<Transaction> Transactions { get; set; } = new List<Transaction>();
-                
+        public DateTime UpdatedDate { get; internal set; }
     }
 }

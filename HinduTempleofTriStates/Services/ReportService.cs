@@ -1,6 +1,5 @@
 ﻿using HinduTempleofTriStates.Data;
 using HinduTempleofTriStates.Models;
-using HinduTempleofTriStates.Views.Reports;
 using Microsoft.EntityFrameworkCore;
 using System.Linq;
 using System.Threading.Tasks;
@@ -17,13 +16,13 @@ namespace HinduTempleofTriStates.Services
         }
 
         // Generate General Ledger Report
-        public async Task<Models.GeneralLedgerModel> GenerateGeneralLedgerAsync()
+        public async Task<GeneralLedgerModel> GenerateGeneralLedgerAsync()
         {
             var generalLedgerEntries = await _context.GeneralLedgerEntries
                 .Include(e => e.LedgerAccount)
                 .ToListAsync();
 
-            return new Models.GeneralLedgerModel
+            return new GeneralLedgerModel
             {
                 GeneralLedgerEntries = generalLedgerEntries.Select(entry => new GeneralLedgerEntryModel
                 {
@@ -40,7 +39,7 @@ namespace HinduTempleofTriStates.Services
         }
 
         // Generate Profit and Loss Report
-        public async Task<Models.ProfitLossModel> GenerateProfitLossAsync()
+        public async Task<ProfitLossModel> GenerateProfitLossAsync()
         {
             var profitLossItems = await _context.Transactions
                 .Select(t => new ProfitLossItem
@@ -49,7 +48,7 @@ namespace HinduTempleofTriStates.Services
                     Amount = t.Debit > 0 ? t.Debit : -t.Credit
                 }).ToListAsync();
 
-            return new Models.ProfitLossModel
+            return new ProfitLossModel
             {
                 ProfitLossItems = profitLossItems,
                 TotalProfit = profitLossItems.Sum(p => p.Amount > 0 ? p.Amount : 0),
@@ -58,7 +57,7 @@ namespace HinduTempleofTriStates.Services
         }
 
         // Generate Trial Balance Report
-        public async Task<Models.TrialBalanceModel> GenerateTrialBalanceAsync()
+        public async Task<TrialBalanceModel> GenerateTrialBalanceAsync()
         {
             var trialBalanceAccounts = await _context.LedgerAccounts
                 .Select(account => new TrialBalanceAccount
@@ -68,10 +67,20 @@ namespace HinduTempleofTriStates.Services
                     CreditBalance = account.Transactions.Where(t => t.Credit > 0).Sum(t => t.Credit)
                 }).ToListAsync();
 
-            return new Models.TrialBalanceModel
+            return new TrialBalanceModel
             {
                 TrialBalanceAccounts = trialBalanceAccounts
-                
+            };
+        }
+
+        // Generate Cash Income and Expenses Report
+        public async Task<CashIncomeExpensesModel> GetCashIncomeExpensesAsync()
+        {
+            var cashTransactions = await _context.CashTransactions.ToListAsync();
+
+            return new CashIncomeExpensesModel
+            {
+                CashTransactions = cashTransactions
             };
         }
     }

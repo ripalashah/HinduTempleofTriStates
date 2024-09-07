@@ -6,35 +6,64 @@ using System.Threading.Tasks;
 
 namespace HinduTempleofTriStates.Controllers
 {
+    [Route("Ledger")]
     public class LedgerController : Controller
     {
         private readonly LedgerService _ledgerService;
-
-        public LedgerController(LedgerService ledgerService)
+        private readonly ILogger<LedgerController> _logger;
+        // Ensure logger is injected via the constructor
+        public LedgerController(LedgerService ledgerService, ILogger<LedgerController> logger)
         {
             _ledgerService = ledgerService;
+            _logger = logger ?? throw new ArgumentNullException(nameof(logger)); // Check for null logger
         }
 
         // GET: Ledger/Create
+        [HttpGet("Create")]
         public IActionResult Create()
         {
             return View();
         }
 
         // POST: Ledger/Create
-        [HttpPost]
+        [HttpPost("Create")]
         [ValidateAntiForgeryToken]
         public async Task<IActionResult> Create(LedgerAccount ledgerAccount)
         {
-            if (ModelState.IsValid)
+            // Log the current model state
+            if (!ModelState.IsValid)
+            {
+                _logger.LogWarning("Model state is invalid.");
+                foreach (var error in ModelState)
+                {
+                    _logger.LogWarning($"Key: {error.Key}, Errors: {string.Join(", ", error.Value.Errors.Select(e => e.ErrorMessage))}");
+                }
+                return View(ledgerAccount);
+            }
+
+            // Automatically set values for fields that are required but not filled by the form
+            ledgerAccount.CreatedBy = "System"; // Or get the logged-in user's name
+            ledgerAccount.UpdatedBy = "System"; // Or get the logged-in user's name
+            ledgerAccount.CreatedDate = DateTime.UtcNow;
+            ledgerAccount.UpdatedDate = DateTime.UtcNow;
+            ledgerAccount.Balance = ledgerAccount.Balance != 0 ? ledgerAccount.Balance : 0; // Default balance to 0
+
+            // Proceed if the model is valid
+            try
             {
                 await _ledgerService.AddAccountAsync(ledgerAccount);
+                _logger.LogInformation("Ledger account created successfully.");
                 return RedirectToAction(nameof(Index));
             }
-            return View(ledgerAccount);
+            catch (Exception ex)
+            {
+                _logger.LogError(ex, "Error creating ledger account.");
+                return View(ledgerAccount);
+            };
         }
 
         // GET: Ledger/Index
+        [HttpGet("Index")]
         public async Task<IActionResult> Index()
         {
             var accounts = await _ledgerService.GetAllAccountsAsync();
@@ -53,7 +82,7 @@ namespace HinduTempleofTriStates.Controllers
         [HttpGet("{id}")]
         public async Task<IActionResult> GetAccount(Guid id)
         {
-            var account = await _ledgerService.GetAccountByIdAsync(id);
+            var account = await _ledgerService.GetLedgerAccountByIdAsync(id);
             if (account == null)
             {
                 return NotFound();
@@ -106,13 +135,13 @@ namespace HinduTempleofTriStates.Controllers
                 return BadRequest("Invalid account data.");
             }
 
-            var existingAccount = await _ledgerService.GetAccountByIdAsync(id);
+            var existingAccount = await _ledgerService.GetLedgerAccountByIdAsync(id);
             if (existingAccount == null)
             {
                 return NotFound();
             }
 
-            await _ledgerService.UpdateAccountAsync(account);
+            await _ledgerService.UpdateLedgerAccountAsync(account);
             return NoContent();
         }
 
@@ -120,7 +149,7 @@ namespace HinduTempleofTriStates.Controllers
         [HttpDelete("{id}")]
         public async Task<IActionResult> DeleteAccount(Guid id)
         {
-            var account = await _ledgerService.GetAccountByIdAsync(id);
+            var account = await _ledgerService.GetLedgerAccountByIdAsync(id);
             if (account == null)
             {
                 return NotFound();

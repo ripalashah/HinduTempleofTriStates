@@ -16,7 +16,7 @@ namespace HinduTempleofTriStates.Views.Accounts
         }
 
         [BindProperty]
-        public Account Account { get; set; }
+        public required Account Account { get; set; }
 
         public async Task<IActionResult> OnGetAsync(Guid id)
         {

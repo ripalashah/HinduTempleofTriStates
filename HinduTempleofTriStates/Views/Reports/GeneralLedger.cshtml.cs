@@ -1,6 +1,5 @@
 ﻿using HinduTempleofTriStates.Models;
 using Microsoft.AspNetCore.Mvc.RazorPages;
-using HinduTempleofTriStates.Views.Reports;
 using HinduTempleofTriStates.Services;
 using System.Collections.Generic;
 using System.Threading.Tasks;
@@ -14,9 +13,11 @@ namespace HinduTempleofTriStates.Views.Reports
         public GeneralLedgerModel(FinancialReportService financialReportService)
         {
             _financialReportService = financialReportService;
+            GeneralLedgerEntries = new List<GeneralLedgerEntryModel>();
         }
 
-        public List<GeneralLedgerEntry> GeneralLedgerEntries { get; set; }
+        // Change the type to match the return value from FinancialReportService
+        public List<GeneralLedgerEntryModel> GeneralLedgerEntries { get; set; }
         public decimal TotalDebit { get; set; }
         public decimal TotalCredit { get; set; }
         public decimal TotalBalance { get; set; }
@@ -24,7 +25,7 @@ namespace HinduTempleofTriStates.Views.Reports
         public async Task OnGetAsync()
         {
             var ledgerData = await _financialReportService.GetGeneralLedgerAsync();
-            GeneralLedgerEntries = ledgerData.GeneralLedgerEntries;
+            GeneralLedgerEntries = ledgerData.GeneralLedgerEntries; // This now matches the type
             TotalDebit = ledgerData.TotalDebit;
             TotalCredit = ledgerData.TotalCredit;
             TotalBalance = ledgerData.TotalBalance;

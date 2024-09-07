@@ -8,5 +8,6 @@ namespace HinduTempleofTriStates.Services
         Task<GeneralLedgerModel> GenerateGeneralLedgerAsync();
         Task<ProfitLossModel> GenerateProfitLossAsync();
         Task<TrialBalanceModel> GenerateTrialBalanceAsync();
+        Task<CashIncomeExpensesModel> GetCashIncomeExpensesAsync();
     }
 }

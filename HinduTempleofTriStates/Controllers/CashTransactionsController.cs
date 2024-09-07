@@ -7,6 +7,7 @@ using System.Linq;
 
 namespace HinduTempleofTriStates.Controllers
 {
+    [Route("transaction")]
     public class CashTransactionsController : Controller
     {
         private readonly ICashTransactionRepository _transactionRepository;
@@ -17,6 +18,9 @@ namespace HinduTempleofTriStates.Controllers
         }
 
         // GET: CashTransactions
+        [HttpGet]
+        [Route("")]
+        [Route("Index")]
         public async Task<IActionResult> Index()
         {
             var transactions = await _transactionRepository.GetAllCashTransactionsAsync();
@@ -24,6 +28,8 @@ namespace HinduTempleofTriStates.Controllers
         }
 
         // GET: CashTransactions/Create
+        [HttpGet]
+        [Route("Create")]
         public IActionResult Create()
         {
             return View();
@@ -32,6 +38,7 @@ namespace HinduTempleofTriStates.Controllers
         // POST: CashTransactions/Create
         [HttpPost]
         [ValidateAntiForgeryToken]
+        [Route("Create")]
         public async Task<IActionResult> Create([Bind("Date,Description,Amount,Type,LedgerAccountId")] CashTransaction transaction)
         {
             if (ModelState.IsValid)
@@ -44,6 +51,8 @@ namespace HinduTempleofTriStates.Controllers
         }
 
         // GET: CashIncomeExpenses
+        [HttpGet]
+        [Route("IncomeExpenses")]
         public async Task<IActionResult> IncomeExpenses()
         {
             var transactions = await _transactionRepository.GetAllCashTransactionsAsync();

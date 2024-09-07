@@ -33,12 +33,14 @@ namespace HinduTempleofTriStates.Migrations
                         .HasMaxLength(100)
                         .HasColumnType("nvarchar(100)");
 
-                    b.Property<string>("AccountType")
-                        .IsRequired()
-                        .HasColumnType("nvarchar(max)");
+                    b.Property<int>("AccountType")
+                        .HasColumnType("int");
 
                     b.Property<decimal>("Balance")
                         .HasColumnType("decimal(18,2)");
+
+                    b.Property<DateTime>("UpdatedDate")
+                        .HasColumnType("datetime2");
 
                     b.HasKey("Id");
 
@@ -49,10 +51,11 @@ namespace HinduTempleofTriStates.Migrations
                     b.HasData(
                         new
                         {
-                            Id = new Guid("c7a45725-9e30-4f1e-9036-122de72d2fcc"),
+                            Id = new Guid("3c7bf0af-fdd2-47fb-bff5-b156791277e6"),
                             AccountName = "Default Account",
-                            AccountType = "Checking",
-                            Balance = 0m
+                            AccountType = 5,
+                            Balance = 0m,
+                            UpdatedDate = new DateTime(1, 1, 1, 0, 0, 0, 0, DateTimeKind.Unspecified)
                         });
                 });
 
@@ -72,18 +75,8 @@ namespace HinduTempleofTriStates.Migrations
                         .IsRequired()
                         .HasColumnType("nvarchar(max)");
 
-                    b.Property<decimal>("Expense")
-                        .HasColumnType("decimal(18,2)");
-
-                    b.Property<decimal>("Income")
-                        .HasColumnType("decimal(18,2)");
-
                     b.Property<Guid?>("LedgerAccountId")
                         .HasColumnType("uniqueidentifier");
-
-                    b.Property<string>("TransactionType")
-                        .IsRequired()
-                        .HasColumnType("nvarchar(max)");
 
                     b.Property<int>("Type")
                         .HasColumnType("int");
@@ -158,16 +151,15 @@ namespace HinduTempleofTriStates.Migrations
                     b.HasData(
                         new
                         {
-                            Id = new Guid("24b23b0b-5738-427b-9971-8456c2e7a151"),
-                            AccountId = new Guid("c7a45725-9e30-4f1e-9036-122de72d2fcc"),
+                            Id = new Guid("60b2cbf1-8791-4883-bcb1-9a4fc70707e6"),
                             Amount = 100.0,
                             City = "Anytown",
                             Country = "Anycountry",
-                            Date = new DateTime(2024, 9, 5, 0, 53, 9, 437, DateTimeKind.Local).AddTicks(7168),
+                            Date = new DateTime(2024, 9, 6, 11, 37, 42, 479, DateTimeKind.Local).AddTicks(9640),
                             DonationCategory = "General",
                             DonationType = "One-Time",
                             DonorName = "John Doe",
-                            LedgerAccountId = new Guid("1af8605a-f843-4f35-9ca4-3c53ce82f7ea"),
+                            LedgerAccountId = new Guid("6cddd189-751a-4630-9542-b8ec6dda6b17"),
                             Phone = "123-456-7890",
                             State = "Anystate"
                         });
@@ -177,6 +169,9 @@ namespace HinduTempleofTriStates.Migrations
                 {
                     b.Property<Guid>("Id")
                         .ValueGeneratedOnAdd()
+                        .HasColumnType("uniqueidentifier");
+
+                    b.Property<Guid>("AccountId")
                         .HasColumnType("uniqueidentifier");
 
                     b.Property<string>("AccountName")
@@ -210,13 +205,6 @@ namespace HinduTempleofTriStates.Migrations
                         .ValueGeneratedOnAdd()
                         .HasColumnType("uniqueidentifier");
 
-                    b.Property<string>("AccountName")
-                        .IsRequired()
-                        .HasColumnType("nvarchar(max)");
-
-                    b.Property<decimal>("Balance")
-                        .HasColumnType("decimal(18,2)");
-
                     b.Property<decimal>("Credit")
                         .HasColumnType("decimal(18,2)");
 
@@ -229,9 +217,6 @@ namespace HinduTempleofTriStates.Migrations
                     b.Property<string>("Description")
                         .IsRequired()
                         .HasColumnType("nvarchar(max)");
-
-                    b.Property<Guid>("EntryId")
-                        .HasColumnType("uniqueidentifier");
 
                     b.Property<Guid>("LedgerAccountId")
                         .HasColumnType("uniqueidentifier");
@@ -256,12 +241,25 @@ namespace HinduTempleofTriStates.Migrations
                         .IsRequired()
                         .HasColumnType("nvarchar(max)");
 
-                    b.Property<string>("AccountType")
-                        .IsRequired()
-                        .HasColumnType("nvarchar(max)");
+                    b.Property<int>("AccountType")
+                        .HasColumnType("int");
 
                     b.Property<decimal>("Balance")
                         .HasColumnType("decimal(18,2)");
+
+                    b.Property<string>("CreatedBy")
+                        .IsRequired()
+                        .HasColumnType("nvarchar(max)");
+
+                    b.Property<DateTime>("CreatedDate")
+                        .HasColumnType("datetime2");
+
+                    b.Property<string>("UpdatedBy")
+                        .IsRequired()
+                        .HasColumnType("nvarchar(max)");
+
+                    b.Property<DateTime>("UpdatedDate")
+                        .HasColumnType("datetime2");
 
                     b.HasKey("Id");
 
@@ -270,11 +268,15 @@ namespace HinduTempleofTriStates.Migrations
                     b.HasData(
                         new
                         {
-                            Id = new Guid("1af8605a-f843-4f35-9ca4-3c53ce82f7ea"),
+                            Id = new Guid("6cddd189-751a-4630-9542-b8ec6dda6b17"),
                             AccountId = new Guid("00000000-0000-0000-0000-000000000000"),
                             AccountName = "Default Ledger",
-                            AccountType = "Checking",
-                            Balance = 0m
+                            AccountType = 5,
+                            Balance = 0m,
+                            CreatedBy = "System",
+                            CreatedDate = new DateTime(2024, 9, 6, 15, 37, 42, 479, DateTimeKind.Utc).AddTicks(9466),
+                            UpdatedBy = "System",
+                            UpdatedDate = new DateTime(2024, 9, 6, 15, 37, 42, 479, DateTimeKind.Utc).AddTicks(9467)
                         });
                 });
 
@@ -290,15 +292,29 @@ namespace HinduTempleofTriStates.Migrations
                     b.Property<decimal>("Amount")
                         .HasColumnType("decimal(18,2)");
 
+                    b.Property<DateTime>("CreatedAt")
+                        .HasColumnType("datetime2");
+
+                    b.Property<string>("CreatedBy")
+                        .IsRequired()
+                        .HasColumnType("nvarchar(max)");
+
                     b.Property<DateTime>("Date")
                         .HasColumnType("datetime2");
 
                     b.Property<string>("Description")
                         .IsRequired()
-                        .HasColumnType("nvarchar(max)");
+                        .HasMaxLength(200)
+                        .HasColumnType("nvarchar(200)");
 
                     b.Property<Guid>("LedgerAccountId")
                         .HasColumnType("uniqueidentifier");
+
+                    b.Property<DateTime?>("ModifiedAt")
+                        .HasColumnType("datetime2");
+
+                    b.Property<string>("ModifiedBy")
+                        .HasColumnType("nvarchar(max)");
 
                     b.Property<bool>("Reconciled")
                         .HasColumnType("bit");
@@ -309,7 +325,12 @@ namespace HinduTempleofTriStates.Migrations
                     b.Property<int>("TransactionType")
                         .HasColumnType("int");
 
+                    b.Property<int>("Type")
+                        .HasColumnType("int");
+
                     b.HasKey("Id");
+
+                    b.HasIndex("AccountId");
 
                     b.HasIndex("LedgerAccountId");
 
@@ -328,18 +349,15 @@ namespace HinduTempleofTriStates.Migrations
 
             modelBuilder.Entity("HinduTempleofTriStates.Models.Donation", b =>
                 {
-                    b.HasOne("HinduTempleofTriStates.Models.Account", "Account")
+                    b.HasOne("HinduTempleofTriStates.Models.Account", null)
                         .WithMany("Donations")
-                        .HasForeignKey("AccountId")
-                        .OnDelete(DeleteBehavior.Cascade);
+                        .HasForeignKey("AccountId");
 
                     b.HasOne("HinduTempleofTriStates.Models.LedgerAccount", "LedgerAccount")
                         .WithMany("Donations")
                         .HasForeignKey("LedgerAccountId")
                         .OnDelete(DeleteBehavior.Restrict)
                         .IsRequired();
-
-                    b.Navigation("Account");
 
                     b.Navigation("LedgerAccount");
                 });
@@ -357,6 +375,12 @@ namespace HinduTempleofTriStates.Migrations
 
             modelBuilder.Entity("HinduTempleofTriStates.Models.Transaction", b =>
                 {
+                    b.HasOne("HinduTempleofTriStates.Models.Account", null)
+                        .WithMany("Transactions")
+                        .HasForeignKey("AccountId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
+
                     b.HasOne("HinduTempleofTriStates.Models.LedgerAccount", "LedgerAccount")
                         .WithMany("Transactions")
                         .HasForeignKey("LedgerAccountId")
@@ -369,6 +393,8 @@ namespace HinduTempleofTriStates.Migrations
             modelBuilder.Entity("HinduTempleofTriStates.Models.Account", b =>
                 {
                     b.Navigation("Donations");
+
+                    b.Navigation("Transactions");
                 });
 
             modelBuilder.Entity("HinduTempleofTriStates.Models.LedgerAccount", b =>

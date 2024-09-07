@@ -7,7 +7,7 @@ using System.Threading.Tasks;
 
 namespace HinduTempleofTriStates.Services
 {
-    public class DonationService
+    public class DonationService : IDonationService
     {
         private readonly IDonationRepository _donationRepository;
         private readonly ILogger<DonationService> _logger;
@@ -102,16 +102,6 @@ namespace HinduTempleofTriStates.Services
                    && !string.IsNullOrWhiteSpace(donation.DonorName)
                    && donation.Amount > 0
                    && donation.Date != DateTime.MinValue;
-        }
-
-        internal void AddDonation(object donation)
-        {
-            throw new NotImplementedException();
-        }
-
-        public static implicit operator DonationService(Donation v)
-        {
-            throw new NotImplementedException();
         }
     }
 }
