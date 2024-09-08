@@ -1,96 +1,64 @@
-﻿@model dynamic
-
-@{
-    ViewData["Title"] = "Temple Management System";
+﻿@{
+    ViewData["Title"] = "Home Page";
 }
 
-<!-- Main container -->
-<div class="container my-5">
-    <div class="text-center mb-4">
-        <h1 class="display-4 text-primary">Welcome to the Temple Management System</h1>
-        <p class="lead">Efficiently manage temple operations, donations, funds, and reports.</p>
-    </div>
+<div class="text-center">
+    <!-- Add the logo -->
+    <img src="~/images/logo.png" alt="Temple Logo" class="logo mb-3">
 
-    <!-- Row of buttons -->
-    <div class="row justify-content-center">
-        <!-- Donations -->
-        <div class="col-md-4 mb-3">
-            <div class="card shadow-sm">
-                <div class="card-body text-center">
-                    <a asp-controller="Donation" asp-action="Index" class="btn btn-primary btn-lg btn-block">
-                        <i class="fas fa-donate"></i> View Donations
-                    </a>
-                </div>
+    <h1 class="display-4 mt-3">Welcome to the Temple Management System</h1>
+    <p class="lead">Efficiently manage temple operations, donations, funds, and reports.</p>
+
+    <div class="row justify-content-center mt-5">
+        <!-- Donations Links -->
+        <div class="col-lg-3 col-md-4 col-sm-6 mb-4">
+            <a asp-controller="Donation" asp-action="Index" class="btn btn-primary btn-block p-3">
+                <i class="fas fa-donate fa-lg"></i> View Donations
+            </a>
+            <div class="sub-links mt-3">
+                <a asp-controller="Donation" asp-action="Create" class="btn btn-outline-primary btn-sm btn-block">
+                    Add New Donation
+                </a>
+                <a asp-controller="Donation" asp-action="Reports" class="btn btn-outline-primary btn-sm btn-block">
+                    Donation Reports
+                </a>
             </div>
         </div>
 
-        <!-- Manage Accounts -->
-        <div class="col-md-4 mb-3">
-            <div class="card shadow-sm">
-                <div class="card-body text-center">
-                    <a asp-controller="Accounts" asp-action="Index" class="btn btn-success btn-lg btn-block">
-                        <i class="fas fa-book"></i> Manage Accounts
-                    </a>
-                </div>
+        <!-- Accounts Links -->
+        <div class="col-lg-3 col-md-4 col-sm-6 mb-4">
+            <a asp-controller="Accounts" asp-action="Index" class="btn btn-success btn-block p-3">
+                <i class="fas fa-book fa-lg"></i> Manage Accounts
+            </a>
+            <div class="sub-links mt-3">
+                <a asp-controller="Accounts" asp-action="Create" class="btn btn-outline-success btn-sm btn-block">
+                    Add New Account
+                </a>
+                <a asp-controller="Accounts" asp-action="Reports" class="btn btn-outline-success btn-sm btn-block">
+                    Accounts Reports
+                </a>
             </div>
         </div>
 
-        <!-- Manage Funds -->
-        <div class="col-md-4 mb-3">
-            <div class="card shadow-sm">
-                <div class="card-body text-center">
-                    <a asp-controller="Fund" asp-action="Index" class="btn btn-info btn-lg btn-block">
-                        <i class="fas fa-piggy-bank"></i> Manage Funds
-                    </a>
-                </div>
-            </div>
-        </div>
-
-        <!-- Reconciliation -->
-        <div class="col-md-4 mb-3">
-            <div class="card shadow-sm">
-                <div class="card-body text-center">
-                    <a asp-controller="CashTransactions" asp-action="Index" class="btn btn-warning btn-lg btn-block">
-                        <i class="fas fa-exchange-alt"></i> Reconciliation
-                    </a>
-                </div>
-            </div>
-        </div>
-
-        <!-- Reports Section -->
-        <div class="col-md-4 mb-3">
-            <div class="card shadow-sm">
-                <div class="card-body text-center">
-                    <a asp-controller="Reports" asp-action="CashIncomeExpenses" class="btn btn-dark btn-lg btn-block">
-                        <i class="fas fa-chart-line"></i> Cash Income & Expenses Report
-                    </a>
-                </div>
-            </div>
-        </div>
-
-        <div class="col-md-4 mb-3">
-            <div class="card shadow-sm">
-                <div class="card-body text-center">
-                    <a asp-controller="Reports" asp-action="ProfitLoss" class="btn btn-dark btn-lg btn-block">
-                        <i class="fas fa-balance-scale"></i> Profit & Loss Report
-                    </a>
-                </div>
-            </div>
-        </div>
-
-        <div class="col-md-4 mb-3">
-            <div class="card shadow-sm">
-                <div class="card-body text-center">
-                    <a asp-controller="Reports" asp-action="TrialBalance" class="btn btn-dark btn-lg btn-block">
-                        <i class="fas fa-calculator"></i> Trial Balance Report
-                    </a>
-                </div>
+        <!-- Reports Links -->
+        <div class="col-lg-3 col-md-4 col-sm-6 mb-4">
+            <a asp-controller="Reports" asp-action="Index" class="btn btn-secondary btn-block p-3">
+                <i class="fas fa-chart-line fa-lg"></i> View Reports
+            </a>
+            <div class="sub-links mt-3">
+                <a asp-controller="Reports" asp-action="GeneralLedger" class="btn btn-outline-secondary btn-sm btn-block">
+                    General Ledger Report
+                </a>
+                <a asp-controller="Reports" asp-action="ProfitLoss" class="btn btn-outline-secondary btn-sm btn-block">
+                    Profit & Loss Report
+                </a>
+                <a asp-controller="Reports" asp-action="TrialBalance" class="btn btn-outline-secondary btn-sm btn-block">
+                    Trial Balance Report
+                </a>
+                <a asp-controller="Reports" asp-action="CashIncomeExpenses" class="btn btn-outline-secondary btn-sm btn-block">
+                    Cash Income Expenses
+                </a>
             </div>
         </div>
     </div>
 </div>
-
-<!-- Footer -->
-<footer class="text-center py-4 mt-5">
-    <p class="mb-0">&copy; 2024 - TempleManagementSystem</p>
-</footer>

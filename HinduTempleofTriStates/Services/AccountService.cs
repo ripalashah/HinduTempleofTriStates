@@ -13,6 +13,10 @@ namespace HinduTempleofTriStates.Services
             _context = context;
         }
 
+        public async Task<List<Account>> GetAccountsAsync()
+        {
+            return await _context.Accounts.ToListAsync();
+        }
         // Fetch an account by ID
         public async Task<Account> GetAccountByIdAsync(Guid accountId)
         {

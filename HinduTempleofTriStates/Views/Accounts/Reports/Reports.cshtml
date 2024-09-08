@@ -1,0 +1,42 @@
+﻿@model IEnumerable<HinduTempleofTriStates.Models.Account>
+
+@{
+    ViewData["Title"] = "Accounts Reports";
+}
+
+<h2>Accounts Reports</h2>
+
+<!-- Optional: Search or filter functionality -->
+<form method="get" class="form-inline mb-3">
+    <input type="text" name="Search" class="form-control mr-2" placeholder="Search by Account Name">
+    <button type="submit" class="btn btn-primary">Search</button>
+</form>
+
+<!-- Displaying the account reports in a table -->
+<table class="table table-striped">
+    <thead>
+        <tr>
+            <th>Account Name</th>
+            <th>Balance</th>
+            <th>Account Type</th>
+            <th>Created Date</th>
+            <th>Actions</th>
+        </tr>
+    </thead>
+    <tbody>
+        @foreach (var account in Model)
+        {
+            <tr>
+                <td>@account.AccountName</td>
+                <td>@account.Balance.ToString("C")</td>
+                <td>@account.AccountType</td>
+                <!-- Remove or update this line if CreatedDate does not exist -->
+                
+                <td>
+                    <a asp-action="Details" asp-route-id="@account.Id" class="btn btn-sm btn-info">View Details</a>
+                </td>
+            </tr>
+        }
+    </tbody>
+
+</table>

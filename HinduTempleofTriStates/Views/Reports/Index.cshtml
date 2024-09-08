@@ -1,0 +1,21 @@
+﻿@{
+    ViewData["Title"] = "Reports Dashboard";
+}
+
+<h1>Reports Dashboard</h1>
+<p>Select the report you would like to view:</p>
+
+<div class="row">
+    <div class="col-md-6 mb-3">
+        <a asp-action="GeneralLedger" class="btn btn-primary btn-block">General Ledger Report</a>
+    </div>
+    <div class="col-md-6 mb-3">
+        <a asp-action="ProfitLoss" class="btn btn-primary btn-block">Profit & Loss Report</a>
+    </div>
+    <div class="col-md-6 mb-3">
+        <a asp-action="TrialBalance" class="btn btn-primary btn-block">Trial Balance Report</a>
+    </div>
+    <div class="col-md-6 mb-3">
+        <a asp-action="CashIncomeExpenses" class="btn btn-primary btn-block">Cash Income & Expenses Report</a>
+    </div>
+</div>

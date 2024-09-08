@@ -11,7 +11,7 @@ using System.Threading.Tasks;
 
 namespace HinduTempleofTriStates.Controllers
 {
-    [Route("[controller]")]
+    [Route("donation")]
     public class DonationController : Controller
     {
         private readonly ApplicationDbContext _context;
@@ -96,7 +96,35 @@ namespace HinduTempleofTriStates.Controllers
             return View(donation);
         }
 
-        // Display form to edit an existing donation
+        // Route for Donation Reports
+        [HttpGet("Reports")]
+        public async Task<IActionResult> Reports(string search)
+        {
+            var donations = await _donationService.GetDonationsAsync();
+
+            // If a search query is provided, filter donations by Donor Name
+            if (!string.IsNullOrEmpty(search))
+            {
+                donations = donations.Where(d => d.DonorName.Contains(search, StringComparison.OrdinalIgnoreCase)).ToList();
+            }
+
+            return View("~/Views/Donation/Reports/Reports.cshtml", donations); // Return the Reports.cshtml view with the donations data
+        }
+
+        // Display donation receipt for printing
+        [HttpGet]
+        [Route("PrintReceipt/{id:guid}")]
+        public async Task<IActionResult> PrintReceipt(Guid id)
+        {
+            var donation = await _donationService.GetDonationByIdAsync(id);
+            if (donation == null)
+            {
+                return NotFound();
+            }
+            return View(donation);
+        }
+
+        // **Edit Donation**
         [HttpGet]
         [Route("Edit/{id:guid}")]
         public async Task<IActionResult> Edit(Guid id)
@@ -109,10 +137,10 @@ namespace HinduTempleofTriStates.Controllers
 
             var ledgerAccounts = await _context.LedgerAccounts.ToListAsync();
             ViewBag.LedgerAccounts = new SelectList(ledgerAccounts, "Id", "AccountName", donation.LedgerAccountId);
+
             return View(donation);
         }
 
-        // Handle the post request to update the donation
         [HttpPost]
         [ValidateAntiForgeryToken]
         [Route("Edit/{id:guid}")]
@@ -127,13 +155,12 @@ namespace HinduTempleofTriStates.Controllers
             {
                 try
                 {
-                    _context.Update(donation);  // Update the donation in the context
-                    await _context.SaveChangesAsync();  // Save the updated donation
-                    return RedirectToAction(nameof(PrintReceipt), new { id = donation.Id });
+                    _context.Update(donation);
+                    await _context.SaveChangesAsync();
+                    return RedirectToAction(nameof(Index));
                 }
-                catch (DbUpdateConcurrencyException ex)
+                catch (DbUpdateConcurrencyException)
                 {
-                    _logger.LogError(ex, "Error updating donation");
                     if (!DonationExists(donation.Id))
                     {
                         return NotFound();
@@ -147,13 +174,14 @@ namespace HinduTempleofTriStates.Controllers
 
             var ledgerAccounts = await _context.LedgerAccounts.ToListAsync();
             ViewBag.LedgerAccounts = new SelectList(ledgerAccounts, "Id", "AccountName", donation.LedgerAccountId);
+
             return View(donation);
         }
 
-        // Display donation receipt for printing
+        // **Delete Donation**
         [HttpGet]
-        [Route("PrintReceipt/{id:guid}")]
-        public async Task<IActionResult> PrintReceipt(Guid id)
+        [Route("Delete/{id:guid}")]
+        public async Task<IActionResult> Delete(Guid id)
         {
             var donation = await _donationService.GetDonationByIdAsync(id);
             if (donation == null)
@@ -161,6 +189,21 @@ namespace HinduTempleofTriStates.Controllers
                 return NotFound();
             }
             return View(donation);
+        }
+
+        [HttpPost, ActionName("Delete")]
+        [ValidateAntiForgeryToken]
+        public async Task<IActionResult> DeleteConfirmed(Guid id)
+        {
+            var donation = await _donationService.GetDonationByIdAsync(id);
+            if (donation == null)
+            {
+                return NotFound();
+            }
+
+            _context.Donations.Remove(donation);
+            await _context.SaveChangesAsync();
+            return RedirectToAction(nameof(Index));
         }
 
         // Check if a donation exists by ID

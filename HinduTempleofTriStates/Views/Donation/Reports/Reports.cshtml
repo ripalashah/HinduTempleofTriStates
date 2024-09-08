@@ -1,0 +1,53 @@
+﻿@model IEnumerable<HinduTempleofTriStates.Models.Donation>
+
+@{
+    ViewData["Title"] = "Donation Reports";
+}
+
+<h2>Donation Reports</h2>
+
+<!-- Optional search or filter functionality -->
+<form method="get" class="form-inline mb-3">
+    <input type="text" name="Search" class="form-control mr-2" placeholder="Search by Donor Name" value="@Context.Request.Query["Search"]">
+    <button type="submit" class="btn btn-primary">Search</button>
+</form>
+
+@if (Model.Any())
+{
+    <!-- Displaying the donations list in a table -->
+    <table class="table table-striped">
+        <thead>
+            <tr>
+                <th>Donor Name</th>
+                <th>Amount</th>
+                <th>Category</th>
+                <th>Type</th>
+                <th>Date</th>
+                <th>City</th>
+                <th>State</th>
+                <th>Actions</th>
+            </tr>
+        </thead>
+        <tbody>
+            @foreach (var donation in Model)
+            {
+                <tr>
+                    <td>@donation.DonorName</td>
+                    <td>@donation.Amount.ToString("C")</td>
+                    <td>@donation.DonationCategory</td>
+                    <td>@donation.DonationType</td>
+                    <td>@donation.Date.ToShortDateString()</td>
+                    <td>@donation.City</td>
+                    <td>@donation.State</td>
+                    <td>
+                        <a asp-action="PrintReceipt" asp-route-id="@donation.Id" class="btn btn-sm btn-info">Print Receipt</a>
+                    </td>
+                </tr>
+            }
+        </tbody>
+    </table>
+}
+else
+{
+    <p>No donations found.</p>
+}

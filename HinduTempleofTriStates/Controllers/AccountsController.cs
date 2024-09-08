@@ -6,33 +6,46 @@ using System;
 using System.Linq;
 using System.Threading.Tasks;
 using HinduTempleofTriStates.Repositories;
+using Microsoft.Extensions.Logging;
 
 namespace HinduTempleofTriStates.Controllers
 {
-    [Route("[controller]")]
+    [Route("controller")]
     public class AccountsController : Controller
     {
         private readonly IAccountRepository _accountRepository;
+        private readonly IAccountService _accountService;
         private readonly LedgerService _ledgerService;
+        private readonly ILogger<AccountsController> _logger;
 
-        // Constructor to satisfy Dependency Injection (DI) container
-        public AccountsController(IAccountRepository accountRepository, LedgerService ledgerService)
+        // Consolidated constructor for Dependency Injection (DI)
+        public AccountsController(IAccountRepository accountRepository, IAccountService accountService, LedgerService ledgerService, ILogger<AccountsController> logger)
         {
-            _accountRepository = accountRepository;
-            _ledgerService = ledgerService;
+            _accountRepository = accountRepository ?? throw new ArgumentNullException(nameof(accountRepository));
+            _accountService = accountService ?? throw new ArgumentNullException(nameof(accountService));
+            _ledgerService = ledgerService ?? throw new ArgumentNullException(nameof(ledgerService));
+            _logger = logger ?? throw new ArgumentNullException(nameof(logger));
         }
 
         // GET: Accounts
         [HttpGet]
         [Route("")]
         [Route("Index")]
-        public async Task<IActionResult> Index()
+        public async Task<IActionResult> Index(string search)
         {
             var accounts = await _accountRepository.GetAllAccountsAsync();
+
+            // If search query is provided, filter the accounts by AccountName
+            if (!string.IsNullOrEmpty(search))
+            {
+                accounts = accounts.Where(a => a.AccountName.Contains(search, StringComparison.OrdinalIgnoreCase)).ToList();
+            }
+
             return View(accounts);
         }
 
         // GET: Accounts/Details/5
+        [HttpGet("details/{id:guid}")]
         public async Task<IActionResult> Details(Guid id)
         {
             var account = await _accountRepository.GetAccountByIdAsync(id);
@@ -183,6 +196,20 @@ namespace HinduTempleofTriStates.Controllers
             return View(funds);
         }
 
+        // GET: Accounts/Reports
+        [HttpGet("Reports")]
+        public async Task<IActionResult> Reports()
+        {
+            var accounts = await _accountService.GetAccountsAsync();
+            if (accounts == null)
+            {
+                _logger.LogError("Accounts data is null");
+                return NotFound("No accounts found.");
+            }
+
+            return View("~/Views/Accounts/Reports/Reports.cshtml", accounts);
+        }
+        
         // POST: Accounts/Reconcile
         [HttpPost]
         [ValidateAntiForgeryToken]

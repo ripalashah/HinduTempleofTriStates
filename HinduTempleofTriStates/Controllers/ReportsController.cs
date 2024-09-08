@@ -14,7 +14,12 @@ namespace HinduTempleofTriStates.Controllers
         {
             _reportService = reportService;
         }
-
+        // Reports Dashboard
+        [HttpGet("")]
+        public IActionResult Index()
+        {
+            return View("Index"); // Loads the reports dashboard page
+        }
         // General Ledger Report
         [HttpGet("GeneralLedger")]
         public async Task<IActionResult> GeneralLedger()

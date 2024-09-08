@@ -1,84 +1,235 @@
-/* Existing styles */
+/* Base font size for accessibility and responsiveness */
 html {
     font-size: 14px;
 }
 
 @media (min-width: 768px) {
     html {
-        font-size: 16px;
+        font-size: 16px; /* Increase font size on medium and larger screens */
     }
 }
 
-.btn:focus, .btn:active:focus, .btn-link.nav-link:focus, .form-control:focus, .form-check-input:focus {
-    box-shadow: 0 0 0 0.1rem white, 0 0 0 0.25rem #258cfb;
+/* Button Size Adjustments */
+.btn {
+    padding: 10px 20px;
+    font-size: 1rem;
+    border-radius: 6px;
+    width: 100%; /* Make buttons full-width on mobile */
+    text-align: center;
 }
 
-html {
-    position: relative;
-    min-height: 100%;
+.btn-sm {
+    padding: 5px 10px; /* Smaller padding for smaller buttons */
+    font-size: 0.9rem;
+    width: auto; /* Prevent buttons from stretching full width */
 }
 
-body {
-    margin-bottom: 60px;
+/* Button block adjustments */
+.btn-block {
+    display: block;
+    width: 100%;
 }
 
-/* Print-specific styles */
-@media print {
-    /* Hide elements that should not appear in print */
-    .btn, .navbar, .footer, .pagination, .form-control:focus {
-        display: none;
+.btn-primary {
+    background-color: #007bff;
+    border-color: #007bff;
+}
+
+.btn-success {
+    background-color: #28a745;
+    border-color: #28a745;
+}
+
+.btn-secondary {
+    background-color: #6c757d;
+    border-color: #6c757d;
+}
+
+/* Form Control Styling */
+.form-control {
+    height: auto;
+    padding: 8px 12px;
+    font-size: 1rem;
+    border-radius: 4px;
+    width: 100%;
+}
+
+/* Form Group Styling */
+.form-group {
+    margin-bottom: 20px;
+}
+
+/* Adjust for better spacing */
+.container {
+    max-width: 960px;
+    margin: 0 auto;
+}
+
+/* Responsive adjustments */
+@media (max-width: 576px) {
+    .btn {
+        font-size: 0.9rem;
     }
 
-    /* Set body font and margins for print */
-    body {
-        font-size: 12pt; /* Adjust font size for print */
-        margin: 0; /* Remove bottom margin */
+    .btn-sm {
+        font-size: 0.8rem;
     }
 
-    /* Make sure all content is visible on print */
-    .container, .table {
-        width: 100%;
-        border-collapse: collapse;
+    .form-control {
+        font-size: 0.9rem;
+    }
+}
+
+/* Ensure focus outlines are clearly visible */
+:focus {
+    outline: none;
+    box-shadow: 0 0 5px #258cfb;
+}
+
+/* Sub-links spacing */
+.sub-links a {
+    margin-top: 5px;
+    display: block;
+}
+
+    .sub-links a.btn-sm {
+        font-size: 0.85rem;
     }
 
-    /* Style tables for print */
-    table {
-        border: 1px solid #000;
-        border-collapse: collapse;
-        width: 100%;
-    }
+/* Table Styling */
+table {
+    width: 100%;
+    margin-bottom: 1rem;
+    color: #212529;
+    border-collapse: collapse;
+}
 
-    th, td {
-        border: 1px solid #000;
+    table th, table td {
         padding: 8px;
         text-align: left;
+        border-top: 1px solid #dee2e6;
     }
+/* Ensure buttons have padding and consistent width */
+.btn {
+    padding: 10px 20px;
+    width: 100%; /* Make buttons full width for better mobile responsiveness */
+    display: block; /* Make sure the button is block-level */
+    box-sizing: border-box; /* Ensure padding and borders are included in the element's width */
+    margin-bottom: 15px; /* Add margin to avoid it touching the footer */
+}
 
-    th {
-        background-color: #f2f2f2;
+/* Adjust form control to ensure the layout stays intact */
+.form-control {
+    max-width: 600px;
+    margin-bottom: 10px;
+}
+
+/* Adjust for better spacing */
+.container {
+    max-width: 960px;
+    margin: 0 auto;
+    padding-bottom: 100px; /* Add bottom padding to ensure content doesn't hit the footer */
+}
+/* Footer Style */
+footer.footer {
+    position: fixed; /* Ensure footer is always at the bottom */
+    bottom: 0;
+    width: 100%;
+    height: 60px;
+    background-color: #f5f5f5;
+    line-height: 60px;
+    text-align: center;
+    z-index: 100; /* Make sure it's on top */
+}
+/* Global button styling */
+.btn {
+    padding: 10px 20px; /* Default padding for all buttons */
+    width: 100%; /* Full-width buttons by default */
+    display: block; /* Block-level element */
+    box-sizing: border-box; /* Ensure padding is included in the button width */
+    margin-bottom: 15px; /* Consistent margin at the bottom of each button */
+    font-size: 1rem; /* Standard font size */
+}
+
+/* For smaller buttons, you can override the base style */
+.btn-sm {
+    padding: 5px 10px; /* Smaller padding */
+    width: auto; /* Smaller buttons are not full width */
+    font-size: 0.875rem; /* Smaller font size */
+}
+/* Utility classes for padding */
+.padding-sm {
+    padding: 5px 10px;
+}
+
+.padding-lg {
+    padding: 15px 30px;
+}
+
+/* Margin utilities */
+.margin-top-sm {
+    margin-top: 10px;
+}
+/* Button styling specific to the edit page */
+.edit-page .btn {
+    padding: 8px 16px;
+    font-size: 1rem;
+}
+
+.margin-top-lg {
+    margin-top: 30px;
+}
+
+/* Optional hover effect for buttons */
+.btn:hover {
+    background-color: #0056b3; /* Darker on hover */
+}
+/* For home page-specific buttons, use a class specific to the home page */
+.home-page .btn {
+    padding: 15px 30px; /* Larger padding specifically for home page buttons */
+    font-size: 1.2rem; /* Larger font size */
+}
+
+.home-page .btn-sm {
+    padding: 8px 16px;
+    font-size: 1rem;
+}
+
+/* Ensure padding for the form controls as well */
+.form-control {
+    padding: 8px 12px;
+    font-size: 1rem;
+    margin-bottom: 10px;
+}
+
+/* Styling for the page titles and headers */
+h1, h2, h3 {
+    font-size: 1.5rem;
+    margin-bottom: 20px;
+    text-align: center;
+}
+
+/* Logo styling */
+img.logo {
+    max-width: 150px; /* Adjust the size of the logo */
+    margin-bottom: 15px;
+    display: block;
+    margin-left: auto;
+    margin-right: auto;
+}
+
+/* Media query to ensure the logo doesn't get too big on larger screens */
+@media (min-width: 768px) {
+    img.logo {
+        max-width: 120px;
     }
+}
 
-    /* Customize header and footer for print */
-    @page {
-        margin: 1in; /* Adjust page margins */
-    }
+/* Additional Utility Classes */
+.mt-5 {
+    margin-top: 3rem !important;
+}
 
-    h1, h2, h3, h4 {
-        font-size: 16pt; /* Adjust font size for headers */
-    }
-
-    /* Ensure form elements are styled properly for print */
-    .form-group {
-        margin-bottom: 1em; /* Add spacing between form fields */
-    }
-
-        /* Hide unnecessary elements in the form */
-        .form-group .btn-info {
-            display: none;
-        }
-
-        /* Ensure proper visibility of hidden fields */
-        .form-group input[type="hidden"] {
-            display: block;
-        }
+.text-center {
+    text-align: center !important;
 }
