@@ -49,24 +49,26 @@ namespace HinduTempleofTriStates.Controllers
             return View(model);
         }
 
-        // GET: /account/register
+        // GET: /account/register (Restricted to Admins)
         [HttpGet("register")]
+        [Authorize(Roles = "Admin")]
         public IActionResult Register()
         {
             ViewData["Title"] = "Register";
-            var model = new RegisterInputModel(); // Ensure the model is initialized
-            return View(model); // Pass the model to the view
+            var model = new RegisterInputModel();
+            return View(model);
         }
 
-        // POST: /account/register
+        // POST: /account/register (Restricted to Admins)
         [HttpPost("register")]
         [ValidateAntiForgeryToken]
+        [Authorize(Roles = "Admin")] // Only Admins can register new users
         public async Task<IActionResult> Register(RegisterInputModel model)
         {
             if (!ModelState.IsValid)
             {
                 ViewData["Title"] = "Register";
-                return View(model); // Pass the model back to the view in case of errors
+                return View(model);
             }
 
             var user = new IdentityUser { UserName = model.Email, Email = model.Email };
@@ -92,18 +94,15 @@ namespace HinduTempleofTriStates.Controllers
             return View(model);
         }
 
-
-
-        // POST: /account/logout
-        [HttpPost("logout")]
-        [ValidateAntiForgeryToken]
-        public async Task<IActionResult> Logout()
+        // GET: /account/manage-roles (Restricted to Admins)
+        [HttpGet("manage-roles")]
+        [Authorize(Roles = "Admin")]
+        public IActionResult ManageRoles()
         {
-            await _signInManager.SignOutAsync();
-            return RedirectToAction("Index", "Home");
+            return View();
         }
 
-        // POST: /account/manage-roles
+        // POST: /account/manage-roles (Restricted to Admins)
         [HttpPost("manage-roles")]
         [Authorize(Roles = "Admin")]
         [ValidateAntiForgeryToken]
@@ -121,7 +120,40 @@ namespace HinduTempleofTriStates.Controllers
                     await _userManager.RemoveFromRoleAsync(user, roleName);
                 }
             }
-            return RedirectToAction("AdminOnlyPage");
+            return RedirectToAction("ManageRoles");
+        }
+
+        // POST: /account/logout
+        [HttpPost("logout")]
+        [ValidateAntiForgeryToken]
+        public async Task<IActionResult> Logout()
+        {
+            await _signInManager.SignOutAsync();
+            return RedirectToAction("Index", "Home");
+        }
+
+        // Admin-Only Page
+        [HttpGet("admin-only")]
+        [Authorize(Roles = "Admin")]
+        public IActionResult AdminOnlyPage()
+        {
+            return View();
+        }
+
+        // Accountant and Admin-Only Page
+        [HttpGet("accountant-page")]
+        [Authorize(Roles = "Admin,Accountant")]
+        public IActionResult AccountantPage()
+        {
+            return View();
+        }
+
+        // Counter-Only Page
+        [HttpGet("counter-page")]
+        [Authorize(Roles = "Counter")]
+        public IActionResult CounterPage()
+        {
+            return View();
         }
     }
 }

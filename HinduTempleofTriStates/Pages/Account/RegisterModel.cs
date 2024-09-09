@@ -36,6 +36,13 @@ namespace HinduTempleofTriStates.Pages.Account
                 return Page();
             }
 
+            // Restrict non-admin users from creating Admin accounts
+            if (Input.Role == "Admin" && !User.IsInRole("Admin"))
+            {
+                ModelState.AddModelError(string.Empty, "Only Admins can create Admin accounts.");
+                return Page();
+            }
+
             // Check if password and confirm password match
             if (Input.Password != Input.ConfirmPassword)
             {
@@ -48,7 +55,6 @@ namespace HinduTempleofTriStates.Pages.Account
 
             if (result.Succeeded)
             {
-                // Ensure the role exists before assigning it
                 if (!string.IsNullOrEmpty(Input.Role) && await _roleManager.RoleExistsAsync(Input.Role))
                 {
                     await _userManager.AddToRoleAsync(user, Input.Role);
@@ -65,5 +71,6 @@ namespace HinduTempleofTriStates.Pages.Account
 
             return Page();
         }
+
     }
 }

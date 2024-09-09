@@ -3,7 +3,7 @@
 <head>
     <meta charset="utf-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-    <title>@(ViewData["Title"] as string ?? "Default Title") - TempleManagementSystem</title>
+    <title>@(ViewData["Title"] as string ?? "Temple Management System")</title>
 
     <!-- Bootstrap CSS -->
     <link rel="stylesheet" href="https://stackpath.bootstrapcdn.com/bootstrap/4.3.1/css/bootstrap.min.css" />
@@ -11,63 +11,96 @@
     <!-- Font Awesome CSS for icons -->
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0-beta3/css/all.min.css" />
 
-    <!-- Custom CSS (Optional) -->
+    <!-- Custom CSS -->
     <link rel="stylesheet" href="~/css/site.css" />
+
+    <style>
+        .navbar-nav .nav-item {
+            margin-left: 15px;
+        }
+
+        .navbar-brand {
+            margin-right: 20px; /* Added margin to separate from nav links */
+        }
+
+        .form-inline {
+            display: inline-block;
+        }
+
+            .form-inline button {
+                padding: 0;
+                background: none;
+                border: none;
+                color: rgba(0,0,0,.5); /* Match other link styles */
+            }
+
+                .form-inline button:hover {
+                    color: rgba(0,0,0,.8); /* Hover effect for consistency */
+                    text-decoration: underline;
+                }
+    </style>
 </head>
 <body>
     <!-- Navigation Bar -->
     <header>
         <nav class="navbar navbar-expand-lg navbar-light bg-light">
-            <a class="navbar-brand" asp-area="" asp-controller="Home" asp-action="Index">TempleManagementSystem</a>
+            <a class="navbar-brand" asp-controller="Home" asp-action="Index">Temple Management System</a>
             <button class="navbar-toggler" type="button" data-toggle="collapse" data-target="#navbarNav" aria-controls="navbarNav" aria-expanded="false" aria-label="Toggle navigation">
                 <span class="navbar-toggler-icon"></span>
             </button>
-            <div class="collapse navbar-collapse" id="navbarNav">
+            <div class="collapse navbar-collapse justify-content-center" id="navbarNav">
                 <ul class="navbar-nav">
+                    <!-- Home Link -->
                     <li class="nav-item">
-                        <a class="nav-link" asp-area="" asp-controller="Home" asp-action="Index">Home</a>
+                        <a class="nav-link" asp-controller="Home" asp-action="Index">Home</a>
                     </li>
+
+                    <!-- Authenticated User Links -->
                     @if (User?.Identity != null && User.Identity.IsAuthenticated)
                     {
+                        <!-- Donations Link -->
                         <li class="nav-item">
-                            <a class="nav-link" asp-area="" asp-controller="Donation" asp-action="Index">Donations</a>
+                            <a class="nav-link" asp-controller="Donation" asp-action="Index">Donations</a>
                         </li>
 
-                        <!-- Accounts Module Navigation Item (Visible to Admin and Accountant roles) -->
+                        <!-- Accounts Module (Admin and Accountant roles) -->
                         @if (User.IsInRole("Admin") || User.IsInRole("Accountant"))
                         {
                             <li class="nav-item">
-                                <a class="nav-link" asp-area="" asp-controller="Accounts" asp-action="Index">
+                                <a class="nav-link" asp-controller="Accounts" asp-action="Index">
                                     <i class="fas fa-calculator"></i> Accounts
                                 </a>
                             </li>
                         }
 
-                        <!-- Ledger Module Navigation Item (Visible to Admin only) -->
+                        <!-- Ledger Module (Admin only) -->
                         @if (User.IsInRole("Admin"))
                         {
                             <li class="nav-item">
-                                <a class="nav-link" asp-area="" asp-controller="Ledger" asp-action="Index">
+                                <a class="nav-link" asp-controller="Ledger" asp-action="Index">
                                     <i class="fas fa-book"></i> Ledger
                                 </a>
                             </li>
+                            <li class="nav-item">
+                                <a class="nav-link" asp-controller="Admin" asp-action="Index">Admin</a>
+                            </li>
                         }
 
-                        <!-- Logout Link -->
+                        <!-- Logout Button -->
                         <li class="nav-item">
-                            <form asp-area="" asp-controller="Account" asp-action="Logout" method="post" class="form-inline">
-                                <button type="submit" class="btn btn-link nav-link">Logout</button>
+                            <form asp-controller="Account" asp-action="Logout" method="post" class="form-inline">
+                                <button type="submit" class="nav-link btn">Logout</button>
                             </form>
                         </li>
                     }
                     else
                     {
-                        <!-- Login and Register Links -->
+                        <!-- Login and Register Links for Unauthenticated Users -->
                         <li class="nav-item">
-                            <a class="nav-link" asp-area="" asp-controller="Account" asp-action="Login">Login</a>
+                            <a class="nav-link" asp-controller="Account" asp-action="Login">Login</a>
                         </li>
                         <li class="nav-item">
-                            <a class="nav-link" asp-area="" asp-controller="Account" asp-action="Register">Register</a>
+                            <a class="nav-link" asp-controller="Account" asp-action="Register">Register</a>
                         </li>
                     }
                 </ul>
@@ -80,15 +113,15 @@
         @RenderBody()
     </main>
 
-    <!-- Optional section for scripts, rendered only once -->
-    @RenderSection("Scripts", required: false)
-
     <!-- Footer Section -->
     <footer class="footer mt-4 bg-light">
         <div class="container">
-            <p class="text-muted">&copy; @DateTime.Now.Year - TempleManagementSystem</p>
+            <p class="text-muted">&copy; @DateTime.Now.Year - Temple Management System</p>
         </div>
     </footer>
+
+    <!-- Optional section for page-specific scripts -->
+    @RenderSection("Scripts", required: false)
 
     <!-- JavaScript Libraries -->
     <script src="https://code.jquery.com/jquery-3.3.1.slim.min.js"></script>
