@@ -18,12 +18,16 @@ namespace HinduTempleofTriStates.Services
 
         public async Task<IEnumerable<LedgerAccount>> GetAllAccountsAsync()
         {
-            return await _context.LedgerAccounts.ToListAsync();
+            return await _context.LedgerAccounts
+                .Where(l => !l.IsDeleted)  // Exclude soft-deleted records
+                .ToListAsync();
         }
 
         public async Task<LedgerAccount?> GetLedgerAccountByIdAsync(Guid id)
         {
-            return await _context.LedgerAccounts.FindAsync(id);
+            return await _context.LedgerAccounts
+                .Where(l => l.Id == id && !l.IsDeleted)  // Exclude soft-deleted records
+                .FirstOrDefaultAsync();
         }
 
         public async Task AddAccountAsync(LedgerAccount account)
@@ -38,12 +42,47 @@ namespace HinduTempleofTriStates.Services
             await _context.SaveChangesAsync();
         }
 
-        public async Task DeleteAccountAsync(Guid id)
+        // Soft delete the ledger account
+        public async Task SoftDeleteLedgerAccountAsync(Guid id)
         {
             var account = await _context.LedgerAccounts.FindAsync(id);
             if (account != null)
             {
-                _context.LedgerAccounts.Remove(account);
+                // Soft delete associated donations
+                var donations = await _context.Donations
+                    .Where(d => d.LedgerAccountId == id && !d.IsDeleted)
+                    .ToListAsync();
+
+                foreach (var donation in donations)
+                {
+                    donation.IsDeleted = true;
+                    _context.Donations.Update(donation);
+                }
+
+                // Soft delete the ledger account
+                account.IsDeleted = true;
+                _context.LedgerAccounts.Update(account);
+
+                await _context.SaveChangesAsync();
+            }
+        }
+        public async Task<IEnumerable<Donation>> GetDonationsByAccountIdAsync(Guid ledgerAccountId)
+        {
+            return await _context.Donations
+                .Where(d => d.LedgerAccountId == ledgerAccountId && !d.IsDeleted)  // Exclude soft-deleted records
+                .ToListAsync();
+        }
+
+        // Delete associated donations manually
+        public async Task DeleteAssociatedDonationsAsync(Guid ledgerAccountId)
+        {
+            var donations = await _context.Donations
+                .Where(d => d.LedgerAccountId == ledgerAccountId)
+                .ToListAsync();
+
+            if (donations.Any())
+            {
+                _context.Donations.RemoveRange(donations);
                 await _context.SaveChangesAsync();
             }
         }
@@ -61,21 +100,9 @@ namespace HinduTempleofTriStates.Services
             await _context.SaveChangesAsync();
         }
 
-        public async Task AddDonationAsync(Donation donation)
+        internal void DeleteAccount(Guid id)
         {
-            var account = await _context.LedgerAccounts.FindAsync(donation.LedgerAccountId);
-            if (account == null) throw new Exception("Account not found");
-
-            account.Balance += (decimal)donation.Amount;
-            _context.Donations.Add(donation);
-            _context.LedgerAccounts.Update(account);
-
-            await _context.SaveChangesAsync();
-        }
-
-        public async Task<IEnumerable<Donation>> GetDonationsByAccountIdAsync(Guid accountId)
-        {
-            return await _context.Donations.Where(d => d.LedgerAccountId == accountId).ToListAsync();
+            throw new NotImplementedException();
         }
     }
 }

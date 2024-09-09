@@ -3,7 +3,7 @@
 <head>
     <meta charset="utf-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-    <title>@ViewData["Title"] - TempleManagementSystem</title>
+    <title>@(ViewData["Title"] as string ?? "Default Title") - TempleManagementSystem</title>
 
     <!-- Bootstrap CSS -->
     <link rel="stylesheet" href="https://stackpath.bootstrapcdn.com/bootstrap/4.3.1/css/bootstrap.min.css" />
@@ -13,9 +13,6 @@
 
     <!-- Custom CSS (Optional) -->
     <link rel="stylesheet" href="~/css/site.css" />
-
-    <!-- Validation Scripts -->
-    <partial name="_ValidationScriptsPartial" />
 </head>
 <body>
     <!-- Navigation Bar -->
@@ -30,23 +27,49 @@
                     <li class="nav-item">
                         <a class="nav-link" asp-area="" asp-controller="Home" asp-action="Index">Home</a>
                     </li>
-                    <li class="nav-item">
-                        <a class="nav-link" asp-area="" asp-controller="Donation" asp-action="Index">Donations</a>
-                    </li>
-                    <!-- Accounts Module Navigation Item -->
-                    <li class="nav-item">
-                        <a class="nav-link" asp-area="" asp-controller="Accounts" asp-action="Index">
-                            <i class="fas fa-calculator"></i> Accounts
-                        </a>
-                    </li>
-                    <!-- Ledger Module Navigation Item -->
-                    <li class="nav-item">
-                        <a class="nav-link" asp-area="" asp-controller="Ledger" asp-action="Index">
-                            <i class="fas fa-book"></i> Ledger
-                        </a>
-                    </li>
-                    
-                    <!-- Add more navigation items here as needed -->
+                    @if (User?.Identity != null && User.Identity.IsAuthenticated)
+                    {
+                        <li class="nav-item">
+                            <a class="nav-link" asp-area="" asp-controller="Donation" asp-action="Index">Donations</a>
+                        </li>
+
+                        <!-- Accounts Module Navigation Item (Visible to Admin and Accountant roles) -->
+                        @if (User.IsInRole("Admin") || User.IsInRole("Accountant"))
+                        {
+                            <li class="nav-item">
+                                <a class="nav-link" asp-area="" asp-controller="Accounts" asp-action="Index">
+                                    <i class="fas fa-calculator"></i> Accounts
+                                </a>
+                            </li>
+                        }
+
+                        <!-- Ledger Module Navigation Item (Visible to Admin only) -->
+                        @if (User.IsInRole("Admin"))
+                        {
+                            <li class="nav-item">
+                                <a class="nav-link" asp-area="" asp-controller="Ledger" asp-action="Index">
+                                    <i class="fas fa-book"></i> Ledger
+                                </a>
+                            </li>
+                        }
+
+                        <!-- Logout Link -->
+                        <li class="nav-item">
+                            <form asp-area="" asp-controller="Account" asp-action="Logout" method="post" class="form-inline">
+                                <button type="submit" class="btn btn-link nav-link">Logout</button>
+                            </form>
+                        </li>
+                    }
+                    else
+                    {
+                        <!-- Login and Register Links -->
+                        <li class="nav-item">
+                            <a class="nav-link" asp-area="" asp-controller="Account" asp-action="Login">Login</a>
+                        </li>
+                        <li class="nav-item">
+                            <a class="nav-link" asp-area="" asp-controller="Account" asp-action="Register">Register</a>
+                        </li>
+                    }
                 </ul>
             </div>
         </nav>
@@ -56,6 +79,9 @@
     <main role="main" class="container mt-4">
         @RenderBody()
     </main>
+
+    <!-- Optional section for scripts, rendered only once -->
+    @RenderSection("Scripts", required: false)
 
     <!-- Footer Section -->
     <footer class="footer mt-4 bg-light">
@@ -70,8 +96,5 @@
     <script src="https://stackpath.bootstrapcdn.com/bootstrap/4.3.1/js/bootstrap.min.js"></script>
     <script src="~/lib/jquery-validation/dist/jquery.validate.min.js"></script>
     <script src="~/lib/jquery-validation-unobtrusive/jquery.validate.unobtrusive.min.js"></script>
-
-    <!-- Optional Section for Page-Specific Scripts -->
-    @RenderSection("Scripts", required: false)
 </body>
 </html>

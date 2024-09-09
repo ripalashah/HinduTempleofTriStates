@@ -11,9 +11,10 @@ namespace HinduTempleofTriStates.Repositories
         Task<IEnumerable<LedgerAccount>> GetAllAccountsAsync();
         Task AddAccountAsync(LedgerAccount account);
         Task UpdateAccountAsync(LedgerAccount account);
-        Task DeleteAccountAsync(Guid id);
+        
         Task<IEnumerable<Transaction>> GetTransactionsByAccountIdAsync(Guid accountId);
         Task AddTransactionAsync(Transaction transaction);
         Task<IList<LedgerAccount>> GetAllLedgerAccountsAsync();
+        Task SoftDeleteLedgerAccountAsync(Guid id);  // This is the soft delete method
     }
 }

@@ -16,7 +16,7 @@ namespace HinduTempleofTriStates.Views.Ledger
         }
 
         [BindProperty]
-        public LedgerAccount LedgerAccount { get; set; }
+        public LedgerAccount? LedgerAccount { get; set; }
 
         // Fetch the LedgerAccount to display its details before deletion
         public async Task<IActionResult> OnGetAsync(Guid id)
@@ -32,9 +32,9 @@ namespace HinduTempleofTriStates.Views.Ledger
         }
 
         // Handle the form submission to delete the LedgerAccount
-        public async Task<IActionResult> OnPostAsync(Guid id)
+        public IActionResult OnPost(Guid id)
         {
-            await _ledgerService.DeleteAccountAsync(id);
+            _ledgerService.DeleteAccount(id);
             return RedirectToPage("Index");
         }
     }

@@ -12,7 +12,7 @@ using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 namespace HinduTempleofTriStates.Migrations
 {
     [DbContext(typeof(ApplicationDbContext))]
-    [Migration("20240906153744_InitialCreate")]
+    [Migration("20240909032014_InitialCreate")]
     partial class InitialCreate
     {
         /// <inheritdoc />
@@ -47,14 +47,12 @@ namespace HinduTempleofTriStates.Migrations
 
                     b.HasKey("Id");
 
-                    b.HasIndex("AccountName");
-
                     b.ToTable("Accounts", (string)null);
 
                     b.HasData(
                         new
                         {
-                            Id = new Guid("3c7bf0af-fdd2-47fb-bff5-b156791277e6"),
+                            Id = new Guid("f73696fc-e265-4570-82cb-cbad800c7a49"),
                             AccountName = "Default Account",
                             AccountType = 5,
                             Balance = 0m,
@@ -129,7 +127,10 @@ namespace HinduTempleofTriStates.Migrations
                         .HasMaxLength(100)
                         .HasColumnType("nvarchar(100)");
 
-                    b.Property<Guid>("LedgerAccountId")
+                    b.Property<bool>("IsDeleted")
+                        .HasColumnType("bit");
+
+                    b.Property<Guid?>("LedgerAccountId")
                         .HasColumnType("uniqueidentifier");
 
                     b.Property<string>("Phone")
@@ -145,8 +146,6 @@ namespace HinduTempleofTriStates.Migrations
 
                     b.HasIndex("AccountId");
 
-                    b.HasIndex("DonorName");
-
                     b.HasIndex("LedgerAccountId");
 
                     b.ToTable("Donations");
@@ -154,15 +153,16 @@ namespace HinduTempleofTriStates.Migrations
                     b.HasData(
                         new
                         {
-                            Id = new Guid("60b2cbf1-8791-4883-bcb1-9a4fc70707e6"),
+                            Id = new Guid("db66dee4-693c-4c1e-b3a2-6c6489fab96b"),
                             Amount = 100.0,
                             City = "Anytown",
                             Country = "Anycountry",
-                            Date = new DateTime(2024, 9, 6, 11, 37, 42, 479, DateTimeKind.Local).AddTicks(9640),
+                            Date = new DateTime(2024, 9, 8, 23, 20, 13, 781, DateTimeKind.Local).AddTicks(627),
                             DonationCategory = "General",
                             DonationType = "One-Time",
                             DonorName = "John Doe",
-                            LedgerAccountId = new Guid("6cddd189-751a-4630-9542-b8ec6dda6b17"),
+                            IsDeleted = false,
+                            LedgerAccountId = new Guid("0655452b-fe90-418d-9218-6f2e136a6f82"),
                             Phone = "123-456-7890",
                             State = "Anystate"
                         });
@@ -257,6 +257,9 @@ namespace HinduTempleofTriStates.Migrations
                     b.Property<DateTime>("CreatedDate")
                         .HasColumnType("datetime2");
 
+                    b.Property<bool>("IsDeleted")
+                        .HasColumnType("bit");
+
                     b.Property<string>("UpdatedBy")
                         .IsRequired()
                         .HasColumnType("nvarchar(max)");
@@ -271,15 +274,16 @@ namespace HinduTempleofTriStates.Migrations
                     b.HasData(
                         new
                         {
-                            Id = new Guid("6cddd189-751a-4630-9542-b8ec6dda6b17"),
+                            Id = new Guid("0655452b-fe90-418d-9218-6f2e136a6f82"),
                             AccountId = new Guid("00000000-0000-0000-0000-000000000000"),
                             AccountName = "Default Ledger",
                             AccountType = 5,
                             Balance = 0m,
                             CreatedBy = "System",
-                            CreatedDate = new DateTime(2024, 9, 6, 15, 37, 42, 479, DateTimeKind.Utc).AddTicks(9466),
+                            CreatedDate = new DateTime(2024, 9, 9, 3, 20, 13, 781, DateTimeKind.Utc).AddTicks(575),
+                            IsDeleted = false,
                             UpdatedBy = "System",
-                            UpdatedDate = new DateTime(2024, 9, 6, 15, 37, 42, 479, DateTimeKind.Utc).AddTicks(9467)
+                            UpdatedDate = new DateTime(2024, 9, 9, 3, 20, 13, 781, DateTimeKind.Utc).AddTicks(576)
                         });
                 });
 
@@ -309,6 +313,9 @@ namespace HinduTempleofTriStates.Migrations
                         .IsRequired()
                         .HasMaxLength(200)
                         .HasColumnType("nvarchar(200)");
+
+                    b.Property<bool>("IsDeleted")
+                        .HasColumnType("bit");
 
                     b.Property<Guid>("LedgerAccountId")
                         .HasColumnType("uniqueidentifier");
@@ -340,12 +347,229 @@ namespace HinduTempleofTriStates.Migrations
                     b.ToTable("Transactions");
                 });
 
+            modelBuilder.Entity("Microsoft.AspNetCore.Identity.IdentityRole", b =>
+                {
+                    b.Property<string>("Id")
+                        .HasColumnType("nvarchar(450)");
+
+                    b.Property<string>("ConcurrencyStamp")
+                        .IsConcurrencyToken()
+                        .HasColumnType("nvarchar(max)");
+
+                    b.Property<string>("Name")
+                        .HasMaxLength(256)
+                        .HasColumnType("nvarchar(256)");
+
+                    b.Property<string>("NormalizedName")
+                        .HasMaxLength(256)
+                        .HasColumnType("nvarchar(256)");
+
+                    b.HasKey("Id");
+
+                    b.HasIndex("NormalizedName")
+                        .IsUnique()
+                        .HasDatabaseName("RoleNameIndex")
+                        .HasFilter("[NormalizedName] IS NOT NULL");
+
+                    b.ToTable("AspNetRoles", (string)null);
+
+                    b.HasData(
+                        new
+                        {
+                            Id = "5825bc84-9176-4167-9766-dc21abac79a1",
+                            Name = "Counter",
+                            NormalizedName = "COUNTER"
+                        },
+                        new
+                        {
+                            Id = "7cd4b244-5b57-4984-8a7c-a6d53c22772e",
+                            Name = "Accountant",
+                            NormalizedName = "ACCOUNTANT"
+                        },
+                        new
+                        {
+                            Id = "866bd64e-9f49-4e59-9616-4e460f36c0a4",
+                            Name = "Admin",
+                            NormalizedName = "ADMIN"
+                        });
+                });
+
+            modelBuilder.Entity("Microsoft.AspNetCore.Identity.IdentityRoleClaim<string>", b =>
+                {
+                    b.Property<int>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("int");
+
+                    SqlServerPropertyBuilderExtensions.UseIdentityColumn(b.Property<int>("Id"));
+
+                    b.Property<string>("ClaimType")
+                        .HasColumnType("nvarchar(max)");
+
+                    b.Property<string>("ClaimValue")
+                        .HasColumnType("nvarchar(max)");
+
+                    b.Property<string>("RoleId")
+                        .IsRequired()
+                        .HasColumnType("nvarchar(450)");
+
+                    b.HasKey("Id");
+
+                    b.HasIndex("RoleId");
+
+                    b.ToTable("AspNetRoleClaims", (string)null);
+                });
+
+            modelBuilder.Entity("Microsoft.AspNetCore.Identity.IdentityUser", b =>
+                {
+                    b.Property<string>("Id")
+                        .HasColumnType("nvarchar(450)");
+
+                    b.Property<int>("AccessFailedCount")
+                        .HasColumnType("int");
+
+                    b.Property<string>("ConcurrencyStamp")
+                        .IsConcurrencyToken()
+                        .HasColumnType("nvarchar(max)");
+
+                    b.Property<string>("Email")
+                        .HasMaxLength(256)
+                        .HasColumnType("nvarchar(256)");
+
+                    b.Property<bool>("EmailConfirmed")
+                        .HasColumnType("bit");
+
+                    b.Property<bool>("LockoutEnabled")
+                        .HasColumnType("bit");
+
+                    b.Property<DateTimeOffset?>("LockoutEnd")
+                        .HasColumnType("datetimeoffset");
+
+                    b.Property<string>("NormalizedEmail")
+                        .HasMaxLength(256)
+                        .HasColumnType("nvarchar(256)");
+
+                    b.Property<string>("NormalizedUserName")
+                        .HasMaxLength(256)
+                        .HasColumnType("nvarchar(256)");
+
+                    b.Property<string>("PasswordHash")
+                        .HasColumnType("nvarchar(max)");
+
+                    b.Property<string>("PhoneNumber")
+                        .HasColumnType("nvarchar(max)");
+
+                    b.Property<bool>("PhoneNumberConfirmed")
+                        .HasColumnType("bit");
+
+                    b.Property<string>("SecurityStamp")
+                        .HasColumnType("nvarchar(max)");
+
+                    b.Property<bool>("TwoFactorEnabled")
+                        .HasColumnType("bit");
+
+                    b.Property<string>("UserName")
+                        .HasMaxLength(256)
+                        .HasColumnType("nvarchar(256)");
+
+                    b.HasKey("Id");
+
+                    b.HasIndex("NormalizedEmail")
+                        .HasDatabaseName("EmailIndex");
+
+                    b.HasIndex("NormalizedUserName")
+                        .IsUnique()
+                        .HasDatabaseName("UserNameIndex")
+                        .HasFilter("[NormalizedUserName] IS NOT NULL");
+
+                    b.ToTable("AspNetUsers", (string)null);
+                });
+
+            modelBuilder.Entity("Microsoft.AspNetCore.Identity.IdentityUserClaim<string>", b =>
+                {
+                    b.Property<int>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("int");
+
+                    SqlServerPropertyBuilderExtensions.UseIdentityColumn(b.Property<int>("Id"));
+
+                    b.Property<string>("ClaimType")
+                        .HasColumnType("nvarchar(max)");
+
+                    b.Property<string>("ClaimValue")
+                        .HasColumnType("nvarchar(max)");
+
+                    b.Property<string>("UserId")
+                        .IsRequired()
+                        .HasColumnType("nvarchar(450)");
+
+                    b.HasKey("Id");
+
+                    b.HasIndex("UserId");
+
+                    b.ToTable("AspNetUserClaims", (string)null);
+                });
+
+            modelBuilder.Entity("Microsoft.AspNetCore.Identity.IdentityUserLogin<string>", b =>
+                {
+                    b.Property<string>("LoginProvider")
+                        .HasColumnType("nvarchar(450)");
+
+                    b.Property<string>("ProviderKey")
+                        .HasColumnType("nvarchar(450)");
+
+                    b.Property<string>("ProviderDisplayName")
+                        .HasColumnType("nvarchar(max)");
+
+                    b.Property<string>("UserId")
+                        .IsRequired()
+                        .HasColumnType("nvarchar(450)");
+
+                    b.HasKey("LoginProvider", "ProviderKey");
+
+                    b.HasIndex("UserId");
+
+                    b.ToTable("AspNetUserLogins", (string)null);
+                });
+
+            modelBuilder.Entity("Microsoft.AspNetCore.Identity.IdentityUserRole<string>", b =>
+                {
+                    b.Property<string>("UserId")
+                        .HasColumnType("nvarchar(450)");
+
+                    b.Property<string>("RoleId")
+                        .HasColumnType("nvarchar(450)");
+
+                    b.HasKey("UserId", "RoleId");
+
+                    b.HasIndex("RoleId");
+
+                    b.ToTable("AspNetUserRoles", (string)null);
+                });
+
+            modelBuilder.Entity("Microsoft.AspNetCore.Identity.IdentityUserToken<string>", b =>
+                {
+                    b.Property<string>("UserId")
+                        .HasColumnType("nvarchar(450)");
+
+                    b.Property<string>("LoginProvider")
+                        .HasColumnType("nvarchar(450)");
+
+                    b.Property<string>("Name")
+                        .HasColumnType("nvarchar(450)");
+
+                    b.Property<string>("Value")
+                        .HasColumnType("nvarchar(max)");
+
+                    b.HasKey("UserId", "LoginProvider", "Name");
+
+                    b.ToTable("AspNetUserTokens", (string)null);
+                });
+
             modelBuilder.Entity("HinduTempleofTriStates.Models.CashTransaction", b =>
                 {
                     b.HasOne("HinduTempleofTriStates.Models.LedgerAccount", "LedgerAccount")
                         .WithMany("CashTransactions")
-                        .HasForeignKey("LedgerAccountId")
-                        .OnDelete(DeleteBehavior.Restrict);
+                        .HasForeignKey("LedgerAccountId");
 
                     b.Navigation("LedgerAccount");
                 });
@@ -359,8 +583,7 @@ namespace HinduTempleofTriStates.Migrations
                     b.HasOne("HinduTempleofTriStates.Models.LedgerAccount", "LedgerAccount")
                         .WithMany("Donations")
                         .HasForeignKey("LedgerAccountId")
-                        .OnDelete(DeleteBehavior.Restrict)
-                        .IsRequired();
+                        .OnDelete(DeleteBehavior.Restrict);
 
                     b.Navigation("LedgerAccount");
                 });
@@ -387,10 +610,60 @@ namespace HinduTempleofTriStates.Migrations
                     b.HasOne("HinduTempleofTriStates.Models.LedgerAccount", "LedgerAccount")
                         .WithMany("Transactions")
                         .HasForeignKey("LedgerAccountId")
-                        .OnDelete(DeleteBehavior.Restrict)
-                        .IsRequired();
+                        .OnDelete(DeleteBehavior.Restrict);
 
                     b.Navigation("LedgerAccount");
+                });
+
+            modelBuilder.Entity("Microsoft.AspNetCore.Identity.IdentityRoleClaim<string>", b =>
+                {
+                    b.HasOne("Microsoft.AspNetCore.Identity.IdentityRole", null)
+                        .WithMany()
+                        .HasForeignKey("RoleId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
+                });
+
+            modelBuilder.Entity("Microsoft.AspNetCore.Identity.IdentityUserClaim<string>", b =>
+                {
+                    b.HasOne("Microsoft.AspNetCore.Identity.IdentityUser", null)
+                        .WithMany()
+                        .HasForeignKey("UserId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
+                });
+
+            modelBuilder.Entity("Microsoft.AspNetCore.Identity.IdentityUserLogin<string>", b =>
+                {
+                    b.HasOne("Microsoft.AspNetCore.Identity.IdentityUser", null)
+                        .WithMany()
+                        .HasForeignKey("UserId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
+                });
+
+            modelBuilder.Entity("Microsoft.AspNetCore.Identity.IdentityUserRole<string>", b =>
+                {
+                    b.HasOne("Microsoft.AspNetCore.Identity.IdentityRole", null)
+                        .WithMany()
+                        .HasForeignKey("RoleId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
+
+                    b.HasOne("Microsoft.AspNetCore.Identity.IdentityUser", null)
+                        .WithMany()
+                        .HasForeignKey("UserId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
+                });
+
+            modelBuilder.Entity("Microsoft.AspNetCore.Identity.IdentityUserToken<string>", b =>
+                {
+                    b.HasOne("Microsoft.AspNetCore.Identity.IdentityUser", null)
+                        .WithMany()
+                        .HasForeignKey("UserId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
                 });
 
             modelBuilder.Entity("HinduTempleofTriStates.Models.Account", b =>

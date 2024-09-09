@@ -7,8 +7,7 @@ using Microsoft.Extensions.Logging;
 using HinduTempleofTriStates.Data;
 using HinduTempleofTriStates.Repositories;
 using HinduTempleofTriStates.Services;
-using Microsoft.AspNetCore.Routing;
-using Microsoft.AspNetCore.Http;
+using Microsoft.AspNetCore.Identity.UI;
 
 internal class Program
 {
@@ -24,7 +23,7 @@ internal class Program
         builder.Logging.ClearProviders();
         builder.Logging.AddConsole();
         builder.Logging.AddDebug();
-        builder.Logging.AddFile("Logs/app-log.txt"); // Log to file (ensure you have the required logging library for file logging)
+        builder.Logging.AddFile("Logs/app-log.txt"); // Log to file
 
         // Dependency injection for services and repositories
         builder.Services.AddScoped<ICashTransactionService, CashTransactionService>();
@@ -40,9 +39,14 @@ internal class Program
         builder.Services.AddScoped<IDonationRepository, DonationRepository>();
         builder.Services.AddScoped<IFundRepository, FundRepository>();
 
+        // Role Management
+        builder.Services.AddScoped<RoleService>();
+        builder.Services.AddScoped<RoleRepository>();
+        // Ensure RoleManager is added
+        builder.Services.AddScoped<RoleManager<IdentityRole>>();
+
         // Get the connection string from appsettings.json and register ApplicationDbContext
         var connectionString = builder.Configuration.GetConnectionString("DefaultConnection");
-        Console.WriteLine($"Connection String: {connectionString}");
 
         builder.Services.AddDbContext<ApplicationDbContext>(options =>
             options.UseSqlServer(connectionString)
@@ -51,7 +55,20 @@ internal class Program
         // Add Identity for user authentication and role management
         builder.Services.AddIdentity<IdentityUser, IdentityRole>()
             .AddEntityFrameworkStores<ApplicationDbContext>()
+            .AddDefaultUI()  // Enables default UI for Identity
             .AddDefaultTokenProviders();
+
+        builder.Services.AddAuthorization(options =>
+        {
+            options.AddPolicy("RequireAdminRole", policy => policy.RequireRole("Admin"));
+            options.AddPolicy("RequireAccountantRole", policy => policy.RequireRole("Accountant"));
+        });
+
+        builder.Services.ConfigureApplicationCookie(options =>
+        {
+            options.LoginPath = "/Account/Login"; // Redirects to the login page when not authenticated
+            options.AccessDeniedPath = "/Account/AccessDenied"; // Redirects to access denied page
+        });
 
         // Build the application
         var app = builder.Build();
@@ -59,7 +76,7 @@ internal class Program
         // Configure the HTTP request pipeline
         if (!app.Environment.IsDevelopment())
         {
-            app.UseExceptionHandler("/Home/Error");
+            app.UseExceptionHandler("/Error");
             app.UseHsts(); // Use HSTS in production environments
         }
         else
@@ -67,13 +84,9 @@ internal class Program
             app.UseDeveloperExceptionPage(); // Detailed error page for development
         }
 
-        // Uncomment the following line if you want to enforce HTTPS redirection
         app.UseHttpsRedirection();
-
-        // Serve static files (e.g., images, CSS, JS) from the wwwroot folder
         app.UseStaticFiles();
 
-        // Enable routing and authentication/authorization
         app.UseRouting();
         app.UseAuthentication();
         app.UseAuthorization();
@@ -83,27 +96,6 @@ internal class Program
         {
             Secure = CookieSecurePolicy.Always,
             MinimumSameSitePolicy = SameSiteMode.Strict
-        });
-
-        // Route logging middleware
-        app.Use(async (context, next) =>
-        {
-            var endpoint = context.GetEndpoint();
-            if (endpoint != null)
-            {
-                Console.WriteLine($"Route accessed: {endpoint.DisplayName}");
-            }
-            await next();
-        });
-
-        // Inspect routing table on request to /routes
-        app.MapGet("/routes", async context =>
-        {
-            var endpointDataSource = app.Services.GetRequiredService<EndpointDataSource>();
-            foreach (var endpoint in endpointDataSource.Endpoints)
-            {
-                await context.Response.WriteAsync(endpoint.DisplayName + "\n");
-            }
         });
 
         // Default MVC route

@@ -46,5 +46,6 @@ namespace HinduTempleofTriStates.Models
         public required string CreatedBy { get; set; }
         public required string UpdatedBy { get; set; }
         public decimal Balance { get; set; }
+        public bool IsDeleted { get; set; } // Soft delete flag
     }
 }

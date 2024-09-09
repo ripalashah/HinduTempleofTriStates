@@ -17,7 +17,7 @@ namespace HinduTempleofTriStates.Views.Ledger
         }
 
         [BindProperty]
-        public LedgerAccount LedgerAccount { get; set; }
+        public LedgerAccount? LedgerAccount { get; set; }
 
         public LedgerService Get_ledgerService()
         {
@@ -37,15 +37,22 @@ namespace HinduTempleofTriStates.Views.Ledger
             return Page();
         }
 
+        public LedgerAccount? GetLedgerAccount()
+        {
+            return LedgerAccount;
+        }
+
         // Save the changes when the form is submitted
-        public async Task<IActionResult> OnPostAsync()
+        public async Task<IActionResult> OnPostAsync(LedgerAccount? ledgerAccount)
         {
             if (!ModelState.IsValid) // Server-side validation
             {
                 return Page(); // Redisplay form with validation messages
             }
 
-            await _ledgerService.UpdateLedgerAccountAsync(LedgerAccount); // Update the account in the database
+#pragma warning disable CS8604 // Possible null reference argument.
+            await _ledgerService.UpdateLedgerAccountAsync(ledgerAccount); // Update the account in the database
+#pragma warning restore CS8604 // Possible null reference argument.
             return RedirectToPage("Index");
         }
     }

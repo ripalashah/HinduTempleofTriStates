@@ -37,8 +37,9 @@ namespace HinduTempleofTriStates.Models
         [StringLength(100)]
         public string Country { get; set; } = string.Empty;
 
-        public Guid LedgerAccountId { get; set; }
+        public Guid? LedgerAccountId { get; set; }
 
         public virtual LedgerAccount? LedgerAccount { get; set; }
+        public bool IsDeleted { get; set; }  // Soft delete flag
     }
 }

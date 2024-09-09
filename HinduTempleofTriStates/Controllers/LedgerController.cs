@@ -1,7 +1,9 @@
 ﻿using HinduTempleofTriStates.Models;
 using Microsoft.AspNetCore.Mvc;
 using HinduTempleofTriStates.Services;
+using Microsoft.Extensions.Logging;
 using System;
+using System.Linq;
 using System.Threading.Tasks;
 
 namespace HinduTempleofTriStates.Controllers
@@ -11,11 +13,11 @@ namespace HinduTempleofTriStates.Controllers
     {
         private readonly LedgerService _ledgerService;
         private readonly ILogger<LedgerController> _logger;
-        // Ensure logger is injected via the constructor
+
         public LedgerController(LedgerService ledgerService, ILogger<LedgerController> logger)
         {
             _ledgerService = ledgerService;
-            _logger = logger ?? throw new ArgumentNullException(nameof(logger)); // Check for null logger
+            _logger = logger ?? throw new ArgumentNullException(nameof(logger));
         }
 
         // GET: Ledger/Create
@@ -30,7 +32,6 @@ namespace HinduTempleofTriStates.Controllers
         [ValidateAntiForgeryToken]
         public async Task<IActionResult> Create(LedgerAccount ledgerAccount)
         {
-            // Log the current model state
             if (!ModelState.IsValid)
             {
                 _logger.LogWarning("Model state is invalid.");
@@ -41,14 +42,12 @@ namespace HinduTempleofTriStates.Controllers
                 return View(ledgerAccount);
             }
 
-            // Automatically set values for fields that are required but not filled by the form
-            ledgerAccount.CreatedBy = "System"; // Or get the logged-in user's name
-            ledgerAccount.UpdatedBy = "System"; // Or get the logged-in user's name
+            ledgerAccount.CreatedBy = "System";  // Replace with actual user identity if available
+            ledgerAccount.UpdatedBy = "System";
             ledgerAccount.CreatedDate = DateTime.UtcNow;
             ledgerAccount.UpdatedDate = DateTime.UtcNow;
-            ledgerAccount.Balance = ledgerAccount.Balance != 0 ? ledgerAccount.Balance : 0; // Default balance to 0
+            ledgerAccount.Balance = ledgerAccount.Balance != 0 ? ledgerAccount.Balance : 0;
 
-            // Proceed if the model is valid
             try
             {
                 await _ledgerService.AddAccountAsync(ledgerAccount);
@@ -59,7 +58,7 @@ namespace HinduTempleofTriStates.Controllers
             {
                 _logger.LogError(ex, "Error creating ledger account.");
                 return View(ledgerAccount);
-            };
+            }
         }
 
         // GET: Ledger/Index
@@ -68,14 +67,6 @@ namespace HinduTempleofTriStates.Controllers
         {
             var accounts = await _ledgerService.GetAllAccountsAsync();
             return View(accounts);
-        }
-
-        // GET: /ledger
-        [HttpGet]
-        public async Task<IActionResult> GetAllAccounts()
-        {
-            var accounts = await _ledgerService.GetAllAccountsAsync();
-            return Ok(accounts); // For API purposes, returning Ok with data
         }
 
         // GET: /ledger/{id}
@@ -90,61 +81,6 @@ namespace HinduTempleofTriStates.Controllers
             return Ok(account);
         }
 
-        // POST: /ledger
-        [HttpPost]
-        public async Task<IActionResult> AddAccount([FromBody] LedgerAccount account)
-        {
-            if (account == null)
-            {
-                return BadRequest("Account cannot be null.");
-            }
-
-            if (!ModelState.IsValid)
-            {
-                return BadRequest(ModelState);
-            }
-
-            await _ledgerService.AddAccountAsync(account);
-            return CreatedAtAction(nameof(GetAccount), new { id = account.Id }, account);
-        }
-
-        // POST: /ledger/transaction
-        [HttpPost("transaction")]
-        public async Task<IActionResult> AddTransaction([FromBody] Transaction transaction)
-        {
-            if (transaction == null)
-            {
-                return BadRequest("Transaction cannot be null.");
-            }
-
-            if (!ModelState.IsValid)
-            {
-                return BadRequest(ModelState);
-            }
-
-            await _ledgerService.AddTransactionAsync(transaction);
-            return Ok();
-        }
-
-        // PUT: /ledger/{id}
-        [HttpPut("{id}")]
-        public async Task<IActionResult> UpdateAccount(Guid id, [FromBody] LedgerAccount account)
-        {
-            if (account == null || id != account.Id)
-            {
-                return BadRequest("Invalid account data.");
-            }
-
-            var existingAccount = await _ledgerService.GetLedgerAccountByIdAsync(id);
-            if (existingAccount == null)
-            {
-                return NotFound();
-            }
-
-            await _ledgerService.UpdateLedgerAccountAsync(account);
-            return NoContent();
-        }
-
         // DELETE: /ledger/{id}
         [HttpDelete("{id}")]
         public async Task<IActionResult> DeleteAccount(Guid id)
@@ -155,20 +91,21 @@ namespace HinduTempleofTriStates.Controllers
                 return NotFound();
             }
 
-            await _ledgerService.DeleteAccountAsync(id);
-            return NoContent();
-        }
-
-        // GET: /ledger/{id}/transactions
-        [HttpGet("{id}/transactions")]
-        public async Task<IActionResult> GetTransactionsByAccountId(Guid id)
-        {
-            var transactions = await _ledgerService.GetTransactionsByAccountIdAsync(id);
-            if (transactions == null)
+            try
             {
-                return NotFound();
+                // Manually delete associated donations before soft-deleting the ledger account
+                await _ledgerService.DeleteAssociatedDonationsAsync(id);
+
+                // Soft delete the ledger account
+                await _ledgerService.SoftDeleteLedgerAccountAsync(id);
+                _logger.LogInformation($"Ledger account with ID {id} was soft-deleted.");
+                return NoContent();
             }
-            return Ok(transactions);
+            catch (Exception ex)
+            {
+                _logger.LogError(ex, $"Error occurred while deleting ledger account with ID {id}.");
+                return StatusCode(500, "Internal server error");
+            }
         }
     }
 }

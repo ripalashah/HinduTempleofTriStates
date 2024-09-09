@@ -20,7 +20,7 @@ namespace HinduTempleofTriStates.Views.Donation
         }
 
         [BindProperty]
-        public Models.Donation Donation { get; set; }  // Donation model for form binding
+        public Models.Donation? Donation { get; set; }  // Nullable Donation model for form binding
 
         public IActionResult OnGet()
         {
@@ -31,6 +31,13 @@ namespace HinduTempleofTriStates.Views.Donation
         {
             if (!ModelState.IsValid)
             {
+                return Page();
+            }
+
+            if (Donation == null)
+            {
+                _logger.LogError("Donation model is null.");
+                ModelState.AddModelError(string.Empty, "An error occurred while creating the donation.");
                 return Page();
             }
 
