@@ -8,3 +8,12 @@
 <ul>
     <li><a asp-controller="Admin" asp-action="RegisterUser">Register a New User</a></li>
 </ul>
+<!-- Add Manage Users link for Admin users -->
+@if (User.IsInRole("Admin"))
+{
+    <ul>
+    <li class="nav-item">
+        <a class="nav-link" asp-controller="Account" asp-action="ManageRoles">Manage Users</a>
+    </li>
+    </ul>
+}

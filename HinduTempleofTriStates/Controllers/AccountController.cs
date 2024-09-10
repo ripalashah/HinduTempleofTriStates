@@ -11,13 +11,11 @@ namespace HinduTempleofTriStates.Controllers
     {
         private readonly SignInManager<IdentityUser> _signInManager;
         private readonly UserManager<IdentityUser> _userManager;
-        private readonly RoleManager<IdentityRole> _roleManager;
-
+        
         public AccountController(UserManager<IdentityUser> userManager, SignInManager<IdentityUser> signInManager, RoleManager<IdentityRole> roleManager)
         {
             _userManager = userManager;
             _signInManager = signInManager;
-            _roleManager = roleManager;
         }
 
         // GET: /account/login
@@ -48,40 +46,37 @@ namespace HinduTempleofTriStates.Controllers
             ModelState.AddModelError("", "Invalid login attempt.");
             return View(model);
         }
-
-        // GET: /account/register (Restricted to Admins)
-        [HttpGet("register")]
-        [Authorize(Roles = "Admin")]
-        public IActionResult Register()
+        
+        // GET: /account/change-password
+        [HttpGet("change-password")]
+        [Authorize] // User can change their own password
+        public IActionResult ChangePassword()
         {
-            ViewData["Title"] = "Register";
-            var model = new RegisterInputModel();
-            return View(model);
+            return View();
         }
 
-        // POST: /account/register (Restricted to Admins)
-        [HttpPost("register")]
+        // POST: /account/change-password
+        [HttpPost("change-password")]
         [ValidateAntiForgeryToken]
-        [Authorize(Roles = "Admin")] // Only Admins can register new users
-        public async Task<IActionResult> Register(RegisterInputModel model)
+        [Authorize] // User changes their own password
+        public async Task<IActionResult> ChangePassword(ChangePasswordInputModel model)
         {
             if (!ModelState.IsValid)
             {
-                ViewData["Title"] = "Register";
                 return View(model);
             }
 
-            var user = new IdentityUser { UserName = model.Email, Email = model.Email };
-            var result = await _userManager.CreateAsync(user, model.Password);
+            var user = await _userManager.GetUserAsync(User);
+            if (user == null)
+            {
+                return RedirectToAction("Login", "Account");
+            }
+
+            var result = await _userManager.ChangePasswordAsync(user, model.CurrentPassword, model.NewPassword);
 
             if (result.Succeeded)
             {
-                if (!string.IsNullOrEmpty(model.Role) && await _roleManager.RoleExistsAsync(model.Role))
-                {
-                    await _userManager.AddToRoleAsync(user, model.Role);
-                }
-
-                await _signInManager.SignInAsync(user, isPersistent: false);
+                await _signInManager.RefreshSignInAsync(user); // To re-authenticate user
                 return RedirectToAction("Index", "Home");
             }
 
@@ -90,37 +85,35 @@ namespace HinduTempleofTriStates.Controllers
                 ModelState.AddModelError("", error.Description);
             }
 
-            ViewData["Title"] = "Register";
             return View(model);
         }
 
-        // GET: /account/manage-roles (Restricted to Admins)
-        [HttpGet("manage-roles")]
-        [Authorize(Roles = "Admin")]
-        public IActionResult ManageRoles()
-        {
-            return View();
-        }
-
-        // POST: /account/manage-roles (Restricted to Admins)
-        [HttpPost("manage-roles")]
-        [Authorize(Roles = "Admin")]
+        // POST: /account/change-password-admin
+        [HttpPost("change-password-admin")]
+        [Authorize(Roles = "Admin")] // Admin changes another user's password
         [ValidateAntiForgeryToken]
-        public async Task<IActionResult> ManageRoles(string userId, string roleName, bool addRole)
+        public async Task<IActionResult> ChangePasswordAdmin(string userId, string newPassword)
         {
             var user = await _userManager.FindByIdAsync(userId);
-            if (user != null)
+            if (user == null)
             {
-                if (addRole)
-                {
-                    await _userManager.AddToRoleAsync(user, roleName);
-                }
-                else
-                {
-                    await _userManager.RemoveFromRoleAsync(user, roleName);
-                }
+                return NotFound();
             }
-            return RedirectToAction("ManageRoles");
+
+            var token = await _userManager.GeneratePasswordResetTokenAsync(user);
+            var result = await _userManager.ResetPasswordAsync(user, token, newPassword);
+
+            if (result.Succeeded)
+            {
+                return RedirectToAction("ManageUsers", "Admin");
+            }
+
+            foreach (var error in result.Errors)
+            {
+                ModelState.AddModelError("", error.Description);
+            }
+
+            return RedirectToAction("ManageUsers", "Admin");
         }
 
         // POST: /account/logout
@@ -136,22 +129,6 @@ namespace HinduTempleofTriStates.Controllers
         [HttpGet("admin-only")]
         [Authorize(Roles = "Admin")]
         public IActionResult AdminOnlyPage()
-        {
-            return View();
-        }
-
-        // Accountant and Admin-Only Page
-        [HttpGet("accountant-page")]
-        [Authorize(Roles = "Admin,Accountant")]
-        public IActionResult AccountantPage()
-        {
-            return View();
-        }
-
-        // Counter-Only Page
-        [HttpGet("counter-page")]
-        [Authorize(Roles = "Counter")]
-        public IActionResult CounterPage()
         {
             return View();
         }

@@ -31,7 +31,7 @@
         </dl>
     </div>
 
-    <form asp-action="Delete" method="post">
+    <form asp-action="DeleteConfirmed" method="post">
         @Html.AntiForgeryToken()
         <input type="hidden" asp-for="Id" />
         <div class="form-group">

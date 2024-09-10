@@ -11,7 +11,7 @@ using Microsoft.AspNetCore.Identity.UI;
 
 internal class Program
 {
-    private static void Main(string[] args)
+    private static async Task Main(string[] args)
     {
         var builder = WebApplication.CreateBuilder(args);
 
@@ -42,8 +42,7 @@ internal class Program
         // Role Management
         builder.Services.AddScoped<RoleService>();
         builder.Services.AddScoped<RoleRepository>();
-        // Ensure RoleManager is added
-        builder.Services.AddScoped<RoleManager<IdentityRole>>();
+        builder.Services.AddScoped<RoleManager<IdentityRole>>(); // RoleManager for role management
 
         // Get the connection string from appsettings.json and register ApplicationDbContext
         var connectionString = builder.Configuration.GetConnectionString("DefaultConnection");
@@ -53,21 +52,33 @@ internal class Program
                    .LogTo(Console.WriteLine, LogLevel.Information)); // Log SQL queries for debugging
 
         // Add Identity for user authentication and role management
-        builder.Services.AddIdentity<IdentityUser, IdentityRole>()
+        builder.Services.AddIdentity<IdentityUser, IdentityRole>(options =>
+        {
+            // Configure password settings
+            options.Password.RequireDigit = true;           // Require at least one digit
+            options.Password.RequireLowercase = true;       // Require at least one lowercase letter
+            options.Password.RequireUppercase = true;       // Require at least one uppercase letter
+            options.Password.RequireNonAlphanumeric = true; // Require at least one non-alphanumeric character
+            options.Password.RequiredLength = 8;            // Minimum password length
+            options.Password.RequiredUniqueChars = 1;       // Require at least one unique character
+        })
             .AddEntityFrameworkStores<ApplicationDbContext>()
-            .AddDefaultUI()  // Enables default UI for Identity
-            .AddDefaultTokenProviders();
+            .AddDefaultTokenProviders()
+            .AddDefaultUI();
 
+        // Authorization policies to restrict access based on roles
         builder.Services.AddAuthorization(options =>
         {
             options.AddPolicy("RequireAdminRole", policy => policy.RequireRole("Admin"));
             options.AddPolicy("RequireAccountantRole", policy => policy.RequireRole("Accountant"));
+            options.AddPolicy("RequireCounterRole", policy => policy.RequireRole("Counter"));
         });
 
+        // Configure application cookies for login and access control
         builder.Services.ConfigureApplicationCookie(options =>
         {
-            options.LoginPath = "/Account/Login"; // Redirects to the login page when not authenticated
-            options.AccessDeniedPath = "/Account/AccessDenied"; // Redirects to access denied page
+            options.LoginPath = "/Account/Login"; // Redirect to the login page when not authenticated
+            options.AccessDeniedPath = "/Account/AccessDenied"; // Redirect to access denied page when unauthorized
         });
 
         // Build the application
@@ -85,7 +96,16 @@ internal class Program
         }
 
         app.UseHttpsRedirection();
-        app.UseStaticFiles();
+        app.UseStaticFiles(new StaticFileOptions
+        {
+            OnPrepareResponse = context =>
+            {
+                if (!app.Environment.IsDevelopment())
+                {
+                    context.Context.Response.Headers["Cache-Control"] = "public,max-age=604800"; // 7 days caching for static files
+                }
+            }
+        });
 
         app.UseRouting();
         app.UseAuthentication();
@@ -98,15 +118,61 @@ internal class Program
             MinimumSameSitePolicy = SameSiteMode.Strict
         });
 
+        // Add basic security headers for additional security
+        app.Use(async (context, next) =>
+        {
+            context.Response.Headers.Append("X-Content-Type-Options", "nosniff");
+            context.Response.Headers.Append("X-Frame-Options", "DENY");
+            await next();
+        });
+
         // Default MVC route
         app.MapControllerRoute(
             name: "default",
             pattern: "{controller=Home}/{action=Index}/{id?}");
 
+        // This is optional, but helpful to define the `Admin` area specifically.
+        app.MapControllerRoute(
+            name: "admin",
+            pattern: "{controller=Admin}/{action=ManageUsers}/{id?}"
+        );
+
         // Map Razor Pages routes
         app.MapRazorPages();
 
+        // Seed roles
+        using (var scope = app.Services.CreateScope())
+        {
+            var services = scope.ServiceProvider;
+            try
+            {
+                var roleManager = services.GetRequiredService<RoleManager<IdentityRole>>();
+                await RoleInitializer.Initialize(roleManager); // Ensure roles are seeded
+            }
+            catch (Exception ex)
+            {
+                var logger = services.GetRequiredService<ILogger<Program>>();
+                logger.LogError(ex, "An error occurred while seeding the database.");
+            }
+        }
+
         // Run the application
         app.Run();
+    }
+}
+
+public static class RoleInitializer
+{
+    public static async Task Initialize(RoleManager<IdentityRole> roleManager)
+    {
+        string[] roleNames = { "Admin", "Accountant", "Counter" };
+
+        foreach (var roleName in roleNames)
+        {
+            if (!await roleManager.RoleExistsAsync(roleName))
+            {
+                await roleManager.CreateAsync(new IdentityRole(roleName));
+            }
+        }
     }
 }

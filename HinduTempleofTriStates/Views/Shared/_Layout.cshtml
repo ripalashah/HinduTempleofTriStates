@@ -20,7 +20,7 @@
         }
 
         .navbar-brand {
-            margin-right: 20px; /* Added margin to separate from nav links */
+            margin-right: 20px;
         }
 
         .form-inline {
@@ -31,13 +31,17 @@
                 padding: 0;
                 background: none;
                 border: none;
-                color: rgba(0,0,0,.5); /* Match other link styles */
+                color: rgba(0,0,0,.5);
             }
 
                 .form-inline button:hover {
-                    color: rgba(0,0,0,.8); /* Hover effect for consistency */
+                    color: rgba(0,0,0,.8);
                     text-decoration: underline;
                 }
+
+        .navbar-collapse {
+            justify-content: center;
+        }
     </style>
 </head>
 <body>
@@ -48,7 +52,7 @@
             <button class="navbar-toggler" type="button" data-toggle="collapse" data-target="#navbarNav" aria-controls="navbarNav" aria-expanded="false" aria-label="Toggle navigation">
                 <span class="navbar-toggler-icon"></span>
             </button>
-            <div class="collapse navbar-collapse justify-content-center" id="navbarNav">
+            <div class="collapse navbar-collapse" id="navbarNav">
                 <ul class="navbar-nav">
                     <!-- Home Link -->
                     <li class="nav-item">
@@ -124,7 +128,7 @@
     @RenderSection("Scripts", required: false)
 
     <!-- JavaScript Libraries -->
-    <script src="https://code.jquery.com/jquery-3.3.1.slim.min.js"></script>
+    <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/popper.js/1.14.7/umd/popper.min.js"></script>
     <script src="https://stackpath.bootstrapcdn.com/bootstrap/4.3.1/js/bootstrap.min.js"></script>
     <script src="~/lib/jquery-validation/dist/jquery.validate.min.js"></script>

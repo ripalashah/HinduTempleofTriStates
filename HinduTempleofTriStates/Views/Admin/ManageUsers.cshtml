@@ -1,0 +1,57 @@
+﻿@model HinduTempleofTriStates.Models.ManageUsersViewModel
+
+<h1>Manage Users</h1>
+
+<!-- Button or link to navigate to the Register page -->
+<a asp-controller="Admin" asp-action="Register" class="btn btn-primary mb-3">Register a New User</a>
+
+<table class="table table-bordered">
+    <thead>
+        <tr>
+            <th>Email</th>
+            <th>Roles</th>
+            <th>Manage Roles</th>
+            <th>Actions</th>
+        </tr>
+    </thead>
+    <tbody>
+        @foreach (var user in Model.Users)
+        {
+            <tr>
+                <td>@user.Email</td>
+                <td>
+                    @if (user.UserRoles != null && user.UserRoles.Any())
+                    {
+                        @foreach (var role in user.UserRoles)
+                        {
+                            <span class="badge badge-info">@role</span>
+                        }
+                    }
+                    else
+                    {
+                        <span>No roles assigned</span>
+                    }
+                </td>
+                <td>
+                    @foreach (var role in Model.Roles)
+                    {
+                        <form method="post" asp-action="ManageUserRoles" class="d-inline">
+                            <input type="hidden" name="userId" value="@user.Id" />
+                            <input type="hidden" name="roleName" value="@role.Name" />
+                            <button type="submit" class="btn btn-sm @(role.Name != null && user.UserRoles != null && user.UserRoles.Contains(role.Name) ? "btn-danger" : "btn-success")">
+                                @(role.Name != null && user.UserRoles != null && user.UserRoles.Contains(role.Name) ? "Remove " : "Add ") @role.Name
+                            </button>
+                        </form>
+                    }
+                </td>
+                <td>
+                    <form method="post" asp-action="ChangePasswordAdmin" class="d-inline">
+                        <input type="hidden" name="userId" value="@user.Id" />
+                        <input type="text" name="newPassword" placeholder="New Password" class="form-control" />
+                        <button type="submit" class="btn btn-sm btn-danger mt-2">Change Password</button>
+                    </form>
+                </td>
+            </tr>
+        }
+    </tbody>
+</table>
