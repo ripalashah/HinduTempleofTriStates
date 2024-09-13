@@ -6,6 +6,7 @@ using HinduTempleofTriStates.Services;
 using System;
 using System.Linq;
 using System.Threading.Tasks;
+using Microsoft.Extensions.Logging; // Add for logging
 
 namespace HinduTempleofTriStates.Controllers
 {
@@ -14,11 +15,16 @@ namespace HinduTempleofTriStates.Controllers
     {
         private readonly ICashTransactionRepository _transactionRepository;
         private readonly LedgerService _ledgerService;
+        private readonly ILogger<CashTransactionsController> _logger; // Add logger
 
-        public CashTransactionsController(ICashTransactionRepository transactionRepository, LedgerService ledgerService)
+        public CashTransactionsController(
+            ICashTransactionRepository transactionRepository,
+            LedgerService ledgerService,
+            ILogger<CashTransactionsController> logger) // Inject logger
         {
             _transactionRepository = transactionRepository;
             _ledgerService = ledgerService;
+            _logger = logger;
         }
 
         // GET: CashTransactions
@@ -49,14 +55,27 @@ namespace HinduTempleofTriStates.Controllers
         {
             if (ModelState.IsValid)
             {
+                _logger.LogInformation("Model state is valid, proceeding with transaction creation.");
                 transaction.Id = Guid.NewGuid();
-                await _transactionRepository.AddCashTransactionAsync(transaction);
+                _logger.LogInformation($"Saving transaction: {transaction.Description}, {transaction.Amount}, {transaction.LedgerAccountId}");
+
+                try
+                {
+                    await _transactionRepository.AddCashTransactionAsync(transaction);
+                    _logger.LogInformation("Transaction saved successfully.");
+                }
+                catch (Exception ex)
+                {
+                    _logger.LogError($"Error saving transaction: {ex.Message}");
+                    throw;
+                }
+
                 return RedirectToAction(nameof(Index));
             }
 
+            _logger.LogError("Model state is invalid.");
             var ledgerAccounts = await _ledgerService.GetAllAccountsAsync();
             ViewBag.LedgerAccounts = new SelectList(ledgerAccounts, "Id", "AccountName");
-
             return View(transaction);
         }
 

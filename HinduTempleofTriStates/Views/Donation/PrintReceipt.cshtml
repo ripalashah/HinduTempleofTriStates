@@ -16,9 +16,16 @@
     <p><strong>State:</strong> @Model.State</p>
     <p><strong>Country:</strong> @Model.Country</p>
 
-    <button type="button" onclick="window.print();" class="btn btn-info">Print Receipt</button>
-
-    <div class="form-group mt-3">
+    <div class="d-flex justify-content-between mt-4 no-print">
+        <button type="button" onclick="window.print();" class="btn btn-primary">Print Receipt</button>
         <a asp-action="Index" class="btn btn-secondary">Back to List</a>
     </div>
 </div>
+
+<style>
+    @@media print {
+        .no-print {
+            display: none;
+        }
+    }
+</style>

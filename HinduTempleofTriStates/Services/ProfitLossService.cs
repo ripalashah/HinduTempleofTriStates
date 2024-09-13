@@ -24,23 +24,30 @@ namespace HinduTempleofTriStates.Services
 
             var model = new ProfitLossModel();
 
+            // Summing donation amounts for profit
             foreach (var donation in donations)
             {
                 model.ProfitLossItems.Add(new ProfitLossItem
                 {
                     Description = $"Donation from {donation.DonorName}",
-                    Amount = (decimal)donation.Amount
+                    Amount = (decimal)donation.Amount // Ensure this is a decimal type in your model
                 });
             }
 
+            // Handling transactions for profit and loss
             foreach (var transaction in transactions)
             {
+                var amount = transaction.TransactionType == TransactionType.Credit ? transaction.Amount : -transaction.Amount;
                 model.ProfitLossItems.Add(new ProfitLossItem
                 {
                     Description = transaction.Description,
-                    Amount = transaction.Type == TransactionType.Credit ? transaction.Amount : -transaction.Amount
+                    Amount = amount
                 });
             }
+
+            // Calculate totals (if required in the model)
+            model.TotalProfit = model.ProfitLossItems.Where(x => x.Amount > 0).Sum(x => x.Amount);
+            model.TotalLoss = model.ProfitLossItems.Where(x => x.Amount < 0).Sum(x => x.Amount);
 
             return model;
         }

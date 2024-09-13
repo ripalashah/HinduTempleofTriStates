@@ -1,29 +1,44 @@
-﻿@model HinduTempleofTriStates.Models.ProfitLossModel
+﻿@model HinduTempleofTriStates.ViewModels.ProfitLossViewModel
+@using System.Linq
 
-<h1>Profit and Loss Report</h1>
+<form method="get" action="/Reports/ProfitLoss">
+    <label for="startDate">Start Date:</label>
+    <input type="date" id="startDate" name="startDate" value="@DateTime.Now.AddMonths(-1).ToString("yyyy-MM-dd")" />
 
-<div class="card">
-    <div class="card-body">
-        <h4>Total Profit: @Model.TotalProfit.ToString("C")</h4>
-        <h4>Total Loss: @Model.TotalLoss.ToString("C")</h4>
-        <h4>Net Profit/Loss: @Model.NetProfitLoss.ToString("C")</h4>
-    </div>
-</div>
+    <label for="endDate">End Date:</label>
+    <input type="date" id="endDate" name="endDate" value="@DateTime.Now.ToString("yyyy-MM-dd")" />
 
-<table class="table">
-    <thead>
-        <tr>
-            <th>Description</th>
-            <th>Amount</th>
-        </tr>
-    </thead>
-    <tbody>
-        @foreach (var item in Model.ProfitLossItems)
-        {
+    <input type="submit" value="Generate Report" />
+</form>
+
+@if (Model != null && Model.ProfitLossItems != null && Model.ProfitLossItems.Any())
+{
+    <h2>Profit and Loss Report</h2>
+    <p>Total Income: @Model.TotalIncome.ToString("C")</p>
+    <p>Total Expenses: @Model.TotalExpenses.ToString("C")</p>
+    <p>Net Profit/Loss: @Model.TotalProfit.ToString("C") - @Model.TotalLoss.ToString("C")</p>
+
+    <table class="table">
+        <thead>
             <tr>
-                <td>@item.Description</td>
-                <td>@item.Amount.ToString("C")</td>
+                <th>Description</th>
+                <th>Amount</th>
+                <th>Income/Expense</th>
             </tr>
-        }
-    </tbody>
-</table>
+        </thead>
+        <tbody>
+            @foreach (var item in Model.ProfitLossItems)
+            {
+                <tr>
+                    <td>@item.Description</td>
+                    <td>@item.Amount.ToString("C")</td>
+                    <td>@(item.IsIncome ? "Income" : "Expense")</td>
+                </tr>
+            }
+        </tbody>
+    </table>
+}
+else
+{
+    <p>No profit/loss entries available for the selected period.</p>
+}

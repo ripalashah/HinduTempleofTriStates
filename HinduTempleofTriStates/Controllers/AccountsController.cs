@@ -10,7 +10,7 @@ using Microsoft.Extensions.Logging;
 
 namespace HinduTempleofTriStates.Controllers
 {
-    [Route("controller")]
+    [Route("accounts")]
     public class AccountsController : Controller
     {
         private readonly IAccountRepository _accountRepository;
@@ -28,9 +28,7 @@ namespace HinduTempleofTriStates.Controllers
         }
 
         // GET: Accounts
-        [HttpGet]
-        [Route("")]
-        [Route("Index")]
+        [HttpGet("")]
         public async Task<IActionResult> Index(string search)
         {
             var accounts = await _accountRepository.GetAllAccountsAsync();
@@ -58,17 +56,15 @@ namespace HinduTempleofTriStates.Controllers
         }
 
         // GET: Accounts/Create
-        [HttpGet]
-        [Route("Create")]
+        [HttpGet("create")]
         public IActionResult Create()
         {
             return View();
         }
 
         // POST: Accounts/Create
-        [HttpPost]
+        [HttpPost("create")]
         [ValidateAntiForgeryToken]
-        [Route("Create")]
         public async Task<IActionResult> Create([Bind("AccountName,Balance,AccountType")] Account account)
         {
             if (ModelState.IsValid)
@@ -88,8 +84,7 @@ namespace HinduTempleofTriStates.Controllers
         }
 
         // GET: Accounts/Edit/5
-        [HttpGet]
-        [Route("Edit/{id:guid}")]
+        [HttpGet("edit/{id:guid}")]
         public async Task<IActionResult> Edit(Guid id)
         {
             var account = await _accountRepository.GetAccountByIdAsync(id);
@@ -101,9 +96,8 @@ namespace HinduTempleofTriStates.Controllers
         }
 
         // POST: Accounts/Edit/5
-        [HttpPost]
+        [HttpPost("edit/{id:guid}")]
         [ValidateAntiForgeryToken]
-        [Route("Edit/{id:guid}")]
         public async Task<IActionResult> Edit(Guid id, [Bind("Id,AccountName,Balance,AccountType")] Account account)
         {
             if (id != account.Id)
@@ -134,8 +128,7 @@ namespace HinduTempleofTriStates.Controllers
         }
 
         // GET: Accounts/Delete/5
-        [HttpGet]
-        [Route("Delete/{id:guid}")]
+        [HttpGet("delete/{id:guid}")]
         public async Task<IActionResult> Delete(Guid id)
         {
             var account = await _accountRepository.GetAccountByIdAsync(id);
@@ -147,7 +140,7 @@ namespace HinduTempleofTriStates.Controllers
         }
 
         // POST: Accounts/Delete/5
-        [HttpPost, ActionName("Delete")]
+        [HttpPost]
         [ValidateAntiForgeryToken]
         public async Task<IActionResult> DeleteConfirmed(Guid id)
         {
@@ -169,14 +162,14 @@ namespace HinduTempleofTriStates.Controllers
         }
 
         // GET: Accounts/CreateFund
-        [HttpGet]
+        [HttpGet("createfund")]
         public IActionResult CreateFund()
         {
             return View();
         }
 
         // POST: Accounts/CreateFund
-        [HttpPost]
+        [HttpPost("createfund")]
         [ValidateAntiForgeryToken]
         public async Task<IActionResult> CreateFund(Fund fund)
         {
@@ -189,7 +182,7 @@ namespace HinduTempleofTriStates.Controllers
         }
 
         // GET: Accounts/ManageFunds
-        [HttpGet]
+        [HttpGet("managefunds")]
         public async Task<IActionResult> ManageFunds()
         {
             var funds = await _accountRepository.GetFundsAsync();
@@ -197,7 +190,7 @@ namespace HinduTempleofTriStates.Controllers
         }
 
         // GET: Accounts/Reports
-        [HttpGet("Reports")]
+        [HttpGet("reports")]
         public async Task<IActionResult> Reports()
         {
             var accounts = await _accountService.GetAccountsAsync();
@@ -209,9 +202,9 @@ namespace HinduTempleofTriStates.Controllers
 
             return View("~/Views/Accounts/Reports/Reports.cshtml", accounts);
         }
-        
+
         // POST: Accounts/Reconcile
-        [HttpPost]
+        [HttpPost("reconcile")]
         [ValidateAntiForgeryToken]
         public async Task<IActionResult> Reconcile(Guid transactionId)
         {
@@ -220,7 +213,7 @@ namespace HinduTempleofTriStates.Controllers
         }
 
         // GET: Accounts/Reconciliation
-        [HttpGet]
+        [HttpGet("reconciliation")]
         public async Task<IActionResult> Reconciliation()
         {
             var transactions = await _accountRepository.GetUnreconciledTransactionsAsync();

@@ -8,17 +8,17 @@ namespace HinduTempleofTriStates.Models
         // List of all Cash Transactions
         public List<CashTransaction> CashTransactions { get; set; } = new List<CashTransaction>();
 
-        // Calculate total income (sum of all income-type transactions)
-        public decimal TotalIncome => CashTransactions
-            .Where(t => t.Type == CashTransactionType.Income)
-            .Sum(t => t.Amount);
+        // Total income (sum of all income-type transactions)
+        public decimal TotalIncome { get; set; }
 
-        // Calculate total expense (sum of all expense-type transactions)
-        public decimal TotalExpense => CashTransactions
-            .Where(t => t.Type == CashTransactionType.Expense)
-            .Sum(t => t.Amount);
+        // Total expense (sum of all expense-type transactions)
+        public decimal TotalExpense { get; set; }
 
-        // Calculate net balance (Total Income - Total Expense)
-        public decimal NetBalance => TotalIncome - TotalExpense;
+        // Net balance (Total Income - Total Expense)
+        public decimal NetBalance => TotalIncome - TotalExpense; // Net balance (income - expense)
+
+        // Add these properties to resolve the missing references
+        public decimal TotalDebit => TotalExpense;  // Alias for total debit
+        public decimal TotalCredit => TotalIncome;  // Alias for total credit
     }
 }

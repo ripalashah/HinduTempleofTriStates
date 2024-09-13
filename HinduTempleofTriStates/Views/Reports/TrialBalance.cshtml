@@ -1,16 +1,8 @@
-﻿@model HinduTempleofTriStates.Models.TrialBalanceModel
+﻿@model HinduTempleofTriStates.ViewModels.TrialBalanceViewModel
 
-<h1>Trial Balance Report</h1>
+<h2>Trial Balance Report</h2>
 
-<div class="card">
-    <div class="card-body">
-        <h4>Total Debits: @Model.TotalDebits.ToString("C")</h4>
-        <h4>Total Credits: @Model.TotalCredits.ToString("C")</h4>
-        <h4>Net Balance: @Model.NetBalance.ToString("C")</h4>
-    </div>
-</div>
-
-<table class="table">
+<table>
     <thead>
         <tr>
             <th>Account Name</th>
@@ -24,10 +16,14 @@
         {
             <tr>
                 <td>@account.AccountName</td>
-                <td>@account.DebitTotal.ToString("C")</td>
-                <td>@account.CreditTotal.ToString("C")</td>
-                <td>@account.NetBalance.ToString("C")</td>
+                <td>@account.DebitTotal</td>
+                <td>@account.CreditTotal</td>
+                <td>@account.NetBalance</td>
             </tr>
         }
     </tbody>
 </table>
+
+<p>Total Debits: @Model.TotalDebits</p>
+<p>Total Credits: @Model.TotalCredits</p>
+<p>Net Balance: @Model.NetBalance</p>

@@ -1,7 +1,6 @@
 ﻿using System.ComponentModel.DataAnnotations;
 
 namespace HinduTempleofTriStates.Models
-
 {
     public class Donation
     {
@@ -37,9 +36,18 @@ namespace HinduTempleofTriStates.Models
         [StringLength(100)]
         public string Country { get; set; } = string.Empty;
 
-        public Guid? LedgerAccountId { get; set; }
+        public Guid LedgerAccountId { get; set; }
+        // Add the IsDeleted property here
+        public bool IsDeleted { get; set; } = false;
 
         public virtual LedgerAccount? LedgerAccount { get; set; }
-        public bool IsDeleted { get; set; }  // Soft delete flag
+        public Guid? CashTransactionId { get; set; }
+
+        // Navigation property
+        public CashTransaction? CashTransaction { get; set; }
+
+        public virtual ICollection<CashTransaction>? CashTransactions { get; set; }
+
+        public virtual ICollection<GeneralLedgerEntry> GeneralLedgerEntries { get; set; } = new List<GeneralLedgerEntry>();
     }
 }

@@ -1,5 +1,6 @@
 ﻿using System;
 using System.ComponentModel.DataAnnotations;
+using System.ComponentModel.DataAnnotations.Schema;
 
 namespace HinduTempleofTriStates.Models
 {
@@ -11,38 +12,44 @@ namespace HinduTempleofTriStates.Models
 
     public class Transaction
     {
-        [Key]
         public Guid Id { get; set; }
 
         [Required]
-        public Guid AccountId { get; set; } // Foreign key for the related Account or Fund
+        public Guid AccountId { get; set; }
 
         [Required]
-        public Guid LedgerAccountId { get; set; } // Foreign key for LedgerAccount
+        public Guid LedgerAccountId { get; set; }
+
+        // DonationId Foreign Key
+        public Guid? DonationId { get; set; }
+
+        // Link to Donation entity
+        [ForeignKey("DonationId")]
+        public virtual Donation? Donation { get; set; }
 
         [Required]
-        public DateTime Date { get; set; } = DateTime.UtcNow; // Transaction date
+        public DateTime Date { get; set; } = DateTime.UtcNow;
 
         [Required]
-        [Range(0.01, Double.MaxValue, ErrorMessage = "Amount must be greater than 0")]
-        public decimal Amount { get; set; } // Transaction amount
+        [Range(0.01, double.MaxValue, ErrorMessage = "Amount must be greater than 0")]
+        public decimal Amount { get; set; }
 
         [Required]
-        [StringLength(200, ErrorMessage = "Description cannot be longer than 200 characters.")]
-        public string Description { get; set; } = string.Empty; // Description of the transaction
+        [StringLength(200)]
+        public string Description { get; set; } = string.Empty;
 
         [Required]
-        public TransactionType TransactionType { get; set; } // Type of transaction (Debit or Credit)
+        public TransactionType TransactionType { get; set; }
 
         public decimal Debit => TransactionType == TransactionType.Debit ? Amount : 0;
         public decimal Credit => TransactionType == TransactionType.Credit ? Amount : 0;
 
-        public virtual required LedgerAccount LedgerAccount { get; set; } // Associated ledger account
+        [Required]
+        public virtual LedgerAccount? LedgerAccount { get; set; }
 
-        public bool Reconciled { get; set; } = false; // Reconciliation status
-        public DateTime? ReconciliationDate { get; set; } // Date of reconciliation, if applicable
+        public bool Reconciled { get; set; } = false;
+        public DateTime? ReconciliationDate { get; set; }
 
-        // Metadata for tracking creation and modification
         [Required]
         public string CreatedBy { get; set; } = string.Empty;
 
@@ -51,7 +58,6 @@ namespace HinduTempleofTriStates.Models
 
         public string? ModifiedBy { get; set; }
         public DateTime? ModifiedAt { get; set; }
-        public TransactionType Type { get; internal set; }
-        public bool IsDeleted { get; internal set; }
+        public bool IsDeleted { get; set; } = false;
     }
 }

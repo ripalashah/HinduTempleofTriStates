@@ -1,8 +1,10 @@
 ﻿using HinduTempleofTriStates.Data;
 using HinduTempleofTriStates.Models;
+using HinduTempleofTriStates.ViewModels;
 using Microsoft.EntityFrameworkCore;
 using System.Linq;
 using System.Threading.Tasks;
+using System;
 
 namespace HinduTempleofTriStates.Services
 {
@@ -15,44 +17,94 @@ namespace HinduTempleofTriStates.Services
             _context = context;
         }
 
-        // General Ledger Report
-        public async Task<GeneralLedgerModel> GenerateGeneralLedgerAsync()
+        // Cash Income and Expenses Report (Debit and Credit)
+        public async Task<CashIncomeExpensesModel> GetCashIncomeExpensesAsync()
         {
-            var generalLedgerEntries = await _context.GeneralLedgerEntries
-                .Include(e => e.LedgerAccount)
+            var startDate = new DateTime(DateTime.Now.Year, 1, 1); // Start of the current year
+            var endDate = DateTime.UtcNow; // Current date and time
+
+            // Fetch income (credit) and expense (debit) totals
+            var totalIncome = await _context.CashTransactions
+                .Where(t => t.TransactionType == TransactionType.Credit && t.Date >= startDate && t.Date <= endDate)
+                .SumAsync(t => t.Amount);
+
+            var totalExpense = await _context.CashTransactions
+                .Where(t => t.TransactionType == TransactionType.Debit && t.Date >= startDate && t.Date <= endDate)
+                .SumAsync(t => t.Amount);
+
+            // Fetch all transactions for the given period
+            var transactions = await _context.CashTransactions
+                .Include(t => t.LedgerAccount) // Eagerly load related LedgerAccount
+                .Where(t => t.Date >= startDate && t.Date <= endDate)
                 .ToListAsync();
 
-            return new GeneralLedgerModel
+            return new CashIncomeExpensesModel
             {
-                GeneralLedgerEntries = generalLedgerEntries.Select(entry => new GeneralLedgerEntryModel
-                {
-                    Date = entry.Date,
-                    Description = entry.Description,
-                    AccountName = entry.LedgerAccount.AccountName,
-                    Debit = entry.Debit,
-                    Credit = entry.Credit
-                }).ToList(),
-                TotalDebit = generalLedgerEntries.Sum(e => e.Debit),
-                TotalCredit = generalLedgerEntries.Sum(e => e.Credit),
-                TotalBalance = generalLedgerEntries.Sum(e => e.Debit - e.Credit)
+                TotalIncome = totalIncome,
+                TotalExpense = totalExpense,
+                CashTransactions = transactions
             };
         }
 
-        // Profit and Loss Report
-        public async Task<ProfitLossModel> GenerateProfitLossAsync()
+        // General Ledger Report
+        public async Task<GeneralLedgerModel> GenerateGeneralLedgerAsync()
         {
-            var profitLossItems = await _context.Transactions
-                .Select(t => new ProfitLossItem
-                {
-                    Description = t.Description,
-                    Amount = t.Debit > 0 ? t.Debit : -t.Credit
-                }).ToListAsync();
+            var ledger = new GeneralLedgerModel
+            {
+                // Map to the GeneralLedgerEntryModel ViewModel
+                LedgerEntries = await _context.LedgerAccounts
+                    .Include(a => a.GeneralLedgerEntries) // Eagerly load related GeneralLedgerEntries
+                    .Select(account => new GeneralLedgerEntryModel
+                    {
+                        AccountName = account.AccountName,
+                        Debit = account.GeneralLedgerEntries
+                            .Where(e => e.Debit > 0)
+                            .Sum(e => e.Debit),
+                        Credit = account.GeneralLedgerEntries
+                            .Where(e => e.Credit > 0)
+                            .Sum(e => e.Credit)
+                    })
+                    .ToListAsync()
+            };
 
+            ledger.TotalDebits = ledger.LedgerEntries.Sum(e => e.Debit);
+            ledger.TotalCredits = ledger.LedgerEntries.Sum(e => e.Credit);
+
+            return ledger;
+        }
+
+        // Profit and Loss Report
+        public async Task<ProfitLossModel> GenerateProfitLossAsync(DateTime startDate, DateTime endDate)
+        {
+            // Fetch the cash transactions between the startDate and endDate
+            var transactions = await _context.CashTransactions
+                .Where(t => t.Date >= startDate && t.Date <= endDate)
+                .ToListAsync();
+
+            // Calculate total income (credits)
+            var totalIncome = transactions
+                .Where(t => t.TransactionType == TransactionType.Credit)
+                .Sum(t => t.Amount);
+
+            // Calculate total expenses (debits)
+            var totalExpenses = transactions
+                .Where(t => t.TransactionType == TransactionType.Debit)
+                .Sum(t => t.Amount);
+
+            // Map the transactions to the ProfitLossItem (Model)
+            var profitLossItems = transactions.Select(t => new ProfitLossItem
+            {
+                Description = t.Description,
+                Amount = t.Amount,
+                IsIncome = t.TransactionType == TransactionType.Credit // true for income (credit), false for expense (debit)
+            }).ToList();
+
+            // Return the populated ProfitLossModel
             return new ProfitLossModel
             {
-                ProfitLossItems = profitLossItems,
-                TotalProfit = profitLossItems.Sum(p => p.Amount > 0 ? p.Amount : 0),
-                TotalLoss = profitLossItems.Sum(p => p.Amount < 0 ? -p.Amount : 0)
+                TotalIncome = totalIncome,
+                TotalExpenses = totalExpenses,
+                ProfitLossItems = profitLossItems
             };
         }
 
@@ -60,30 +112,25 @@ namespace HinduTempleofTriStates.Services
         public async Task<TrialBalanceModel> GenerateTrialBalanceAsync()
         {
             var trialBalanceAccounts = await _context.LedgerAccounts
-                .Include(a => a.Transactions)
+                .Include(a => a.CashTransactions) // Eagerly load related CashTransactions
                 .Select(account => new TrialBalanceAccount
                 {
                     AccountName = account.AccountName,
-                    DebitBalance = account.Transactions.Where(t => t.TransactionType == TransactionType.Debit).Sum(t => t.Amount),
-                    CreditBalance = account.Transactions.Where(t => t.TransactionType == TransactionType.Credit).Sum(t => t.Amount)
-                }).ToListAsync();
+                    DebitTotal = account.CashTransactions
+                        .Where(t => t.TransactionType == TransactionType.Debit)
+                        .Sum(t => t.Amount),
+                    CreditTotal = account.CashTransactions
+                        .Where(t => t.TransactionType == TransactionType.Credit)
+                        .Sum(t => t.Amount),
+                    NetBalance = account.CashTransactions
+                        .Sum(t => t.TransactionType == TransactionType.Credit ? t.Amount : -t.Amount)
+                })
+                .ToListAsync();
 
             return new TrialBalanceModel
             {
                 TrialBalanceAccounts = trialBalanceAccounts
             };
         }
-
-        // Cash Income and Expenses Report
-        public async Task<CashIncomeExpensesModel> GetCashIncomeExpensesAsync()
-        {
-            var cashTransactions = await _context.CashTransactions.ToListAsync();
-
-            return new CashIncomeExpensesModel
-            {
-                CashTransactions = cashTransactions
-            };
-        }
     }
-
 }

@@ -27,6 +27,12 @@ namespace HinduTempleofTriStates.Controllers
             return View(model);
         }
 
+        [HttpGet("/Account/AccessDenied")]
+        public IActionResult AccessDenied()
+        {
+            return View();
+        }
+
         // POST: /account/login
         [HttpPost("login")]
         [ValidateAntiForgeryToken]

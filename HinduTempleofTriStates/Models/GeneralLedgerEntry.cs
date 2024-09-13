@@ -1,54 +1,51 @@
 ﻿using System;
 using System.Collections.Generic;
-using System.ComponentModel.DataAnnotations;
 
 namespace HinduTempleofTriStates.Models
 {
+    // Model representing the general ledger report
     public class GeneralLedgerEntry
     {
-        // Primary key for the ledger entry
-        [Key]
-        public Guid Id { get; set; }
+        public Guid Id { get; set; } // Primary Key
 
-        // The account impacted by this ledger entry (debit or credit)
-        public Guid LedgerAccountId { get; set; }
+        public Guid LedgerAccountId { get; set; } // Foreign Key to LedgerAccount
+        public LedgerAccount? LedgerAccount { get; set; }  // Navigation property
 
-        // Date of the transaction
-        public DateTime Date { get; set; } = DateTime.UtcNow;
+        public Guid? DonationId { get; set; } // Foreign Key to Donation (if applicable)
+        public Donation? Donation { get; set; } // Navigation property to Donation
 
-        // Description of the transaction (e.g., "Donation from John Doe")
-        [Required]
-        public required string Description { get; set; }
+        public DateTime Date { get; set; } // Transaction date
+        public string Description { get; set; } = string.Empty; // Description of the transaction
+        public decimal Debit { get; set; } // Debit amount
+        public decimal Credit { get; set; } // Credit amount
 
-        // Amount debited or credited
-        public decimal Debit { get; set; }
-
-        public decimal Credit { get; set; }
-
-        // Navigation property for LedgerAccount
-        public required LedgerAccount LedgerAccount { get; set; }
-
-        // Calculated balance (Debit - Credit)
-        public decimal Balance => Debit - Credit;
+        public decimal Balance => Credit - Debit; // Computed property to calculate balance
     }
 
-    // Model representing the general ledger report
-    public class GeneralLedgerModel
-    {
-        public List<GeneralLedgerEntryModel> GeneralLedgerEntries { get; set; } = new List<GeneralLedgerEntryModel>();
-        public decimal TotalDebit { get; set; }
-        public decimal TotalCredit { get; set; }
-        public decimal TotalBalance { get; set; }
-    }
-
-    // Class representing each entry in the general ledger
+    // Class representing each entry in the general ledger report
     public class GeneralLedgerEntryModel
     {
         public DateTime Date { get; set; }
-        public required string Description { get; set; }
-        public required string AccountName { get; set; }
+        public string Description { get; set; } = string.Empty;
+        public string AccountName { get; set; } = string.Empty;
         public decimal Debit { get; set; }
         public decimal Credit { get; set; }
-        public decimal Balance => Debit - Credit;
+        public decimal Balance => Credit - Debit; // Calculated balance
+    }
+    // General ledger model for the report generation
+    public class GeneralLedgerModel
+    {
+        public List<GeneralLedgerEntryModel> LedgerEntries { get; set; } = new List<GeneralLedgerEntryModel>();
+        public decimal TotalDebits { get; set; }
+        public decimal TotalCredits { get; set; }
+        public decimal NetBalance => TotalCredits - TotalDebits;
+    }
+
+    public class LedgerEntry
+    {
+        public string AccountName { get; set; } = string.Empty;
+        public decimal Debit { get; set; }
+        public decimal Credit { get; set; }
+        public decimal Balance => Credit - Debit;
     }
 }

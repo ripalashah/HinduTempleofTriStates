@@ -1,33 +1,48 @@
-﻿@model HinduTempleofTriStates.Models.CashIncomeExpensesModel
+﻿@model HinduTempleofTriStates.ViewModels.CashIncomeExpensesViewModel
 
-<h1>Cash Income and Expenses Report</h1>
+@using System.Linq
 
-<div class="card mb-4">
-    <div class="card-body">
-        <h4>Total Income: @Model.TotalIncome.ToString("C")</h4>
-        <h4>Total Expenses: @Model.TotalExpense.ToString("C")</h4>
-        <h4>Net Balance: @Model.NetBalance.ToString("C")</h4>
+<h2>Cash Income and Expenses Report</h2>
+
+@if (Model.CashTransactions != null && Model.CashTransactions.Any())
+{
+    <div>
+        <p>Total Income: @Model.TotalIncome.ToString("C")</p>
+        <p>Total Expenses: @Model.TotalExpense.ToString("C")</p>
+        <p>Net Balance: @Model.NetBalance.ToString("C")</p>
     </div>
-</div>
 
-<table class="table table-bordered">
-    <thead>
-        <tr>
-            <th>Date</th>
-            <th>Description</th>
-            <th>Income</th>
-            <th>Expense</th>
-        </tr>
-    </thead>
-    <tbody>
-        @foreach (var transaction in Model.CashTransactions)
-        {
+    <table class="table">
+        <thead>
             <tr>
-                <td>@transaction.Date.ToShortDateString()</td>
-                <td>@transaction.Description</td>
-                <td>@(transaction.Type == HinduTempleofTriStates.Models.CashTransactionType.Income ? transaction.Amount.ToString("C") : "-")</td>
-                <td>@(transaction.Type == HinduTempleofTriStates.Models.CashTransactionType.Expense ? transaction.Amount.ToString("C") : "-")</td>
+                <th>Date</th>
+                <th>Description</th>
+                <th>Income</th>
+                <th>Expense</th>
+                <th>Type</th>
             </tr>
-        }
-    </tbody>
-</table>
+        </thead>
+        <tbody>
+            @foreach (var transaction in Model.CashTransactions)
+            {
+                <tr>
+                    <td>@transaction.Date.ToShortDateString()</td>
+                    <td>@transaction.Description</td>
+
+                    <!-- Check if the transaction is a credit (income) -->
+                    <td>@(transaction.TransactionType == TransactionType.Credit ? transaction.Amount.ToString("C") : "")</td>
+
+                    <!-- Check if the transaction is a debit (expense) -->
+                    <td>@(transaction.TransactionType == TransactionType.Debit ? transaction.Amount.ToString("C") : "")</td>
+
+                    <td>@transaction.TransactionType</td>
+                </tr>
+            }
+        </tbody>
+    </table>
+}
+else
+{
+    <p>No transactions available at this time.</p>
+}
+

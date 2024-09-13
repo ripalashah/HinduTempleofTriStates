@@ -20,17 +20,15 @@ namespace HinduTempleofTriStates.Models
         [Key]
         public Guid Id { get; set; }
 
-        public Guid AccountId { get; set; }
-
         [Required]
-        public required string AccountName { get; set; }
+        public string AccountName { get; set; } = string.Empty;
+
+        public decimal Balance { get; set; } = 0m;
 
         [Required]
         public AccountTypeEnum AccountType { get; set; }
 
-        // Balance calculation (total credits minus total debits)
-        
-
+        // Calculate total debits and credits based on the Transactions or GeneralLedgerEntries
         public decimal DebitTotal => Transactions.Sum(t => t.Debit);
         public decimal CreditTotal => Transactions.Sum(t => t.Credit);
 
@@ -43,9 +41,8 @@ namespace HinduTempleofTriStates.Models
         // Audit fields
         public DateTime CreatedDate { get; set; } = DateTime.UtcNow;
         public DateTime UpdatedDate { get; set; } = DateTime.UtcNow;
-        public required string CreatedBy { get; set; }
-        public required string UpdatedBy { get; set; }
-        public decimal Balance { get; set; }
-        public bool IsDeleted { get; set; } // Soft delete flag
+        public string CreatedBy { get; set; } = string.Empty;
+        public string UpdatedBy { get; set; } = string.Empty;
+        public bool IsDeleted { get; set; } = false; // Soft delete flag
     }
 }

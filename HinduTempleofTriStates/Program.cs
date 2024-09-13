@@ -29,15 +29,17 @@ internal class Program
         builder.Services.AddScoped<ICashTransactionService, CashTransactionService>();
         builder.Services.AddScoped<IAccountService, AccountService>();
         builder.Services.AddScoped<LedgerService>();
-        builder.Services.AddScoped<DonationService>();
+        builder.Services.AddScoped<IDonationService, DonationService>();
         builder.Services.AddScoped<FundService>();
         builder.Services.AddScoped<IReportService, ReportService>();
-        builder.Services.AddScoped<IDonationService, DonationService>();
         builder.Services.AddScoped<ICashTransactionRepository, CashTransactionRepository>();
         builder.Services.AddScoped<IAccountRepository, AccountRepository>();
         builder.Services.AddScoped<ILedgerRepository, LedgerRepository>();
         builder.Services.AddScoped<IDonationRepository, DonationRepository>();
         builder.Services.AddScoped<IFundRepository, FundRepository>();
+        builder.Services.AddScoped<ICashTransactionRepository, CashTransactionRepository>();
+        builder.Services.AddScoped<IFinancialReportService, FinancialReportService>();
+
 
         // Role Management
         builder.Services.AddScoped<RoleService>();
@@ -51,27 +53,43 @@ internal class Program
             options.UseSqlServer(connectionString)
                    .LogTo(Console.WriteLine, LogLevel.Information)); // Log SQL queries for debugging
 
+
+        // Register DonationService after ApplicationDbContext
+        builder.Services.AddScoped<IDonationService, DonationService>();
+        
         // Add Identity for user authentication and role management
         builder.Services.AddIdentity<IdentityUser, IdentityRole>(options =>
         {
             // Configure password settings
-            options.Password.RequireDigit = true;           // Require at least one digit
-            options.Password.RequireLowercase = true;       // Require at least one lowercase letter
-            options.Password.RequireUppercase = true;       // Require at least one uppercase letter
-            options.Password.RequireNonAlphanumeric = true; // Require at least one non-alphanumeric character
-            options.Password.RequiredLength = 8;            // Minimum password length
-            options.Password.RequiredUniqueChars = 1;       // Require at least one unique character
+            options.Password.RequireDigit = true;
+            options.Password.RequireLowercase = true;
+            options.Password.RequireUppercase = true;
+            options.Password.RequireNonAlphanumeric = true;
+            options.Password.RequiredLength = 8;
+            options.Password.RequiredUniqueChars = 1;
         })
             .AddEntityFrameworkStores<ApplicationDbContext>()
             .AddDefaultTokenProviders()
             .AddDefaultUI();
-
+        // Configure application cookies for login and access control
+        builder.Services.ConfigureApplicationCookie(options =>
+        {
+            options.LoginPath = "/Account/Login"; // Redirect to the login page when not authenticated
+            options.AccessDeniedPath = "/Account/AccessDenied"; // Redirect to access denied page when unauthorized
+            options.ExpireTimeSpan = TimeSpan.FromMinutes(60); // Cookie expiration time
+            options.SlidingExpiration = true; // Sliding expiration for cookie renewal
+            options.Cookie.HttpOnly = true; // HTTP-only cookie for security
+            options.Cookie.SecurePolicy = CookieSecurePolicy.Always; // Always use secure cookies
+            options.Cookie.SameSite = SameSiteMode.Strict; // Strict SameSite policy
+            options.Cookie.Name = "YourAppAuthCookie"; // Customize the cookie name if needed
+        });
         // Authorization policies to restrict access based on roles
         builder.Services.AddAuthorization(options =>
         {
             options.AddPolicy("RequireAdminRole", policy => policy.RequireRole("Admin"));
             options.AddPolicy("RequireAccountantRole", policy => policy.RequireRole("Accountant"));
             options.AddPolicy("RequireCounterRole", policy => policy.RequireRole("Counter"));
+            options.AddPolicy("AdminOnly", policy => policy.RequireRole("Admin"));
         });
 
         // Configure application cookies for login and access control
@@ -131,7 +149,7 @@ internal class Program
             name: "default",
             pattern: "{controller=Home}/{action=Index}/{id?}");
 
-        // This is optional, but helpful to define the `Admin` area specifically.
+        // This is optional, but helpful to define the Admin area specifically.
         app.MapControllerRoute(
             name: "admin",
             pattern: "{controller=Admin}/{action=ManageUsers}/{id?}"

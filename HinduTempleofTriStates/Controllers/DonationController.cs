@@ -1,6 +1,7 @@
 ﻿using HinduTempleofTriStates.Data;
 using HinduTempleofTriStates.Models;
 using HinduTempleofTriStates.Services;
+using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.AspNetCore.Mvc.Rendering;
 using Microsoft.EntityFrameworkCore;
@@ -20,9 +21,9 @@ namespace HinduTempleofTriStates.Controllers
 
         public DonationController(ApplicationDbContext context, IDonationService donationService, ILogger<DonationController> logger)
         {
-            _context = context;
-            _donationService = donationService;
-            _logger = logger;
+            _context = context ?? throw new ArgumentNullException(nameof(context));
+            _donationService = donationService ?? throw new ArgumentNullException(nameof(donationService));
+            _logger = logger ?? throw new ArgumentNullException(nameof(logger));
         }
 
         // List all donations
@@ -33,7 +34,10 @@ namespace HinduTempleofTriStates.Controllers
         {
             try
             {
-                var donations = await _donationService.GetDonationsAsync();
+                var donations = await _context.Donations
+                    .Include(d => d.LedgerAccount)
+                    .Include(d => d.CashTransactions)
+                    .ToListAsync();
                 _logger.LogInformation("Fetched donation list successfully.");
                 return View(donations);
             }
@@ -58,27 +62,65 @@ namespace HinduTempleofTriStates.Controllers
         [HttpPost]
         [ValidateAntiForgeryToken]
         [Route("Create")]
-        public async Task<IActionResult> Create([Bind("DonorName,Amount,DonationCategory,DonationType,Date,Phone,City,State,Country,LedgerAccountId")] Donation donation)
+        public async Task<IActionResult> Create(Donation donation)
         {
             if (ModelState.IsValid)
             {
                 try
                 {
-                    donation.Id = Guid.NewGuid();  // Assign new GUID to donation
-                    _context.Add(donation);  // Add donation to the context
-                    await _context.SaveChangesAsync();  // Save changes to the database
-                    return RedirectToAction(nameof(Confirmation), new { id = donation.Id });
+                    // Assign a new unique Id to the donation
+                    donation.Id = Guid.NewGuid();
+                    donation.Date = DateTime.UtcNow;
+
+                    // Fetch the related LedgerAccount
+                    var ledgerAccount = await _context.LedgerAccounts.FindAsync(donation.LedgerAccountId);
+                    if (ledgerAccount == null)
+                    {
+                        _logger.LogWarning("Ledger account not found with ID {LedgerAccountId}", donation.LedgerAccountId);
+                        ModelState.AddModelError("LedgerAccountId", "Ledger account not found.");
+                        return View(donation);
+                    }
+
+                    // Save the Donation first
+                    _context.Donations.Add(donation);
+                    await _context.SaveChangesAsync();
+
+                    // Create corresponding GeneralLedgerEntry and CashTransaction
+                    var ledgerEntry = new GeneralLedgerEntry
+                    {
+                        Id = Guid.NewGuid(),
+                        DonationId = donation.Id,
+                        Date = DateTime.UtcNow,
+                        Description = $"Donation entry from {donation.DonorName}",
+                        Debit = 0,
+                        Credit = (decimal)donation.Amount,
+                        LedgerAccountId = donation.LedgerAccountId,
+                    };
+
+                    var cashTransaction = new CashTransaction
+                    {
+                        Id = Guid.NewGuid(),
+                        DonationId = donation.Id,
+                        Amount = (decimal)donation.Amount,
+                        Date = DateTime.UtcNow,
+                        Description = $"Donation from {donation.DonorName}",
+                        LedgerAccountId = donation.LedgerAccountId,
+                        TransactionType = TransactionType.Credit // Ensure the donation is treated as a credit
+                    };
+
+                    // Add and save GeneralLedgerEntry and CashTransaction
+                    _context.GeneralLedgerEntries.Add(ledgerEntry);
+                    _context.CashTransactions.Add(cashTransaction);
+                    await _context.SaveChangesAsync();
+
+                    return RedirectToAction(nameof(Index));
                 }
                 catch (Exception ex)
                 {
-                    _logger.LogError(ex, "Error creating donation");
-                    ModelState.AddModelError("", "Unable to create donation. Please try again.");
+                    _logger.LogError(ex, "Error creating donation and related entities");
+                    return View(donation);
                 }
             }
-
-            // Reload the LedgerAccounts list in case of error
-            var ledgerAccounts = await _context.LedgerAccounts.ToListAsync();
-            ViewBag.LedgerAccounts = new SelectList(ledgerAccounts, "Id", "AccountName", donation.LedgerAccountId);
 
             return View(donation);
         }
@@ -102,13 +144,12 @@ namespace HinduTempleofTriStates.Controllers
         {
             var donations = await _donationService.GetDonationsAsync();
 
-            // If a search query is provided, filter donations by Donor Name
             if (!string.IsNullOrEmpty(search))
             {
                 donations = donations.Where(d => d.DonorName.Contains(search, StringComparison.OrdinalIgnoreCase)).ToList();
             }
 
-            return View("~/Views/Donation/Reports/Reports.cshtml", donations); // Return the Reports.cshtml view with the donations data
+            return View("~/Views/Donation/Reports/Reports.cshtml", donations);
         }
 
         // Display donation receipt for printing
@@ -124,9 +165,9 @@ namespace HinduTempleofTriStates.Controllers
             return View(donation);
         }
 
-        // **Edit Donation**
-        [HttpGet]
-        [Route("Edit/{id:guid}")]
+        // Edit Donation
+        [Authorize(Roles = "Admin")]
+        [HttpGet("edit/{id:guid}")]
         public async Task<IActionResult> Edit(Guid id)
         {
             var donation = await _donationService.GetDonationByIdAsync(id);
@@ -141,6 +182,7 @@ namespace HinduTempleofTriStates.Controllers
             return View(donation);
         }
 
+        [Authorize(Roles = "Admin")]
         [HttpPost]
         [ValidateAntiForgeryToken]
         [Route("Edit/{id:guid}")]
@@ -155,13 +197,62 @@ namespace HinduTempleofTriStates.Controllers
             {
                 try
                 {
-                    _context.Update(donation);
-                    await _context.SaveChangesAsync();
+                    var ledgerAccount = await _context.LedgerAccounts.FindAsync(donation.LedgerAccountId);
+                    if (ledgerAccount == null)
+                    {
+                        _logger.LogWarning("The selected ledger account does not exist. LedgerAccountId: {LedgerAccountId}", donation.LedgerAccountId);
+                        ModelState.AddModelError("LedgerAccountId", "The selected ledger account does not exist.");
+                        return View(donation);
+                    }
+
+                    // Fetch the original donation, including associated CashTransaction and GeneralLedgerEntry
+                    var originalDonation = await _context.Donations
+                        .Include(d => d.CashTransactions)
+                        .Include(d => d.GeneralLedgerEntries)
+                        .FirstOrDefaultAsync(d => d.Id == id);
+
+                    if (originalDonation != null)
+                    {
+                        // Update the donation
+                        originalDonation.DonorName = donation.DonorName;
+                        originalDonation.Amount = donation.Amount;
+                        originalDonation.DonationCategory = donation.DonationCategory;
+                        originalDonation.DonationType = donation.DonationType;
+                        originalDonation.Date = donation.Date;
+                        originalDonation.LedgerAccountId = donation.LedgerAccountId;
+
+                        // Update CashTransaction(s)
+                        if (originalDonation.CashTransactions != null && originalDonation.CashTransactions.Any())
+                        {
+                            foreach (var cashTransaction in originalDonation.CashTransactions)
+                            {
+                                cashTransaction.Amount = (decimal)donation.Amount;
+                                cashTransaction.Description = $"Donation from {donation.DonorName}";
+                                cashTransaction.LedgerAccountId = donation.LedgerAccountId;
+                            }
+                        }
+
+                        // Update GeneralLedgerEntry
+                        if (originalDonation.GeneralLedgerEntries != null && originalDonation.GeneralLedgerEntries.Any())
+                        {
+                            foreach (var ledgerEntry in originalDonation.GeneralLedgerEntries)
+                            {
+                                ledgerEntry.Credit = (decimal)donation.Amount;
+                                ledgerEntry.Description = $"Donation entry from {donation.DonorName}";
+                                ledgerEntry.LedgerAccountId = donation.LedgerAccountId;
+                            }
+                        }
+
+                        await _context.SaveChangesAsync();
+                    }
+
                     return RedirectToAction(nameof(Index));
                 }
-                catch (DbUpdateConcurrencyException)
+                catch (DbUpdateConcurrencyException ex)
                 {
-                    if (!DonationExists(donation.Id))
+                    _logger.LogError(ex, "Error occurred while updating donation with ID {Id}", id);
+
+                    if (!await DonationExists(donation.Id))
                     {
                         return NotFound();
                     }
@@ -178,7 +269,9 @@ namespace HinduTempleofTriStates.Controllers
             return View(donation);
         }
 
-        // **Delete Donation**
+
+        // Delete Donation
+        [Authorize(Roles = "Admin")]
         [HttpGet]
         [Route("Delete/{id:guid}")]
         public async Task<IActionResult> Delete(Guid id)
@@ -191,25 +284,39 @@ namespace HinduTempleofTriStates.Controllers
             return View(donation);
         }
 
-        [HttpPost, ActionName("Delete")]
+        [Authorize(Roles = "Admin")]
+        [HttpPost]
         [ValidateAntiForgeryToken]
+        [Route("DeleteConfirmed/{id}")]
         public async Task<IActionResult> DeleteConfirmed(Guid id)
         {
-            var donation = await _donationService.GetDonationByIdAsync(id);
-            if (donation == null)
+            var donation = await _context.Donations
+                .Include(d => d.CashTransactions)
+                .Include(d => d.GeneralLedgerEntries)
+                .FirstOrDefaultAsync(d => d.Id == id);
+
+            if (donation != null)
             {
-                return NotFound();
+                if (donation.GeneralLedgerEntries.Any())
+                {
+                    _context.GeneralLedgerEntries.RemoveRange(donation.GeneralLedgerEntries);
+                }
+
+                if (donation.CashTransactions != null && donation.CashTransactions.Any())
+                {
+                    _context.CashTransactions.RemoveRange(donation.CashTransactions);
+                }
+
+                _context.Donations.Remove(donation);
+                await _context.SaveChangesAsync();
             }
 
-            _context.Donations.Remove(donation);
-            await _context.SaveChangesAsync();
             return RedirectToAction(nameof(Index));
         }
 
-        // Check if a donation exists by ID
-        private bool DonationExists(Guid id)
+        private async Task<bool> DonationExists(Guid id)
         {
-            return _context.Donations.Any(e => e.Id == id);
+            return await _context.Donations.AnyAsync(e => e.Id == id);
         }
     }
 }

@@ -20,33 +20,14 @@ namespace HinduTempleofTriStates.Services
             return await _context.CashTransactions.ToListAsync();
         }
 
-        internal Task AddCashTransactionAsync(CashTransaction cashTransaction)
+        public async Task AddCashTransactionAsync(CashTransaction cashTransaction)
         {
-            throw new NotImplementedException();
+            _context.CashTransactions.Add(cashTransaction);
+            await _context.SaveChangesAsync();
         }
 
         // Add more service methods as needed
     }
-    namespace HinduTempleofTriStates.Services
-    {
-        public class CashTransactionService
-        {
-            private readonly ApplicationDbContext _context;
-
-            public CashTransactionService(ApplicationDbContext context)
-            {
-                _context = context;
-            }
-
-            public async Task AddCashTransactionAsync(CashTransaction cashTransaction)
-            {
-                _context.CashTransactions.Add(cashTransaction);
-                await _context.SaveChangesAsync();
-            }
-        }
-    }
-
-
     public interface ICashTransactionService
     {
         Task<List<CashTransaction>> GetAllCashTransactionsAsync();

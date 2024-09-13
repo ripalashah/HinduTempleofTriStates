@@ -2,18 +2,19 @@
 {
     public class ProfitLossModel
     {
-        public List<ProfitLossItem> ProfitLossItems { get; set; } = new List<ProfitLossItem>();
+        public decimal TotalIncome { get; set; } // Total credit (income)
+        public decimal TotalExpenses { get; set; } // Total debit (expenses)
+        public decimal NetProfit => TotalIncome - TotalExpenses; // Net profit or loss
 
-        public decimal TotalIncome { get; set; } // This will be set by the service
-        public decimal TotalExpenses { get; set; } // This will be set by the service
-        public decimal NetProfitLoss { get; set; } // This will be set by the service
+        public List<ProfitLossItem> ProfitLossItems { get; set; } = new List<ProfitLossItem>(); // List of individual profit/loss items
         public decimal TotalProfit { get; internal set; }
         public decimal TotalLoss { get; internal set; }
     }
 
     public class ProfitLossItem
     {
-        public required string Description { get; set; }
+        public string Description { get; set; } = string.Empty;
         public decimal Amount { get; set; }
+        public bool IsIncome { get; set; } // Flag to indicate if it's income (credit) or expense (debit)
     }
 }
