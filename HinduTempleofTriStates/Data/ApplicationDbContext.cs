@@ -27,9 +27,10 @@ namespace HinduTempleofTriStates.Data
 
             // Global query filters for soft-deleted records
             modelBuilder.Entity<LedgerAccount>().HasQueryFilter(l => !l.IsDeleted);
-            modelBuilder.Entity<Donation>().HasQueryFilter(d => !d.IsDeleted && !d.LedgerAccount.IsDeleted);
-            modelBuilder.Entity<GeneralLedgerEntry>().HasQueryFilter(gl => !gl.LedgerAccount.IsDeleted);
-            modelBuilder.Entity<CashTransaction>().HasQueryFilter(ct => !ct.Donation.IsDeleted);
+            modelBuilder.Entity<Donation>().HasQueryFilter(d => !d.IsDeleted && (d.LedgerAccount != null && !d.LedgerAccount.IsDeleted));
+            modelBuilder.Entity<GeneralLedgerEntry>().HasQueryFilter(gl => gl.LedgerAccount != null && !gl.LedgerAccount.IsDeleted);
+            modelBuilder.Entity<CashTransaction>().HasQueryFilter(ct => ct.Donation != null && !ct.Donation.IsDeleted);
+
 
             // Configure decimal precision for financial fields
             modelBuilder.Entity<Account>()
@@ -76,7 +77,7 @@ namespace HinduTempleofTriStates.Data
                 .HasOne(d => d.LedgerAccount)
                 .WithMany(l => l.Donations)
                 .HasForeignKey(d => d.LedgerAccountId)
-                .OnDelete(DeleteBehavior.Restrict);
+                .OnDelete(DeleteBehavior.Restrict); // Restricting delete of LedgerAccount
 
             // Configure Transaction and LedgerAccount relationship
             modelBuilder.Entity<Transaction>()
@@ -84,7 +85,7 @@ namespace HinduTempleofTriStates.Data
                 .WithMany(l => l.Transactions)
                 .HasForeignKey(t => t.LedgerAccountId)
                 .OnDelete(DeleteBehavior.Restrict)
-                .IsRequired(false);
+                .IsRequired(false); // Transactions may not always require a LedgerAccount
 
             // Configure Donation and CashTransaction relationship (One-to-Many)
             modelBuilder.Entity<Donation>()
@@ -92,7 +93,7 @@ namespace HinduTempleofTriStates.Data
                 .WithOne(ct => ct.Donation)
                 .HasForeignKey(ct => ct.DonationId)
                 .OnDelete(DeleteBehavior.Cascade)
-                .IsRequired(false); // Allow cash transactions to exist without a donation
+                .IsRequired(false); // Cash transactions can exist without being linked to a donation
 
             // Configure Donation and GeneralLedgerEntry relationship
             modelBuilder.Entity<Donation>()

@@ -58,10 +58,15 @@ namespace HinduTempleofTriStates.Services
 
             if (donation.LedgerAccountId != Guid.Empty)
             {
+                if (!donation.LedgerAccountId.HasValue)
+                {
+                    // Handle the null case, for example, throw an exception or return an error
+                    throw new InvalidOperationException("LedgerAccountId cannot be null when creating a GeneralLedgerEntry.");
+                }
                 var ledgerEntry = new GeneralLedgerEntry
                 {
                     Id = Guid.NewGuid(),
-                    LedgerAccountId = donation.LedgerAccountId,
+                    LedgerAccountId = donation.LedgerAccountId.Value,
                     Date = donation.Date,
                     Description = $"Donation from {donation.DonorName}",
                     Credit = isAddition ? Convert.ToDecimal(donation.Amount) : 0,
@@ -94,7 +99,7 @@ namespace HinduTempleofTriStates.Services
                     Description = $"Donation from {donation.DonorName}",
                     Amount = Convert.ToDecimal(donation.Amount),
                     Type = isAddition ? CashTransactionType.Credit : CashTransactionType.Debit,
-                    LedgerAccountId = donation.LedgerAccountId,
+                    LedgerAccountId = donation.LedgerAccountId ?? Guid.Empty,
                     DonationId = donation.Id
                 };
 
@@ -133,8 +138,8 @@ namespace HinduTempleofTriStates.Services
                         {
                             Id = Guid.NewGuid(),
                             DonationId = donation.Id,
-                            LedgerAccountId = donation.LedgerAccountId,
-                            AccountId = accountId,
+                            LedgerAccountId = donation.LedgerAccountId ?? Guid.Empty,
+                            AccountId = accountId ?? Guid.Empty,
                             Amount = (decimal)donation.Amount,
                             Date = DateTime.UtcNow,
                             Description = $"Donation by {donation.DonorName}",

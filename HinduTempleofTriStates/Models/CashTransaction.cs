@@ -27,12 +27,11 @@ namespace HinduTempleofTriStates.Models
         [Required]
         public CashTransactionType Type { get; set; } // CashTransactionType enum
 
-        public Guid? LedgerAccountId { get; set; }
+        public Guid LedgerAccountId { get; set; }
 
-        [ForeignKey("LedgerAccountId")]
-        public LedgerAccount? LedgerAccount { get; set; }
+        public virtual LedgerAccount? LedgerAccount { get; set; }
 
-        public Guid DonationId { get; set; }
+        public Guid? DonationId { get; set; }
         public virtual Donation? Donation { get; set; }
         public Guid AccountId { get; internal set; }
         public TransactionType TransactionType { get; set; }

@@ -9,7 +9,7 @@ namespace HinduTempleofTriStates.Models
         public Guid Id { get; set; } // Primary Key
 
         public Guid LedgerAccountId { get; set; } // Foreign Key to LedgerAccount
-        public LedgerAccount? LedgerAccount { get; set; }  // Navigation property
+        public virtual LedgerAccount? LedgerAccount { get; set; }  // Navigation property
 
         public Guid? DonationId { get; set; } // Foreign Key to Donation (if applicable)
         public Donation? Donation { get; set; } // Navigation property to Donation

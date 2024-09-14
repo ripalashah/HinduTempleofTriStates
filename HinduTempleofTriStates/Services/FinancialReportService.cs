@@ -66,12 +66,14 @@ namespace HinduTempleofTriStates.Services
                 {
                     Date = entry.Date,
                     Description = entry.Description,
-                    AccountName = entry.LedgerAccount.AccountName, // Assuming LedgerAccount has AccountName
-                    Debit = entry.Debit,
-                    Credit = entry.Credit
+                    AccountName = entry.LedgerAccount != null ? entry.LedgerAccount.AccountName : "Unknown Account",
+                    Debit = entry.Debit, // No need for null checks since it's not nullable
+                    Credit = entry.Credit // No need for null checks
                 }).ToList(),
-                TotalDebits = generalLedgerEntries.Sum(e => e.Debit),
-                TotalCredits = generalLedgerEntries.Sum(e => e.Credit)
+
+                TotalDebits = generalLedgerEntries.Sum(e => e.Debit),  // Summing non-nullable decimals
+                TotalCredits = generalLedgerEntries.Sum(e => e.Credit) // Summing non-nullable decimals
+
             };
         }
 

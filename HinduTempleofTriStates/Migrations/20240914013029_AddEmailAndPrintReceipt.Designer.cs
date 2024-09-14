@@ -4,6 +4,7 @@ using HinduTempleofTriStates.Data;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Infrastructure;
 using Microsoft.EntityFrameworkCore.Metadata;
+using Microsoft.EntityFrameworkCore.Migrations;
 using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 
 #nullable disable
@@ -11,9 +12,11 @@ using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 namespace HinduTempleofTriStates.Migrations
 {
     [DbContext(typeof(ApplicationDbContext))]
-    partial class ApplicationDbContextModelSnapshot : ModelSnapshot
+    [Migration("20240914013029_AddEmailAndPrintReceipt")]
+    partial class AddEmailAndPrintReceipt
     {
-        protected override void BuildModel(ModelBuilder modelBuilder)
+        /// <inheritdoc />
+        protected override void BuildTargetModel(ModelBuilder modelBuilder)
         {
 #pragma warning disable 612, 618
             modelBuilder
@@ -52,11 +55,11 @@ namespace HinduTempleofTriStates.Migrations
                     b.HasData(
                         new
                         {
-                            Id = new Guid("6674dd88-df7e-4ff2-bb0b-f37b6d678dbb"),
+                            Id = new Guid("edf491a5-6870-4e66-b011-aaba76a2cf18"),
                             AccountName = "Default Account",
                             AccountType = 5,
                             Balance = 0m,
-                            CreatedDate = new DateTime(2024, 9, 14, 16, 8, 4, 668, DateTimeKind.Utc).AddTicks(4309),
+                            CreatedDate = new DateTime(2024, 9, 14, 1, 30, 27, 684, DateTimeKind.Utc).AddTicks(5326),
                             UpdatedDate = new DateTime(1, 1, 1, 0, 0, 0, 0, DateTimeKind.Unspecified)
                         });
                 });
@@ -86,10 +89,10 @@ namespace HinduTempleofTriStates.Migrations
                         .IsRequired()
                         .HasColumnType("nvarchar(max)");
 
-                    b.Property<Guid?>("DonationId")
+                    b.Property<Guid>("DonationId")
                         .HasColumnType("uniqueidentifier");
 
-                    b.Property<Guid>("LedgerAccountId")
+                    b.Property<Guid?>("LedgerAccountId")
                         .HasColumnType("uniqueidentifier");
 
                     b.Property<int>("TransactionType")
@@ -151,18 +154,21 @@ namespace HinduTempleofTriStates.Migrations
                         .HasMaxLength(100)
                         .HasColumnType("nvarchar(100)");
 
+                    b.Property<string>("Email")
+                        .HasColumnType("nvarchar(max)");
+
                     b.Property<bool>("IsDeleted")
                         .HasColumnType("bit");
 
-                    b.Property<Guid?>("LedgerAccountId")
+                    b.Property<Guid>("LedgerAccountId")
                         .HasColumnType("uniqueidentifier");
 
                     b.Property<string>("Phone")
                         .IsRequired()
                         .HasColumnType("nvarchar(max)");
 
-                    b.Property<string>("ReceiptNumber")
-                        .HasColumnType("nvarchar(max)");
+                    b.Property<int>("ReceiptNumber")
+                        .HasColumnType("int");
 
                     b.Property<string>("State")
                         .IsRequired()
@@ -182,17 +188,19 @@ namespace HinduTempleofTriStates.Migrations
                     b.HasData(
                         new
                         {
-                            Id = new Guid("4a7fc769-c05b-4d29-8074-401b33ddac16"),
+                            Id = new Guid("004f2167-c830-447d-9371-0ec9771ac11a"),
                             Amount = 100.0,
                             City = "Anytown",
                             Country = "Anycountry",
-                            Date = new DateTime(2024, 9, 14, 16, 8, 4, 668, DateTimeKind.Utc).AddTicks(4340),
+                            Date = new DateTime(2024, 9, 14, 1, 30, 27, 684, DateTimeKind.Utc).AddTicks(5353),
                             DonationCategory = "General",
                             DonationType = "One-Time",
                             DonorName = "John Doe",
+                            Email = "hindutempleoftristtates@yahoo.com",
                             IsDeleted = false,
-                            LedgerAccountId = new Guid("2e4e9680-9d01-46a2-8691-bfe9e300ddda"),
+                            LedgerAccountId = new Guid("7eea5777-d105-4c78-b532-16850aaa59ef"),
                             Phone = "123-456-7890",
+                            ReceiptNumber = 0,
                             State = "Anystate"
                         });
                 });
@@ -305,15 +313,15 @@ namespace HinduTempleofTriStates.Migrations
                     b.HasData(
                         new
                         {
-                            Id = new Guid("2e4e9680-9d01-46a2-8691-bfe9e300ddda"),
+                            Id = new Guid("7eea5777-d105-4c78-b532-16850aaa59ef"),
                             AccountName = "Default Ledger",
                             AccountType = 5,
                             Balance = 0m,
                             CreatedBy = "System",
-                            CreatedDate = new DateTime(2024, 9, 14, 16, 8, 4, 668, DateTimeKind.Utc).AddTicks(4279),
+                            CreatedDate = new DateTime(2024, 9, 14, 1, 30, 27, 684, DateTimeKind.Utc).AddTicks(5305),
                             IsDeleted = false,
                             UpdatedBy = "System",
-                            UpdatedDate = new DateTime(2024, 9, 14, 16, 8, 4, 668, DateTimeKind.Utc).AddTicks(4280)
+                            UpdatedDate = new DateTime(2024, 9, 14, 1, 30, 27, 684, DateTimeKind.Utc).AddTicks(5306)
                         });
                 });
 
@@ -350,8 +358,7 @@ namespace HinduTempleofTriStates.Migrations
                     b.Property<bool>("IsDeleted")
                         .HasColumnType("bit");
 
-                    b.Property<Guid?>("LedgerAccountId")
-                        .IsRequired()
+                    b.Property<Guid>("LedgerAccountId")
                         .HasColumnType("uniqueidentifier");
 
                     b.Property<DateTime?>("ModifiedAt")
@@ -607,9 +614,7 @@ namespace HinduTempleofTriStates.Migrations
 
                     b.HasOne("HinduTempleofTriStates.Models.LedgerAccount", "LedgerAccount")
                         .WithMany("CashTransactions")
-                        .HasForeignKey("LedgerAccountId")
-                        .OnDelete(DeleteBehavior.Cascade)
-                        .IsRequired();
+                        .HasForeignKey("LedgerAccountId");
 
                     b.Navigation("Donation");
 
@@ -629,7 +634,8 @@ namespace HinduTempleofTriStates.Migrations
                     b.HasOne("HinduTempleofTriStates.Models.LedgerAccount", "LedgerAccount")
                         .WithMany("Donations")
                         .HasForeignKey("LedgerAccountId")
-                        .OnDelete(DeleteBehavior.Restrict);
+                        .OnDelete(DeleteBehavior.Restrict)
+                        .IsRequired();
 
                     b.Navigation("CashTransaction");
 

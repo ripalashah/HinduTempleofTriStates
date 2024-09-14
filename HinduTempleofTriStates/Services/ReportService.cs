@@ -57,14 +57,19 @@ namespace HinduTempleofTriStates.Services
                     .Select(account => new GeneralLedgerEntryModel
                     {
                         AccountName = account.AccountName,
-                        Debit = account.GeneralLedgerEntries
-                            .Where(e => e.Debit > 0)
-                            .Sum(e => e.Debit),
-                        Credit = account.GeneralLedgerEntries
-                            .Where(e => e.Credit > 0)
-                            .Sum(e => e.Credit)
+                        Debit = account.GeneralLedgerEntries != null
+                            ? account.GeneralLedgerEntries
+                                .Where(e => e.Debit > 0)
+                                .Sum(e => e.Debit)
+                            : 0,
+                        Credit = account.GeneralLedgerEntries != null
+                            ? account.GeneralLedgerEntries
+                                .Where(e => e.Credit > 0)
+                                .Sum(e => e.Credit)
+                            : 0
                     })
                     .ToListAsync()
+
             };
 
             ledger.TotalDebits = ledger.LedgerEntries.Sum(e => e.Debit);
@@ -116,14 +121,20 @@ namespace HinduTempleofTriStates.Services
                 .Select(account => new TrialBalanceAccount
                 {
                     AccountName = account.AccountName,
-                    DebitTotal = account.CashTransactions
-                        .Where(t => t.TransactionType == TransactionType.Debit)
-                        .Sum(t => t.Amount),
-                    CreditTotal = account.CashTransactions
-                        .Where(t => t.TransactionType == TransactionType.Credit)
-                        .Sum(t => t.Amount),
-                    NetBalance = account.CashTransactions
-                        .Sum(t => t.TransactionType == TransactionType.Credit ? t.Amount : -t.Amount)
+                    DebitTotal = account.CashTransactions != null
+                        ? account.CashTransactions
+                            .Where(t => t.TransactionType == TransactionType.Debit)
+                            .Sum(t => t.Amount)
+                        : 0,
+                    CreditTotal = account.CashTransactions != null
+                        ? account.CashTransactions
+                            .Where(t => t.TransactionType == TransactionType.Credit)
+                            .Sum(t => t.Amount)
+                        : 0,
+                    NetBalance = account.CashTransactions != null
+                        ? account.CashTransactions
+                            .Sum(t => t.TransactionType == TransactionType.Credit ? t.Amount : -t.Amount)
+                        : 0
                 })
                 .ToListAsync();
 
@@ -132,5 +143,6 @@ namespace HinduTempleofTriStates.Services
                 TrialBalanceAccounts = trialBalanceAccounts
             };
         }
+
     }
 }

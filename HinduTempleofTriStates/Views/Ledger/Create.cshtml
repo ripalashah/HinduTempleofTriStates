@@ -31,6 +31,25 @@
         <span asp-validation-for="Balance" class="text-danger"></span>
     </div>
 
+    <!-- Add other required fields like Donations, CashTransactions, GeneralLedgerEntries -->
+    <div class="form-group">
+        <label asp-for="Donations" class="control-label"></label>
+        <input asp-for="Donations" class="form-control" />
+        <span asp-validation-for="Donations" class="text-danger"></span>
+    </div>
+
+    <div class="form-group">
+        <label asp-for="CashTransactions" class="control-label"></label>
+        <input asp-for="CashTransactions" class="form-control" />
+        <span asp-validation-for="CashTransactions" class="text-danger"></span>
+    </div>
+
+    <div class="form-group">
+        <label asp-for="GeneralLedgerEntries" class="control-label"></label>
+        <input asp-for="GeneralLedgerEntries" class="form-control" />
+        <span asp-validation-for="GeneralLedgerEntries" class="text-danger"></span>
+    </div>
+
     <!-- Hidden fields for CreatedBy and UpdatedBy -->
     <input type="hidden" asp-for="CreatedBy" value="System" />
     <input type="hidden" asp-for="UpdatedBy" value="System" />

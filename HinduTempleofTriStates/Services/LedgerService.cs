@@ -1,6 +1,7 @@
 ﻿using HinduTempleofTriStates.Data;
 using HinduTempleofTriStates.Models;
 using Microsoft.EntityFrameworkCore;
+using Microsoft.Extensions.Logging;
 using System;
 using System.Collections.Generic;
 using System.Threading.Tasks;
@@ -10,10 +11,12 @@ namespace HinduTempleofTriStates.Services
     public class LedgerService
     {
         private readonly ApplicationDbContext _context;
+        private readonly ILogger<LedgerService> _logger;
 
-        public LedgerService(ApplicationDbContext context)
+        public LedgerService(ApplicationDbContext context, ILogger<LedgerService> logger)
         {
             _context = context;
+            _logger = logger ?? throw new ArgumentNullException(nameof(logger)); // Inject logger
         }
 
         public async Task<IEnumerable<LedgerAccount>> GetAllAccountsAsync()
@@ -66,6 +69,7 @@ namespace HinduTempleofTriStates.Services
                 await _context.SaveChangesAsync();
             }
         }
+
         public async Task<IEnumerable<Donation>> GetDonationsByAccountIdAsync(Guid ledgerAccountId)
         {
             return await _context.Donations
@@ -97,6 +101,83 @@ namespace HinduTempleofTriStates.Services
         public async Task AddTransactionAsync(Transaction transaction)
         {
             _context.Transactions.Add(transaction);
+            await _context.SaveChangesAsync();
+
+            // Update the ledger account balance
+            if (transaction.LedgerAccountId.HasValue)
+            {
+                await UpdateLedgerBalance(transaction.LedgerAccountId.Value);
+            }
+        }
+
+        public async Task UpdateTransactionAsync(Transaction transaction)
+        {
+            _context.Transactions.Update(transaction);
+            await _context.SaveChangesAsync();
+
+            // Update the ledger account balance after updating the transaction
+            if (transaction.LedgerAccountId.HasValue)
+            {
+                await UpdateLedgerBalance(transaction.LedgerAccountId.Value);
+            }
+        }
+
+        public async Task AddDonationAsync(Donation donation)
+        {
+            _context.Donations.Add(donation);
+            await _context.SaveChangesAsync();
+
+            // Update the ledger account balance
+            if (donation.LedgerAccountId.HasValue)
+            {
+                await UpdateLedgerBalance(donation.LedgerAccountId.Value);
+            }
+        }
+
+        public async Task DeleteTransactionAsync(Guid transactionId)
+        {
+            var transaction = await _context.Transactions.FindAsync(transactionId);
+            if (transaction != null)
+            {
+                _context.Transactions.Remove(transaction);
+                await _context.SaveChangesAsync();
+
+                // Update the ledger account balance after deleting the transaction
+                if (transaction.LedgerAccountId.HasValue)
+                {
+                    await UpdateLedgerBalance(transaction.LedgerAccountId.Value);
+                }
+            }
+        }
+
+        private async Task UpdateLedgerBalance(Guid ledgerAccountId)
+        {
+            var ledgerAccount = await _context.LedgerAccounts.FindAsync(ledgerAccountId);
+            if (ledgerAccount == null)
+            {
+                throw new KeyNotFoundException($"Ledger account with ID {ledgerAccountId} not found.");
+            }
+
+            // Calculate debit and credit totals
+            var debitTotal = await _context.Transactions
+                .Where(t => t.LedgerAccountId == ledgerAccountId)
+                .SumAsync(t => t.Debit);
+
+            var creditTotal = await _context.Transactions
+                .Where(t => t.LedgerAccountId == ledgerAccountId)
+                .SumAsync(t => t.Credit);
+
+            // Log debit and credit totals
+            _logger.LogInformation($"Updating ledger balance for LedgerAccount ID {ledgerAccountId}: DebitTotal = {debitTotal}, CreditTotal = {creditTotal}");
+
+            // Update ledger balance
+            ledgerAccount.Balance = debitTotal - creditTotal;
+
+            // Log the updated balance
+            _logger.LogInformation($"New balance for LedgerAccount ID {ledgerAccountId}: {ledgerAccount.Balance}");
+
+            // Save changes
+            _context.LedgerAccounts.Update(ledgerAccount);
             await _context.SaveChangesAsync();
         }
 

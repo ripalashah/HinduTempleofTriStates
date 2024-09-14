@@ -39,6 +39,8 @@ internal class Program
         builder.Services.AddScoped<IFundRepository, FundRepository>();
         builder.Services.AddScoped<ICashTransactionRepository, CashTransactionRepository>();
         builder.Services.AddScoped<IFinancialReportService, FinancialReportService>();
+        builder.Services.Configure<EmailSettings>(builder.Configuration.GetSection("EmailSettings"));
+        builder.Services.AddTransient<EmailService>();
 
 
         // Role Management

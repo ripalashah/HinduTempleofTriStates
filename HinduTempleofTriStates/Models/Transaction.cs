@@ -18,7 +18,7 @@ namespace HinduTempleofTriStates.Models
         public Guid AccountId { get; set; }
 
         [Required]
-        public Guid LedgerAccountId { get; set; }
+        public Guid? LedgerAccountId { get; set; }
 
         // DonationId Foreign Key
         public Guid? DonationId { get; set; }

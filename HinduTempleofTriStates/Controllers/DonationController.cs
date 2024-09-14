@@ -17,12 +17,14 @@ namespace HinduTempleofTriStates.Controllers
     {
         private readonly ApplicationDbContext _context;
         private readonly IDonationService _donationService;
+        private readonly EmailService _emailService; // Inject email service
         private readonly ILogger<DonationController> _logger;
 
-        public DonationController(ApplicationDbContext context, IDonationService donationService, ILogger<DonationController> logger)
+        public DonationController(ApplicationDbContext context, IDonationService donationService, EmailService emailService, ILogger<DonationController> logger)
         {
             _context = context ?? throw new ArgumentNullException(nameof(context));
             _donationService = donationService ?? throw new ArgumentNullException(nameof(donationService));
+            _emailService = emailService ?? throw new ArgumentNullException(nameof(emailService));
             _logger = logger ?? throw new ArgumentNullException(nameof(logger));
         }
 
@@ -47,17 +49,43 @@ namespace HinduTempleofTriStates.Controllers
                 return BadRequest("Unable to load donations. Please try again later.");
             }
         }
+        // Method to generate receipt number
+        private async Task<string> GenerateReceiptNumberAsync()
+        {
+            var lastDonation = await _context.Donations
+                .OrderByDescending(d => d.ReceiptNumber)
+                .FirstOrDefaultAsync();
 
+            if (lastDonation != null && !string.IsNullOrEmpty(lastDonation.ReceiptNumber))
+            {
+                var lastReceiptNumber = int.Parse(lastDonation.ReceiptNumber.Substring(1));
+                var newReceiptNumber = lastReceiptNumber + 1;
+                return $"D{newReceiptNumber:D4}";
+            }
+
+            return "D0001";
+        }
         // Display form to create a donation
         [HttpGet]
         [Route("Create")]
         public async Task<IActionResult> Create()
         {
-            var ledgerAccounts = await _context.LedgerAccounts.ToListAsync();
+            var ledgerAccounts = await _context.LedgerAccounts
+                .Where(l => !l.IsDeleted) // Ensure you are filtering correctly
+                .ToListAsync();
+            if (ledgerAccounts == null || !ledgerAccounts.Any())
+            {
+                // Log or handle the case where there are no LedgerAccounts
+                ModelState.AddModelError(string.Empty, "No ledger accounts available.");
+                return View(new Donation());
+            }
+
             ViewBag.LedgerAccounts = new SelectList(ledgerAccounts, "Id", "AccountName");
-            return View();
+            return View(new Donation());
         }
 
+
+        // Handle the post request to create a new donation
         // Handle the post request to create a new donation
         [HttpPost]
         [ValidateAntiForgeryToken]
@@ -71,7 +99,8 @@ namespace HinduTempleofTriStates.Controllers
                     // Assign a new unique Id to the donation
                     donation.Id = Guid.NewGuid();
                     donation.Date = DateTime.UtcNow;
-
+                    // Generate and assign the receipt number
+                    donation.ReceiptNumber = await GenerateReceiptNumberAsync();
                     // Fetch the related LedgerAccount
                     var ledgerAccount = await _context.LedgerAccounts.FindAsync(donation.LedgerAccountId);
                     if (ledgerAccount == null)
@@ -94,7 +123,7 @@ namespace HinduTempleofTriStates.Controllers
                         Description = $"Donation entry from {donation.DonorName}",
                         Debit = 0,
                         Credit = (decimal)donation.Amount,
-                        LedgerAccountId = donation.LedgerAccountId,
+                        LedgerAccountId = donation.LedgerAccountId ?? Guid.Empty,
                     };
 
                     var cashTransaction = new CashTransaction
@@ -104,7 +133,7 @@ namespace HinduTempleofTriStates.Controllers
                         Amount = (decimal)donation.Amount,
                         Date = DateTime.UtcNow,
                         Description = $"Donation from {donation.DonorName}",
-                        LedgerAccountId = donation.LedgerAccountId,
+                        LedgerAccountId = donation.LedgerAccountId ?? Guid.Empty,
                         TransactionType = TransactionType.Credit // Ensure the donation is treated as a credit
                     };
 
@@ -123,6 +152,47 @@ namespace HinduTempleofTriStates.Controllers
             }
 
             return View(donation);
+        }
+
+        // Method to generate email body
+        private string GenerateEmailBody(Donation donation)
+        {
+            return $@"
+            <table style='width: 100%; border: 1px solid black; border-collapse: collapse; font-family: Arial, sans-serif;'>
+                <thead>
+                    <tr>
+                        <th colspan='2' style='text-align: center; font-size: 14px;'>HINDU TEMPLE OF TRI STATE</th>
+                    </tr>
+                    <tr>
+                        <td colspan='2' style='text-align: center; font-size: 10px;'>390 North Street White Plains, NY</td>
+                    </tr>
+                    <tr>
+                        <td colspan='2' style='text-align: center; font-size: 10px;'>Phone: (914) 909-5550</td>
+                    </tr>
+                    <tr>
+                        <td colspan='2' style='text-align: center; font-size: 10px;'>TAX ID: #26-4265251</td>
+                    </tr>
+                </thead>
+                <tbody>
+                    <tr><td colspan='2' style='border-top: 1px solid black;'></td></tr>
+                    <tr>
+                        <td><strong>Date:</strong></td><td>{donation.Date.ToShortDateString()}</td>
+                    </tr>
+                    <tr>
+                        <td><strong>Receipt Number:</strong></td><td>{donation.ReceiptNumber}</td>
+                    </tr>
+                    <tr>
+                        <td><strong>Amount:</strong></td><td>{donation.Amount.ToString("C")}</td>
+                    </tr>
+                    <tr>
+                        <td><strong>Donation Type:</strong></td><td>{donation.DonationType}</td>
+                    </tr>
+                    <tr>
+                        <td colspan='2' style='font-size: 10px;'>No goods or services were provided in exchange for this donation.</td>
+                    </tr>
+                    <tr><td colspan='2' style='text-align: center; font-size: 20px; color: lightgray;'>Thank You!</td></tr>
+                </tbody>
+            </table>";
         }
 
         // Display confirmation after successful donation
@@ -165,7 +235,94 @@ namespace HinduTempleofTriStates.Controllers
             return View(donation);
         }
 
-        // Edit Donation
+        // Send donation receipt via email
+        [HttpPost]
+        [Route("SendReceipt")]
+        public async Task<IActionResult> SendReceipt(Guid id, string email)
+        {
+            var donation = await _context.Donations.FindAsync(id);
+            if (donation == null)
+            {
+                return NotFound();
+            }
+
+            // Prepare the email body (HTML format)
+            var emailBody = $@"
+            <table style='width: 100%; border: 1px solid black; border-collapse: collapse; font-family: Arial, sans-serif;'>
+                <thead>
+                    <tr>
+                        <th colspan='2' style='text-align: center; font-size: 14px;'>HINDU TEMPLE OF TRI STATE</th>
+                    </tr>
+                    <tr>
+                        <td colspan='2' style='text-align: center; font-size: 10px;'>390 North Street White Plains, NY</td>
+                    </tr>
+                    <tr>
+                        <td colspan='2' style='text-align: center; font-size: 10px;'>Phone: (914) 909-5550</td>
+                    </tr>
+                    <tr>
+                        <td colspan='2' style='text-align: center; font-size: 10px;'>TAX ID: #26-4265251</td>
+                    </tr>
+                </thead>
+                <tbody>
+                    <tr><td colspan='2' style='border-top: 1px solid black;'></td></tr>
+                    <tr>
+                        <td><strong>Date:</strong></td><td>{donation.Date.ToShortDateString()}</td>
+                    </tr>
+                    <tr>
+                        <td><strong>Location:</strong></td><td>White Plains, NY</td>
+                    </tr>
+                    <tr>
+                        <td><strong>Received By:</strong></td><td></td>
+                    </tr>
+                    <tr><td colspan='2' style='border-top: 1px solid black;'></td></tr>
+                    <tr>
+                        <td colspan='2' style='text-align: center; font-weight: bold;'>DONATIONS</td>
+                    </tr>
+                    <tr>
+                        <td><strong>Receipt Number:</strong></td><td>{donation.ReceiptNumber}</td>
+                    </tr>
+                    <tr>
+                        <td><strong>Amount:</strong></td><td>{donation.Amount.ToString("C")}</td>
+                    </tr>
+                    <tr>
+                        <td><strong>Donation Type:</strong></td><td>{donation.DonationType}</td>
+                    </tr>
+                    <tr><td colspan='2' style='border-top: 1px solid black;'></td></tr>
+                    <tr>
+                        <td colspan='2' style='font-weight: bold;'>Donor Information</td>
+                    </tr>
+                    <tr>
+                        <td><strong>Name:</strong></td><td>{donation.DonorName}</td>
+                    </tr>
+                    <tr>
+                        <td><strong>City:</strong></td><td>{donation.City}</td>
+                    </tr>
+                    <tr>
+                        <td><strong>State:</strong></td><td>{donation.State}</td>
+                    </tr>
+                    <tr>
+                        <td><strong>Phone:</strong></td><td>{donation.Phone}</td>
+                    </tr>
+                    <tr><td colspan='2' style='border-top: 1px solid black;'></td></tr>
+                    <tr>
+                        <td colspan='2' style='font-size: 10px;'>This organization is a current and valid 501(c)(3) non-profit organization in accordance with the standards and regulations of the IRS.</td>
+                    </tr>
+                    <tr>
+                        <td colspan='2' style='font-size: 10px;'>No goods or services were provided in exchange for this donation.</td>
+                    </tr>
+                    <tr>
+                        <td colspan='2' style='text-align: center; font-size: 20px; color: lightgray;'>Thank You!</td>
+                    </tr>
+                </tbody>
+            </table>";
+
+            // Send the email
+            await _emailService.SendEmailAsync(email, "Your Donation Receipt", emailBody);
+
+            return RedirectToAction(nameof(Index));
+        }
+
+        // Edit Donation (Admin only)
         [Authorize(Roles = "Admin")]
         [HttpGet("edit/{id:guid}")]
         public async Task<IActionResult> Edit(Guid id)
@@ -228,7 +385,7 @@ namespace HinduTempleofTriStates.Controllers
                             {
                                 cashTransaction.Amount = (decimal)donation.Amount;
                                 cashTransaction.Description = $"Donation from {donation.DonorName}";
-                                cashTransaction.LedgerAccountId = donation.LedgerAccountId;
+                                cashTransaction.LedgerAccountId = donation.LedgerAccountId ?? Guid.Empty;
                             }
                         }
 
@@ -239,7 +396,7 @@ namespace HinduTempleofTriStates.Controllers
                             {
                                 ledgerEntry.Credit = (decimal)donation.Amount;
                                 ledgerEntry.Description = $"Donation entry from {donation.DonorName}";
-                                ledgerEntry.LedgerAccountId = donation.LedgerAccountId;
+                                ledgerEntry.LedgerAccountId = donation.LedgerAccountId ?? Guid.Empty;
                             }
                         }
 
@@ -269,8 +426,7 @@ namespace HinduTempleofTriStates.Controllers
             return View(donation);
         }
 
-
-        // Delete Donation
+        // Delete Donation (Admin only)
         [Authorize(Roles = "Admin")]
         [HttpGet]
         [Route("Delete/{id:guid}")]
@@ -297,7 +453,7 @@ namespace HinduTempleofTriStates.Controllers
 
             if (donation != null)
             {
-                if (donation.GeneralLedgerEntries.Any())
+                if (donation.GeneralLedgerEntries != null && donation.GeneralLedgerEntries.Any())
                 {
                     _context.GeneralLedgerEntries.RemoveRange(donation.GeneralLedgerEntries);
                 }
@@ -314,6 +470,7 @@ namespace HinduTempleofTriStates.Controllers
             return RedirectToAction(nameof(Index));
         }
 
+        // Helper method to check if a donation exists
         private async Task<bool> DonationExists(Guid id)
         {
             return await _context.Donations.AnyAsync(e => e.Id == id);

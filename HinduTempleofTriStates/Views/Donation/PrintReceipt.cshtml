@@ -4,28 +4,84 @@
     ViewData["Title"] = "Print Receipt";
 }
 
-<div class="container mt-4">
-    <h1>@ViewData["Title"]</h1>
+<div class="container mt-4" style="width: 600px; font-family: Arial, sans-serif;">    
+        <div class="receipt" style="border: 1px solid black; padding: 10px; font-size: 10px;">
+            <div style="text-align: center;">
+                <h2 style="margin: 0; font-size: 14px;">HINDU TEMPLE OF TRI STATE</h2>
+                <p style="margin: 0; font-size: 10px;">390 North Street White Plains, NY</p>
+                <p style="margin: 0; font-size: 10px;">Phone: (914) 909-5550</p>
+                <p style="margin: 0; font-size: 10px;">TAX ID: #26-4265251</p>
+            </div>
 
-    <p><strong>Donor Name:</strong> @Model.DonorName</p>
-    <p><strong>Amount:</strong> @Model.Amount.ToString("C")</p>
-    <p><strong>Donation Type:</strong> @Model.DonationType</p>
-    <p><strong>Date:</strong> @Model.Date.ToShortDateString()</p>
-    <p><strong>Phone:</strong> @Model.Phone</p>
-    <p><strong>City:</strong> @Model.City</p>
-    <p><strong>State:</strong> @Model.State</p>
-    <p><strong>Country:</strong> @Model.Country</p>
+            <hr style="border: 1px solid black; margin: 10px 0;" />
 
+            <div>
+                <p><strong>Date:</strong> @Model.Date.ToShortDateString()</p>
+                <p><strong>Location:</strong> White Plains, NY</p>
+                <p><strong>Received By:</strong> (Add Staff Name or System Info Here)</p>
+            </div>
+
+            <div style="border: 1px solid black; padding: 5px; margin-top: 10px;">
+                <h4 style="text-align: center; font-weight: bold; font-size: 12px;">DONATIONS</h4>
+
+                <table style="width: 100%; border-collapse: collapse; font-size: 10px;">
+                    <tr>
+                        <td style="width: 30%; border: 1px solid black; padding: 5px;"><strong>Receipt Number:</strong></td>
+                        <td style="width: 70%; border: 1px solid black; padding: 5px;">@Model.ReceiptNumber</td>
+                    </tr>
+                    <tr>
+                        <td style="width: 30%; border: 1px solid black; padding: 5px;"><strong>Amount:</strong></td>
+                        <td style="width: 70%; border: 1px solid black; padding: 5px;">@Model.Amount.ToString("C")</td>
+                    </tr>
+                    <tr>
+                        <td style="width: 30%; border: 1px solid black; padding: 5px;"><strong>Donation Type:</strong></td>
+                        <td style="width: 70%; border: 1px solid black; padding: 5px;">@Model.DonationType</td>
+                    </tr>
+                </table>
+            </div>
+
+            <div style="margin-top: 10px;">
+                <h4 style="font-size: 12px;"><strong>Donor Information</strong></h4>
+                <p><strong>Name:</strong> @Model.DonorName</p>
+                <p><strong>City:</strong> @Model.City</p>
+                <p><strong>State:</strong> @Model.State</p>
+                <p><strong>Phone:</strong> @Model.Phone</p>
+            </div>
+
+            <hr style="border: 1px solid black; margin: 10px 0;" />
+
+            <div>
+                <p style="font-size: 10px;">This organization is a current and valid 501(c)(3) non-profit organization in accordance with the standards and regulations of the IRS.</p>
+                <p style="font-size: 10px;">No goods or services were provided in exchange for this donation.</p>
+            </div>
+
+            <div style="text-align: center; margin-top: 20px;">
+                <h2 style="font-size: 20px; color: lightgray;">Thank You!</h2>
+            </div>
+         </div>
     <div class="d-flex justify-content-between mt-4 no-print">
         <button type="button" onclick="window.print();" class="btn btn-primary">Print Receipt</button>
         <a asp-action="Index" class="btn btn-secondary">Back to List</a>
+    </div>
+    <!-- Email Form -->
+    <div class="mt-4">
+        <form asp-action="SendReceipt" method="post">
+            <input type="hidden" name="id" value="@Model.Id" />
+            <div class="form-group">
+                <label for="email">Email Address</label>
+                <input type="email" class="form-control" id="email" name="email" placeholder="Enter email" required>
+            </div>
+            <button type="submit" class="btn btn-primary">Email Receipt</button>
+        </form>
     </div>
 </div>
 
 <style>
     @@media print {
-        .no-print {
-            display: none;
+        /* Hide all buttons and input fields when printing */
+        button, input {
+            display: none !important;
         }
+               
     }
 </style>
