@@ -13,10 +13,12 @@ namespace HinduTempleofTriStates.Controllers
     {
         private readonly LedgerService _ledgerService;
         private readonly ILogger<LedgerController> _logger;
+        private readonly IDonationService _donationService;
 
-        public LedgerController(LedgerService ledgerService, ILogger<LedgerController> logger)
+        public LedgerController(LedgerService ledgerService, IDonationService donationService, ILogger<LedgerController> logger)
         {
-            _ledgerService = ledgerService;
+            _ledgerService = ledgerService ?? throw new ArgumentNullException(nameof(ledgerService));
+            _donationService = donationService ?? throw new ArgumentNullException(nameof(donationService)); // No casting required
             _logger = logger ?? throw new ArgumentNullException(nameof(logger));
         }
 
@@ -50,8 +52,36 @@ namespace HinduTempleofTriStates.Controllers
 
             try
             {
+                // Save the new ledger account
                 await _ledgerService.AddAccountAsync(ledgerAccount);
                 _logger.LogInformation("Ledger account created successfully.");
+
+                // Check if any donation exists for the account and update balance accordingly
+                var donations = await _donationService.GetDonationsByLedgerAccountIdAsync(ledgerAccount.Id);
+                if (donations.Any())
+                {
+                    decimal balance = 0;
+
+                    foreach (var donation in donations)
+                    {
+                        // Adjust balance based on donation type
+                        if (donation.DonationType == "Credit")
+                        {
+                            balance += (decimal)donation.Amount;
+                        }
+                        else if (donation.DonationType == "Debit")
+                        {
+                            balance -= (decimal)donation.Amount;
+                        }
+                    }
+
+                    // Update ledger account balance
+                    ledgerAccount.Balance = balance;
+
+                    // Save updated balance
+                    await _ledgerService.UpdateLedgerAccountAsync(ledgerAccount);
+                }
+
                 return RedirectToAction(nameof(Index));
             }
             catch (Exception ex)

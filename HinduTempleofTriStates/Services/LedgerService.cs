@@ -32,7 +32,34 @@ namespace HinduTempleofTriStates.Services
                 .Where(l => l.Id == id && !l.IsDeleted)  // Exclude soft-deleted records
                 .FirstOrDefaultAsync();
         }
+        public async Task UpdateLedgerAccountBalanceAsync(Guid? ledgerAccountId, double amount, bool isAddition = true)
+        {
+            if (ledgerAccountId.HasValue)
+            {
+                var ledgerAccount = await _context.LedgerAccounts.FindAsync(ledgerAccountId.Value);
+                if (ledgerAccount != null)
+                {
+                    // Update the balance by adding or subtracting the amount
+                    ledgerAccount.Balance += isAddition ? Convert.ToDecimal(amount) : -Convert.ToDecimal(amount);
 
+                    // Mark the ledger account as modified in the context
+                    _context.LedgerAccounts.Update(ledgerAccount);
+
+                    // Save the changes to the database
+                    await _context.SaveChangesAsync();
+
+                    _logger.LogInformation("Ledger account {LedgerAccountId} balance updated by {Amount}.", ledgerAccountId, amount);
+                }
+                else
+                {
+                    _logger.LogWarning("LedgerAccount with ID {LedgerAccountId} not found.", ledgerAccountId.Value);
+                }
+            }
+            else
+            {
+                _logger.LogWarning("LedgerAccountId is null.");
+            }
+        }
         public async Task AddAccountAsync(LedgerAccount account)
         {
             _context.LedgerAccounts.Add(account);
@@ -69,7 +96,8 @@ namespace HinduTempleofTriStates.Services
                 await _context.SaveChangesAsync();
             }
         }
-
+        // Method to get donations by LedgerAccountId
+        
         public async Task<IEnumerable<Donation>> GetDonationsByAccountIdAsync(Guid ledgerAccountId)
         {
             return await _context.Donations

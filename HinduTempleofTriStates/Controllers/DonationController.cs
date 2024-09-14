@@ -19,10 +19,12 @@ namespace HinduTempleofTriStates.Controllers
         private readonly IDonationService _donationService;
         private readonly EmailService _emailService; // Inject email service
         private readonly ILogger<DonationController> _logger;
+        private readonly LedgerService _ledgerService;
 
-        public DonationController(ApplicationDbContext context, IDonationService donationService, EmailService emailService, ILogger<DonationController> logger)
+        public DonationController(ApplicationDbContext context, LedgerService ledgerService, IDonationService donationService, EmailService emailService, ILogger<DonationController> logger)
         {
             _context = context ?? throw new ArgumentNullException(nameof(context));
+            _ledgerService = ledgerService;
             _donationService = donationService ?? throw new ArgumentNullException(nameof(donationService));
             _emailService = emailService ?? throw new ArgumentNullException(nameof(emailService));
             _logger = logger ?? throw new ArgumentNullException(nameof(logger));
@@ -70,18 +72,29 @@ namespace HinduTempleofTriStates.Controllers
         [Route("Create")]
         public async Task<IActionResult> Create()
         {
-            var ledgerAccounts = await _context.LedgerAccounts
-                .Where(l => !l.IsDeleted) // Ensure you are filtering correctly
-                .ToListAsync();
-            if (ledgerAccounts == null || !ledgerAccounts.Any())
+            try
             {
-                // Log or handle the case where there are no LedgerAccounts
-                ModelState.AddModelError(string.Empty, "No ledger accounts available.");
+                var ledgerAccounts = await _context.LedgerAccounts
+                    .Where(l => !l.IsDeleted) // Filter out deleted ledger accounts
+                    .ToListAsync();
+
+                if (ledgerAccounts == null || !ledgerAccounts.Any())
+                {
+                    // Handle the case where there are no LedgerAccounts
+                    _logger.LogWarning("No ledger accounts available.");
+                    ModelState.AddModelError(string.Empty, "No ledger accounts available. Please create a ledger account first.");
+                    return View(new Donation());
+                }
+
+                ViewBag.LedgerAccounts = new SelectList(ledgerAccounts, "Id", "AccountName");
                 return View(new Donation());
             }
-
-            ViewBag.LedgerAccounts = new SelectList(ledgerAccounts, "Id", "AccountName");
-            return View(new Donation());
+            catch (Exception ex)
+            {
+                _logger.LogError(ex, "Error fetching ledger accounts for donation creation.");
+                ModelState.AddModelError(string.Empty, "Error loading ledger accounts. Please try again later.");
+                return View(new Donation());
+            }
         }
 
 
@@ -112,7 +125,7 @@ namespace HinduTempleofTriStates.Controllers
 
                     // Save the Donation first
                     _context.Donations.Add(donation);
-                    await _context.SaveChangesAsync();
+                   
 
                     // Create corresponding GeneralLedgerEntry and CashTransaction
                     var ledgerEntry = new GeneralLedgerEntry
@@ -137,6 +150,10 @@ namespace HinduTempleofTriStates.Controllers
                         TransactionType = TransactionType.Credit // Ensure the donation is treated as a credit
                     };
 
+                    await _donationService.AddDonationAsync(donation, true); // Pass 'true' for isAddition
+
+                    // Use LedgerService to update the balance
+                    await _ledgerService.UpdateLedgerAccountBalanceAsync(donation.LedgerAccountId, donation.Amount, true);
                     // Add and save GeneralLedgerEntry and CashTransaction
                     _context.GeneralLedgerEntries.Add(ledgerEntry);
                     _context.CashTransactions.Add(cashTransaction);

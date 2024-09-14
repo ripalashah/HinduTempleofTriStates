@@ -174,7 +174,12 @@ namespace HinduTempleofTriStates.Services
             return false;
         }
 
-
+        public async Task<IEnumerable<Donation>> GetDonationsByLedgerAccountIdAsync(Guid ledgerAccountId)
+        {
+            return await _context.Donations
+                .Where(d => d.LedgerAccountId == ledgerAccountId && !d.IsDeleted) // Assuming IsDeleted is a soft-delete mechanism
+                .ToListAsync();
+        }
 
         // Method to delete a donation and associated ledger and cash entries
         public async Task<bool> DeleteDonationAsync(Guid id)
