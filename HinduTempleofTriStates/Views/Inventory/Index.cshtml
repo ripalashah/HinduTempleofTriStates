@@ -1,0 +1,36 @@
+﻿@model IEnumerable<HinduTempleofTriStates.Models.Product>
+
+@{
+    ViewData["Title"] = "Inventory";
+}
+
+<h2>Inventory</h2>
+
+<table class="table">
+    <thead>
+        <tr>
+            <th>Name</th>
+            <th>Category</th>
+            <th>Quantity</th>
+            <th>Supplier</th>
+            <th>Actions</th>
+        </tr>
+    </thead>
+    <tbody>
+        @foreach (var product in Model)
+        {
+            <tr>
+                <td>@product.Name</td>
+                <td>@product.Category</td>
+                <td>@product.Quantity</td>
+                <td>@product.Supplier.Name</td>
+                <td>
+                    <a asp-action="StockIn" asp-route-id="@product.Id" class="btn btn-success">Stock In</a>
+                    <a asp-action="StockOut" asp-route-id="@product.Id" class="btn btn-danger">Stock Out</a>
+                </td>
+            </tr>
+        }
+    </tbody>
+</table>
+
+<a asp-action="Create" class="btn btn-primary">Add New Product</a>

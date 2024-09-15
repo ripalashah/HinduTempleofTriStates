@@ -1,0 +1,29 @@
+﻿@model IEnumerable<HinduTempleofTriStates.Models.Supplier>
+
+<h2>Suppliers</h2>
+
+<table class="table">
+    <thead>
+        <tr>
+            <th>Name</th>
+            <th>Contact Person</th>
+            <th>Phone</th>
+            <th>Email</th>
+            <th>Address</th>
+        </tr>
+    </thead>
+    <tbody>
+        @foreach (var supplier in Model)
+        {
+            <tr>
+                <td>@supplier.Name</td>
+                <td>@supplier.ContactPerson</td>
+                <td>@supplier.Phone</td>
+                <td>@supplier.Email</td>
+                <td>@supplier.Address</td>
+            </tr>
+        }
+    </tbody>
+</table>
+
+<a asp-action="Create" class="btn btn-primary">Add New Supplier</a>

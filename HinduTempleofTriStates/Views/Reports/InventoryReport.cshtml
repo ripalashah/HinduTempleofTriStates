@@ -1,0 +1,29 @@
+﻿@model IEnumerable<HinduTempleofTriStates.Models.StockReportViewModel>
+
+<h2>Inventory Report</h2>
+
+<table class="table table-striped">
+    <thead>
+        <tr>
+            <th>Product Name</th>
+            <th>Category</th>
+            <th>Initial Quantity</th>
+            <th>Stock In</th>
+            <th>Stock Out</th>
+            <th>Current Stock</th>
+        </tr>
+    </thead>
+    <tbody>
+        @foreach (var report in Model)
+        {
+            <tr>
+                <td>@report.ProductName</td>
+                <td>@report.Category</td>
+                <td>@report.InitialQuantity</td>
+                <td>@report.StockInQuantity</td>
+                <td>@report.StockOutQuantity</td>
+                <td>@report.CurrentStock</td>
+            </tr>
+        }
+    </tbody>
+</table>

@@ -1,0 +1,19 @@
+﻿@model HinduTempleofTriStates.Models.StockTransaction
+
+@{
+    ViewData["Title"] = "Stock In";
+}
+
+<h2>Stock In</h2>
+
+<form asp-action="StockIn">
+    <div class="form-group">
+        <label for="Quantity">Quantity to Add</label>
+        <input asp-for="Quantity" class="form-control" />
+        <span asp-validation-for="Quantity" class="text-danger"></span>
+    </div>
+    <input type="hidden" asp-for="ProductId" />
+    <button type="submit" class="btn btn-success">Add Stock</button>
+</form>
+
+<a asp-action="Index" class="btn btn-secondary">Back to Inventory</a>

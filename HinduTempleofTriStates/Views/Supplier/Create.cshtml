@@ -1,0 +1,34 @@
+﻿@model HinduTempleofTriStates.Models.Supplier
+
+<h2>Add New Supplier</h2>
+
+<form asp-action="Create">
+    <div class="form-group">
+        <label for="Name">Supplier Name</label>
+        <input asp-for="Name" class="form-control" />
+        <span asp-validation-for="Name" class="text-danger"></span>
+    </div>
+    <div class="form-group">
+        <label for="ContactPerson">Contact Person</label>
+        <input asp-for="ContactPerson" class="form-control" />
+        <span asp-validation-for="ContactPerson" class="text-danger"></span>
+    </div>
+    <div class="form-group">
+        <label for="Phone">Phone</label>
+        <input asp-for="Phone" class="form-control" />
+        <span asp-validation-for="Phone" class="text-danger"></span>
+    </div>
+    <div class="form-group">
+        <label for="Email">Email</label>
+        <input asp-for="Email" class="form-control" />
+        <span asp-validation-for="Email" class="text-danger"></span>
+    </div>
+    <div class="form-group">
+        <label for="Address">Address</label>
+        <input asp-for="Address" class="form-control" />
+        <span asp-validation-for="Address" class="text-danger"></span>
+    </div>
+    <button type="submit" class="btn btn-primary">Add Supplier</button>
+</form>
+
+<a asp-action="Index" class="btn btn-secondary">Back to Suppliers</a>

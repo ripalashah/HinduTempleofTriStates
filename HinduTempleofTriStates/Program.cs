@@ -39,9 +39,16 @@ internal class Program
         builder.Services.AddScoped<IFundRepository, FundRepository>();
         builder.Services.AddScoped<ICashTransactionRepository, CashTransactionRepository>();
         builder.Services.AddScoped<IFinancialReportService, FinancialReportService>();
+        // Register IInventoryService with its implementation
+        builder.Services.AddScoped<IInventoryService, InventoryService>();
+        // Register IInventoryRepository with its implementation (e.g., InventoryRepository)
+        builder.Services.AddScoped<IInventoryRepository, InventoryRepository>();
+        // Register ISupplierService and SupplierService
+        builder.Services.AddScoped<ISupplierService, SupplierService>();
+        // Register ISupplierRepository and SupplierRepository
+        builder.Services.AddScoped<ISupplierRepository, SupplierRepository>();
         builder.Services.Configure<EmailSettings>(builder.Configuration.GetSection("EmailSettings"));
         builder.Services.AddTransient<EmailService>();
-
 
         // Role Management
         builder.Services.AddScoped<RoleService>();

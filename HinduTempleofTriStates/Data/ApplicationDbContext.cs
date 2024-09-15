@@ -20,6 +20,10 @@ namespace HinduTempleofTriStates.Data
         public DbSet<Account> Accounts { get; set; }
         public DbSet<CashTransaction> CashTransactions { get; set; }
         public DbSet<Fund> Funds { get; set; }
+        public DbSet<Product> Products { get; set; }
+        public DbSet<StockTransaction> StockTransactions { get; set; }
+        public DbSet<Supplier> Suppliers { get; set; }
+
 
         protected override void OnModelCreating(ModelBuilder modelBuilder)
         {
