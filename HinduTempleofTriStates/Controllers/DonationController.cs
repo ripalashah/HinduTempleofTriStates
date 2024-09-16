@@ -20,13 +20,15 @@ namespace HinduTempleofTriStates.Controllers
         private readonly EmailService _emailService; // Inject email service
         private readonly ILogger<DonationController> _logger;
         private readonly LedgerService _ledgerService;
+        private readonly QuickBooksService _quickBooksService;
 
-        public DonationController(ApplicationDbContext context, LedgerService ledgerService, IDonationService donationService, EmailService emailService, ILogger<DonationController> logger)
+        public DonationController(ApplicationDbContext context, LedgerService ledgerService, IDonationService donationService, EmailService emailService, QuickBooksService quickBooksService, ILogger<DonationController> logger)
         {
             _context = context ?? throw new ArgumentNullException(nameof(context));
             _ledgerService = ledgerService;
             _donationService = donationService ?? throw new ArgumentNullException(nameof(donationService));
             _emailService = emailService ?? throw new ArgumentNullException(nameof(emailService));
+            _quickBooksService = quickBooksService ?? throw new ArgumentNullException(nameof(quickBooksService));  // Inject QuickBooksService
             _logger = logger ?? throw new ArgumentNullException(nameof(logger));
         }
 
@@ -158,7 +160,8 @@ namespace HinduTempleofTriStates.Controllers
                     _context.GeneralLedgerEntries.Add(ledgerEntry);
                     _context.CashTransactions.Add(cashTransaction);
                     await _context.SaveChangesAsync();
-
+                    // Sync donation with QuickBooks
+                    await _quickBooksService.SyncDonationToQuickBooksAsync(donation);
                     return RedirectToAction(nameof(Index));
                 }
                 catch (Exception ex)
@@ -483,6 +486,21 @@ namespace HinduTempleofTriStates.Controllers
                 _context.Donations.Remove(donation);
                 await _context.SaveChangesAsync();
             }
+
+            return RedirectToAction(nameof(Index));
+        }
+        [HttpPost]
+        [Route("SyncDonation/{id}")]
+        public async Task<IActionResult> SyncDonation(Guid id)
+        {
+            var donation = await _context.Donations.FindAsync(id);
+            if (donation == null)
+            {
+                return NotFound();
+            }
+
+            // Call the sync method from QuickBooksService
+            await _quickBooksService.SyncDonationToQuickBooksAsync(donation);
 
             return RedirectToAction(nameof(Index));
         }

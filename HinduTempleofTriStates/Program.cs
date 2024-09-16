@@ -49,6 +49,8 @@ internal class Program
         builder.Services.AddScoped<ISupplierRepository, SupplierRepository>();
         builder.Services.Configure<EmailSettings>(builder.Configuration.GetSection("EmailSettings"));
         builder.Services.AddTransient<EmailService>();
+        builder.Services.AddScoped<QuickBooksService>();  // Add QuickBooksService to DI
+        builder.Services.AddScoped<OAuthService>();
 
         // Role Management
         builder.Services.AddScoped<RoleService>();
