@@ -47,8 +47,11 @@ namespace HinduTempleofTriStates.Models
         // Navigation property
         public CashTransaction? CashTransaction { get; set; }
 
-        public virtual ICollection<CashTransaction>? CashTransactions { get; set; } 
-        public virtual ICollection<GeneralLedgerEntry>? GeneralLedgerEntries { get; set; }
-        public string? ReceiptNumber { get; internal set; }
+        public  ICollection<CashTransaction> CashTransactions { get; set; } = new List<CashTransaction>();
+        public  ICollection<GeneralLedgerEntry> GeneralLedgerEntries { get; set; } = new List<GeneralLedgerEntry>();
+        public string? ReceiptNumber { get; set; }
+        // Add the IsSynced property to track synchronization status
+        public bool IsSynced { get; set; } = false; // Default value is false
+
     }
 }

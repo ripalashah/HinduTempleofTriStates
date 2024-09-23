@@ -32,10 +32,12 @@ namespace HinduTempleofTriStates.Models
         public virtual LedgerAccount? LedgerAccount { get; set; }
 
         public Guid? DonationId { get; set; }
-        public virtual Donation? Donation { get; set; }
+        public Donation? Donation { get; set; }
         public Guid AccountId { get; internal set; }
         public TransactionType TransactionType { get; set; }
         public string? CreatedBy { get; internal set; }
         public DateTime CreatedAt { get; internal set; }
+
+        
     }
 }

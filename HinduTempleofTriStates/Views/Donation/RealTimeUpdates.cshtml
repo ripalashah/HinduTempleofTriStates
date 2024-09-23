@@ -1,0 +1,37 @@
+﻿@page
+@model IEnumerable<HinduTempleofTriStates.Models.Donation>
+
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta http-equiv="X-UA-Compatible" content="IE=edge">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Real-Time Donation Updates</title>
+</head>
+<body>
+    <h2>Real-Time Donation Updates</h2>
+
+    <div id="donationUpdates">
+        <p>Waiting for updates...</p>
+    </div>
+
+    <!-- Add SignalR script reference -->
+    <script src="~/lib/signalr/dist/browser/signalr.js"></script>
+    <script>
+        // Initialize a connection to the SignalR Hub
+        const connection = new signalR.HubConnectionBuilder()
+            .withUrl("/donationHub") // Make sure the URL matches your SignalR Hub
+            .build();
+
+        // Set up the client to receive updates
+        connection.on("ReceiveDonationUpdate", function (donationId, message) {
+            const updatesDiv = document.getElementById("donationUpdates");
+            updatesDiv.innerHTML = `<p>Donation ${donationId}: ${message}</p>`;
+        });
+
+        // Start the connection
+        connection.start().catch(err => console.error(err.toString()));
+    </script>
+</body>
+</html>

@@ -23,20 +23,20 @@ namespace HinduTempleofTriStates.Services
             var startDate = new DateTime(DateTime.Now.Year, 1, 1); // Start of the current year
             var endDate = DateTime.UtcNow; // Current date and time
 
-            // Fetch income (credit) and expense (debit) totals
-            var totalIncome = await _context.CashTransactions
-                .Where(t => t.TransactionType == TransactionType.Credit && t.Date >= startDate && t.Date <= endDate)
-                .SumAsync(t => t.Amount);
-
-            var totalExpense = await _context.CashTransactions
-                .Where(t => t.TransactionType == TransactionType.Debit && t.Date >= startDate && t.Date <= endDate)
-                .SumAsync(t => t.Amount);
-
-            // Fetch all transactions for the given period
+            // Fetch all transactions for the given period, ensuring each is only counted once.
             var transactions = await _context.CashTransactions
                 .Include(t => t.LedgerAccount) // Eagerly load related LedgerAccount
                 .Where(t => t.Date >= startDate && t.Date <= endDate)
                 .ToListAsync();
+
+            // Calculate income (credit) and expenses (debit) totals from the fetched transactions
+            var totalIncome = transactions
+                .Where(t => t.TransactionType == TransactionType.Credit)
+                .Sum(t => t.Amount);
+
+            var totalExpense = transactions
+                .Where(t => t.TransactionType == TransactionType.Debit)
+                .Sum(t => t.Amount);
 
             return new CashIncomeExpensesModel
             {
@@ -49,33 +49,33 @@ namespace HinduTempleofTriStates.Services
         // General Ledger Report
         public async Task<GeneralLedgerModel> GenerateGeneralLedgerAsync()
         {
-            var ledger = new GeneralLedgerModel
+            var ledgerEntries = await _context.LedgerAccounts
+                .Include(a => a.GeneralLedgerEntries) // Eagerly load related GeneralLedgerEntries
+                .Select(account => new GeneralLedgerEntryModel
+                {
+                    AccountName = account.AccountName,
+                    Debit = account.GeneralLedgerEntries != null
+                        ? account.GeneralLedgerEntries
+                            .Where(e => e.Debit > 0)
+                            .Sum(e => e.Debit)
+                        : 0,
+                    Credit = account.GeneralLedgerEntries != null
+                        ? account.GeneralLedgerEntries
+                            .Where(e => e.Credit > 0)
+                            .Sum(e => e.Credit)
+                        : 0
+                })
+                .ToListAsync();
+
+            var totalDebits = ledgerEntries.Sum(e => e.Debit);
+            var totalCredits = ledgerEntries.Sum(e => e.Credit);
+
+            return new GeneralLedgerModel
             {
-                // Map to the GeneralLedgerEntryModel ViewModel
-                LedgerEntries = await _context.LedgerAccounts
-                    .Include(a => a.GeneralLedgerEntries) // Eagerly load related GeneralLedgerEntries
-                    .Select(account => new GeneralLedgerEntryModel
-                    {
-                        AccountName = account.AccountName,
-                        Debit = account.GeneralLedgerEntries != null
-                            ? account.GeneralLedgerEntries
-                                .Where(e => e.Debit > 0)
-                                .Sum(e => e.Debit)
-                            : 0,
-                        Credit = account.GeneralLedgerEntries != null
-                            ? account.GeneralLedgerEntries
-                                .Where(e => e.Credit > 0)
-                                .Sum(e => e.Credit)
-                            : 0
-                    })
-                    .ToListAsync()
-
+                LedgerEntries = ledgerEntries,
+                TotalDebits = totalDebits,
+                TotalCredits = totalCredits
             };
-
-            ledger.TotalDebits = ledger.LedgerEntries.Sum(e => e.Debit);
-            ledger.TotalCredits = ledger.LedgerEntries.Sum(e => e.Credit);
-
-            return ledger;
         }
 
         // Profit and Loss Report
@@ -83,15 +83,16 @@ namespace HinduTempleofTriStates.Services
         {
             // Fetch the cash transactions between the startDate and endDate
             var transactions = await _context.CashTransactions
+                 .Include(t => t.LedgerAccount)
                 .Where(t => t.Date >= startDate && t.Date <= endDate)
+                .Distinct() // Ensure distinct transactions
                 .ToListAsync();
 
-            // Calculate total income (credits)
+            // Calculate total income (credits) and total expenses (debits)
             var totalIncome = transactions
                 .Where(t => t.TransactionType == TransactionType.Credit)
                 .Sum(t => t.Amount);
 
-            // Calculate total expenses (debits)
             var totalExpenses = transactions
                 .Where(t => t.TransactionType == TransactionType.Debit)
                 .Sum(t => t.Amount);
@@ -104,7 +105,6 @@ namespace HinduTempleofTriStates.Services
                 IsIncome = t.TransactionType == TransactionType.Credit // true for income (credit), false for expense (debit)
             }).ToList();
 
-            // Return the populated ProfitLossModel
             return new ProfitLossModel
             {
                 TotalIncome = totalIncome,
@@ -143,6 +143,5 @@ namespace HinduTempleofTriStates.Services
                 TrialBalanceAccounts = trialBalanceAccounts
             };
         }
-
     }
 }

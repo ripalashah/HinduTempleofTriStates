@@ -59,5 +59,7 @@ namespace HinduTempleofTriStates.Models
         public string CreatedBy { get; set; } = string.Empty;
         public string UpdatedBy { get; set; } = string.Empty;
         public bool IsDeleted { get; set; } = false; // Soft delete flag
+        
+
     }
 }

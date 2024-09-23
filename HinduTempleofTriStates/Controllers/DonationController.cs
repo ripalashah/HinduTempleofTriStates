@@ -20,16 +20,15 @@ namespace HinduTempleofTriStates.Controllers
         private readonly EmailService _emailService; // Inject email service
         private readonly ILogger<DonationController> _logger;
         private readonly LedgerService _ledgerService;
-        private readonly QuickBooksService _quickBooksService;
-
-        public DonationController(ApplicationDbContext context, LedgerService ledgerService, IDonationService donationService, EmailService emailService, QuickBooksService quickBooksService, ILogger<DonationController> logger)
+        private readonly QuickBooksService _quickBooksService; // Add this line
+        public DonationController(QuickBooksService quickBooksService, ApplicationDbContext context, LedgerService ledgerService, IDonationService donationService, EmailService emailService, ILogger<DonationController> logger)
         {
             _context = context ?? throw new ArgumentNullException(nameof(context));
             _ledgerService = ledgerService;
             _donationService = donationService ?? throw new ArgumentNullException(nameof(donationService));
             _emailService = emailService ?? throw new ArgumentNullException(nameof(emailService));
-            _quickBooksService = quickBooksService ?? throw new ArgumentNullException(nameof(quickBooksService));  // Inject QuickBooksService
             _logger = logger ?? throw new ArgumentNullException(nameof(logger));
+            _quickBooksService = quickBooksService ?? throw new ArgumentNullException(nameof(quickBooksService));
         }
 
         // List all donations
@@ -98,9 +97,7 @@ namespace HinduTempleofTriStates.Controllers
                 return View(new Donation());
             }
         }
-
-
-        // Handle the post request to create a new donation
+                
         // Handle the post request to create a new donation
         [HttpPost]
         [ValidateAntiForgeryToken]
@@ -127,7 +124,7 @@ namespace HinduTempleofTriStates.Controllers
 
                     // Save the Donation first
                     _context.Donations.Add(donation);
-                   
+
 
                     // Create corresponding GeneralLedgerEntry and CashTransaction
                     var ledgerEntry = new GeneralLedgerEntry
@@ -157,11 +154,10 @@ namespace HinduTempleofTriStates.Controllers
                     // Use LedgerService to update the balance
                     await _ledgerService.UpdateLedgerAccountBalanceAsync(donation.LedgerAccountId, donation.Amount, true);
                     // Add and save GeneralLedgerEntry and CashTransaction
-                    _context.GeneralLedgerEntries.Add(ledgerEntry);
-                    _context.CashTransactions.Add(cashTransaction);
+                    //_context.GeneralLedgerEntries.Add(ledgerEntry);
+                    //_context.CashTransactions.Add(cashTransaction);
                     await _context.SaveChangesAsync();
-                    // Sync donation with QuickBooks
-                    await _quickBooksService.SyncDonationToQuickBooksAsync(donation);
+
                     return RedirectToAction(nameof(Index));
                 }
                 catch (Exception ex)
@@ -489,22 +485,96 @@ namespace HinduTempleofTriStates.Controllers
 
             return RedirectToAction(nameof(Index));
         }
+        
         [HttpPost]
-        [Route("SyncDonation/{id}")]
+        [Route("SyncDonation/{id:guid}")]
         public async Task<IActionResult> SyncDonation(Guid id)
         {
+            _logger.LogInformation("Starting SyncDonation for Donation ID: {DonationId}", id);
             var donation = await _context.Donations.FindAsync(id);
+
             if (donation == null)
             {
-                return NotFound();
+                _logger.LogWarning("Donation not found with ID: {DonationId}", id);
+                return NotFound("Donation not found.");
             }
 
-            // Call the sync method from QuickBooksService
-            await _quickBooksService.SyncDonationToQuickBooksAsync(donation);
+            try
+            {
+                // Ensure that the donation hasn't been synced already
+                if (!donation.IsSynced) // Assume IsSynced is a bool property indicating sync status
+                {
+                    await foreach (var result in _quickBooksService.SyncDonationToQuickBooksAsync(donation))
+                    {
+                        _logger.LogInformation(result); // Log the results if necessary
+                    }
+                    donation.IsSynced = true; // Mark as synced to avoid resyncing
+                    await _context.SaveChangesAsync(); // Save changes to mark the sync
+                    _logger.LogInformation("Donation synced successfully.");
+                }
+                else
+                {
+                    _logger.LogInformation("Donation has already been synced.");
+                }
 
-            return RedirectToAction(nameof(Index));
+                _logger.LogInformation("Donation synced successfully.");
+                return RedirectToAction(nameof(Index));
+            }
+            catch (Exception ex)
+            {
+                _logger.LogError(ex, "Exception occurred during syncing donation.");
+                ModelState.AddModelError(string.Empty, "An unexpected error occurred. Please try again.");
+                return View(donation);
+            }
         }
 
+        // New endpoint to handle donations from handheld devices
+        [HttpPost("create-from-device")]
+        public async Task<IActionResult> CreateDonationFromDevice([FromBody] Donation donation, [FromQuery] string deviceName)
+        {
+            if (donation == null)
+            {
+                _logger.LogWarning("Received null donation data from device {DeviceName}.", deviceName);
+                return BadRequest("Donation data is required.");
+            }
+
+            try
+            {
+                // Process the donation using the DonationService
+                var result = await _donationService.AddDonationAsync(donation, true);
+
+                // Log success or handle further as required
+                _logger.LogInformation("Donation processed from device {DeviceName} successfully.", deviceName);
+
+                return Ok("Donation successfully processed from device.");
+            }
+            catch (Exception ex)
+            {
+                _logger.LogError(ex, "Error processing donation from device {DeviceName}.", deviceName);
+                return StatusCode(500, "Error processing donation.");
+            }
+        }
+        // Action to render the Booking Status page for Donations
+        [HttpGet]
+        [Route("donation/booking-status")]
+        public IActionResult BookingStatus()
+        {
+            var model = new BookingStatusModel
+            {
+                BookingId = Guid.NewGuid(),
+                StatusMessage = "Pending Confirmation",
+                LastUpdated = DateTime.UtcNow
+            };
+            return View(model); // Renders Views\Donation\BookingStatus.cshtml
+        }
+
+        // Action to render the Real-Time Updates page for Donations
+        [HttpGet]
+        [Route("donation/real-time-updates")]
+        public IActionResult RealTimeUpdates()
+        {
+            return View(); // Renders Views\Donation\RealTimeUpdates.cshtml
+        }
         // Helper method to check if a donation exists
         private async Task<bool> DonationExists(Guid id)
         {

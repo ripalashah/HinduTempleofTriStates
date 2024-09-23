@@ -2,7 +2,10 @@
 using Microsoft.AspNetCore.Identity;
 using Microsoft.AspNetCore.Identity.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore;
-using System;
+using HinduTempleofTriStates.Data;
+using Microsoft.EntityFrameworkCore.Design;
+using Microsoft.Extensions.Configuration;
+using System.IO;
 
 namespace HinduTempleofTriStates.Data
 {
@@ -12,7 +15,27 @@ namespace HinduTempleofTriStates.Data
             : base(options)
         {
         }
+        public class ApplicationDbContextFactory : IDesignTimeDbContextFactory<ApplicationDbContext>
+        {
+            public ApplicationDbContext CreateDbContext(string[] args)
+            {
+                // Load configuration from appsettings.json
+                IConfigurationRoot configuration = new ConfigurationBuilder()
+                    .SetBasePath(Directory.GetCurrentDirectory())
+                    .AddJsonFile("appsettings.json", optional: false, reloadOnChange: true)
+                    .Build();
 
+                // Create DbContext options builder with SQL Server provider
+                var optionsBuilder = new DbContextOptionsBuilder<ApplicationDbContext>();
+                var connectionString = configuration.GetConnectionString("DefaultConnection");
+
+                // Set the provider and connection string
+                optionsBuilder.UseSqlServer(connectionString);
+
+                // Return a new ApplicationDbContext with the options
+                return new ApplicationDbContext(optionsBuilder.Options);
+            }
+        }
         public DbSet<GeneralLedgerEntry> GeneralLedgerEntries { get; set; }
         public DbSet<LedgerAccount> LedgerAccounts { get; set; }
         public DbSet<Transaction> Transactions { get; set; }
@@ -23,7 +46,9 @@ namespace HinduTempleofTriStates.Data
         public DbSet<Product> Products { get; set; }
         public DbSet<StockTransaction> StockTransactions { get; set; }
         public DbSet<Supplier> Suppliers { get; set; }
-
+        public DbSet<OAuthToken> OAuthTokens { get; set; }
+        public DbSet<QuickBooksSettings> QuickBooksSettings { get; set; }
+        public DbSet<DeviceInteraction> DeviceInteractions { get; set; }
 
         protected override void OnModelCreating(ModelBuilder modelBuilder)
         {
@@ -41,6 +66,9 @@ namespace HinduTempleofTriStates.Data
                 .ToTable("Accounts")
                 .Property(a => a.Balance)
                 .HasColumnType("decimal(18,2)");
+           
+            modelBuilder.Entity<QuickBooksSettings>()
+                .HasNoKey();
 
             modelBuilder.Entity<LedgerAccount>()
                 .Property(l => l.Balance)
@@ -70,34 +98,28 @@ namespace HinduTempleofTriStates.Data
                 .Property(g => g.Debit)
                 .HasColumnType("decimal(18,2)");
 
-            // Configure relationships for GeneralLedgerEntry and LedgerAccount
-            modelBuilder.Entity<GeneralLedgerEntry>()
-                .HasOne(gl => gl.LedgerAccount)
-                .WithMany(l => l.GeneralLedgerEntries)
-                .HasForeignKey(gl => gl.LedgerAccountId);
+            // Explicitly configure Donation and CashTransaction relationship (One-to-Many)
+            modelBuilder.Entity<Donation>()
+                .HasMany(d => d.CashTransactions)
+                .WithOne(ct => ct.Donation)
+                .HasForeignKey(ct => ct.DonationId)
+                .HasPrincipalKey(d => d.Id)
+                .OnDelete(DeleteBehavior.Cascade);
+
+            // Ensure there are no conflicting properties in Donation or CashTransaction classes
 
             // Configure Donation and LedgerAccount relationship
             modelBuilder.Entity<Donation>()
                 .HasOne(d => d.LedgerAccount)
                 .WithMany(l => l.Donations)
                 .HasForeignKey(d => d.LedgerAccountId)
-                .OnDelete(DeleteBehavior.Restrict); // Restricting delete of LedgerAccount
+                .OnDelete(DeleteBehavior.Restrict);
 
-            // Configure Transaction and LedgerAccount relationship
-            modelBuilder.Entity<Transaction>()
-                .HasOne(t => t.LedgerAccount)
-                .WithMany(l => l.Transactions)
-                .HasForeignKey(t => t.LedgerAccountId)
-                .OnDelete(DeleteBehavior.Restrict)
-                .IsRequired(false); // Transactions may not always require a LedgerAccount
-
-            // Configure Donation and CashTransaction relationship (One-to-Many)
-            modelBuilder.Entity<Donation>()
-                .HasMany(d => d.CashTransactions)
-                .WithOne(ct => ct.Donation)
-                .HasForeignKey(ct => ct.DonationId)
-                .OnDelete(DeleteBehavior.Cascade)
-                .IsRequired(false); // Cash transactions can exist without being linked to a donation
+            // Configure GeneralLedgerEntry and LedgerAccount relationship
+            modelBuilder.Entity<GeneralLedgerEntry>()
+                .HasOne(gl => gl.LedgerAccount)
+                .WithMany(l => l.GeneralLedgerEntries)
+                .HasForeignKey(gl => gl.LedgerAccountId);
 
             // Configure Donation and GeneralLedgerEntry relationship
             modelBuilder.Entity<Donation>()
@@ -106,7 +128,15 @@ namespace HinduTempleofTriStates.Data
                 .HasForeignKey(gl => gl.DonationId)
                 .OnDelete(DeleteBehavior.Cascade);
 
-            // Configure GeneralLedgerEntry relationships
+            // Configure Transaction and LedgerAccount relationship
+            modelBuilder.Entity<Transaction>()
+                .HasOne(t => t.LedgerAccount)
+                .WithMany(l => l.Transactions)
+                .HasForeignKey(t => t.LedgerAccountId)
+                .OnDelete(DeleteBehavior.Restrict)
+                .IsRequired(false);
+
+            // Set primary key for GeneralLedgerEntry
             modelBuilder.Entity<GeneralLedgerEntry>()
                 .HasKey(g => g.Id);
 
@@ -128,7 +158,7 @@ namespace HinduTempleofTriStates.Data
                     CreatedBy = "System",
                     UpdatedBy = "System",
                     CreatedDate = DateTime.UtcNow,
-                    UpdatedDate = DateTime.UtcNow
+                    UpdatedDate = DateTime.UtcNow,                    
                 }
             );
 
@@ -157,8 +187,26 @@ namespace HinduTempleofTriStates.Data
                     City = "Anytown",
                     State = "Anystate",
                     Country = "Anycountry",
-                    LedgerAccountId = ledgerAccountId
+                    LedgerAccountId = ledgerAccountId                    
                 }
+            );
+            modelBuilder.Entity<QuickBooksSettings>(entity =>
+            {
+                entity.HasKey(e => e.Id); // Ensure that Id is marked as the primary key
+            });
+            modelBuilder.Entity<QuickBooksSettings>().HasData(
+            new QuickBooksSettings
+            {
+                Id = Guid.NewGuid(),
+                ClientId = "ABr6v2DHCpvpSWTW2cFS0xYCgypAWm4UpwDWt0Do64gHYztWf7",
+                ClientSecret = "lLWFt8xOc1MOW8Djv3hQCZwNF5DlI2BEM0JlZXG0",
+                RedirectUrl = "http://ripalashah.com/htts/callback",
+                Environment = "sandbox",
+                AuthUrl = "https://appcenter.intuit.com/connect/oauth2",
+                AccessTokenUrl = "https://oauth.platform.intuit.com/oauth2/v1/tokens/bearer",
+                BaseUrl = "https://sandbox-quickbooks.api.intuit.com/",
+                RealmId = "9341453104198392"
+            }
             );
 
             // Ensure soft deletion for LedgerAccount

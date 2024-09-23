@@ -35,8 +35,15 @@ namespace HinduTempleofTriStates.Repositories
         // Add a new donation
         public async Task AddDonationAsync(Donation donation)
         {
-            await _context.Donations.AddAsync(donation);
-            await _context.SaveChangesAsync();
+            // Check if a similar donation already exists to prevent duplicates
+            var existingDonation = await _context.Donations
+                                                 .FirstOrDefaultAsync(d => d.Id == donation.Id);
+
+            if (existingDonation == null)
+            {
+                await _context.Donations.AddAsync(donation);
+                await _context.SaveChangesAsync();
+            }
         }
 
         // Update an existing donation

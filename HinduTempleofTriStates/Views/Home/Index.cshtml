@@ -10,6 +10,15 @@
     <p class="lead">Efficiently manage temple operations, donations, funds, and reports.</p>
 
     <div class="row justify-content-center mt-5">
+        <!-- Handheld Integration Links -->
+        <div class="col-lg-3 col-md-4 col-sm-6 mb-4">
+            <a asp-controller="HandheldIntegration" asp-action="BookingStatus" class="btn btn-primary btn-block p-3">
+                Booking Status
+            </a>
+            <a asp-controller="HandheldIntegration" asp-action="RealTimeUpdates" class="btn btn-secondary btn-block p-3 mt-2">
+                Real-Time Updates
+            </a>
+        </div>
         <!-- Donations Links -->
         <div class="col-lg-3 col-md-4 col-sm-6 mb-4">
             <a asp-controller="Donation" asp-action="Index" class="btn btn-primary btn-block p-3">
@@ -21,6 +30,12 @@
                 </a>
                 <a asp-controller="Donation" asp-action="Reports" class="btn btn-outline-primary btn-sm btn-block">
                     Donation Reports
+                </a>
+                <a asp-controller="Donation" asp-action="BookingStatus" class="btn btn-outline-primary btn-sm btn-block">
+                    Booking Status
+                </a>
+                <a asp-controller="Donation" asp-action="RealTimeUpdates" class="btn btn-outline-primary btn-sm btn-block">
+                    Real-Time Updates
                 </a>
             </div>
         </div>

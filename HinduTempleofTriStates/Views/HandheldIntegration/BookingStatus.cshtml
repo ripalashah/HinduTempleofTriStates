@@ -1,0 +1,22 @@
+﻿@model HinduTempleofTriStates.Models.BookingStatusModel
+
+<h2>Booking Status</h2>
+<div id="status">
+    <p>Status: @Model.StatusMessage</p>
+    <p>Last Updated: @Model.LastUpdated</p>
+</div>
+
+<script src="~/lib/signalr/dist/browser/signalr.js"></script>
+<script>
+    const connection = new signalR.HubConnectionBuilder()
+        .withUrl("/bookingHub") // Ensure this matches your Hub URL
+        .build();
+
+    connection.on("ReceiveBookingUpdate", function (message) {
+        document.getElementById("status").innerHTML = message;
+    });
+
+    connection.start().catch(function (err) {
+        return console.error(err.toString());
+    });
+</script>

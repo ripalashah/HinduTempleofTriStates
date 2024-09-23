@@ -6,6 +6,8 @@ using Microsoft.Extensions.Logging;
 using HinduTempleofTriStates.Data;
 using HinduTempleofTriStates.Models;
 using HinduTempleofTriStates.Repositories;
+using static System.Runtime.InteropServices.JavaScript.JSType;
+using System.Diagnostics;
 
 namespace HinduTempleofTriStates.Services
 {
@@ -22,66 +24,120 @@ namespace HinduTempleofTriStates.Services
             _logger = logger ?? throw new ArgumentNullException(nameof(logger));
         }
 
-        // Method to update the ledger account balance
-        public async Task UpdateLedgerAccountBalanceAsync(Guid? ledgerAccountId, double amount, bool isAddition = true)
+        public async Task<bool> AddDonationAsync(Donation donation, bool isAddition)
         {
-            if (ledgerAccountId.HasValue)
+            // Validate the donation object
+            if (!ValidateDonation(donation))
             {
-                var ledgerAccount = await _context.LedgerAccounts.FindAsync(ledgerAccountId.Value);
-                if (ledgerAccount != null)
+                _logger.LogWarning("Donation validation failed.");
+                return false;
+            }
+
+            // Begin a database transaction
+            using (var transaction = await _context.Database.BeginTransactionAsync())
+            {
+                try
                 {
-                    ledgerAccount.Balance += isAddition ? Convert.ToDecimal(amount) : -Convert.ToDecimal(amount);
-                    _context.LedgerAccounts.Update(ledgerAccount);
+                    // Check if donation already exists within the transaction
+                    var existingDonation = await _context.Donations
+                        .OrderBy(d => d.Date) // Ensure consistent retrieval of the record
+                        .FirstOrDefaultAsync(d => d.Id == donation.Id);
+
+                    if (existingDonation == null)
+                    {
+                        // Add the donation to the context
+                        _context.Donations.Add(donation);
+                        _logger.LogInformation("New donation added: {DonationId}", donation.Id);
+                    }
+                    else
+                    {
+                        _logger.LogWarning("Duplicate donation detected: {DonationId}", donation.Id);
+                        return false; // Exit early to prevent further processing
+                    }
+
+                    // Check if a GeneralLedgerEntry with this DonationId already exists within the transaction
+                    var existingLedgerEntry = await _context.GeneralLedgerEntries
+                        .FirstOrDefaultAsync(le => le.DonationId == donation.Id);
+
+                    if (existingLedgerEntry == null)
+                    {
+                        // Create the GeneralLedgerEntry associated with the donation
+                        var ledgerEntry = new GeneralLedgerEntry
+                        {
+                            Id = Guid.NewGuid(),
+                            DonationId = donation.Id,
+                            Date = DateTime.UtcNow,
+                            Description = $"Donation entry from {donation.DonorName}",
+                            Debit = 0,
+                            Credit = (decimal)donation.Amount,
+                            LedgerAccountId = donation.LedgerAccountId ?? Guid.Empty,
+                        };
+
+                        // Add the ledger entry to the context
+                        _context.GeneralLedgerEntries.Add(ledgerEntry);
+                        _logger.LogInformation("New ledger entry added: {LedgerEntryId}", ledgerEntry.Id);
+                    }
+                    else
+                    {
+                        _logger.LogWarning("Duplicate ledger entry detected: {DonationId}", donation.Id);
+                    }
+
+                    // Optionally create a CashTransaction if needed and if it doesn't already exist
+                    if (isAddition)
+                    {
+                        var existingCashTransaction = await _context.CashTransactions
+                            .FirstOrDefaultAsync(ct => ct.DonationId == donation.Id);
+
+                        if (existingCashTransaction == null)
+                        {
+                            var cashTransaction = new CashTransaction
+                            {
+                                Id = Guid.NewGuid(),
+                                DonationId = donation.Id,
+                                Amount = (decimal)donation.Amount,
+                                Date = DateTime.UtcNow,
+                                Description = $"Donation from {donation.DonorName}",
+                                LedgerAccountId = donation.LedgerAccountId ?? Guid.Empty,
+                                TransactionType = TransactionType.Credit, // Ensure the donation is treated as a credit
+                            };
+
+                            // Add the cash transaction to the context
+                            _context.CashTransactions.Add(cashTransaction);
+                            _logger.LogInformation("New cash transaction added: {CashTransactionId}", cashTransaction.Id);
+                        }
+                        else
+                        {
+                            _logger.LogWarning("Duplicate cash transaction detected: {DonationId}", donation.Id);
+                        }
+                    }
+
+                    // Save all changes to the database
                     await _context.SaveChangesAsync();
 
-                    _logger.LogInformation("Ledger account {LedgerAccountId} balance updated by {Amount}.", ledgerAccountId, amount);
+                    // Commit the transaction
+                    await transaction.CommitAsync();
+
+                    _logger.LogInformation("Donation and related entities were added successfully.");
+                    return true;
                 }
-                else
+                catch (Exception ex)
                 {
-                    _logger.LogWarning("LedgerAccount with ID {LedgerAccountId} not found.", ledgerAccountId.Value);
+                    // Rollback the transaction in case of an error
+                    await transaction.RollbackAsync();
+                    _logger.LogError(ex, "Error creating donation and related entities");
+                    return false;
                 }
-            }
-            else
-            {
-                _logger.LogWarning("LedgerAccountId is null.");
             }
         }
 
-        // Method to add a general ledger entry for a donation
-        public async Task AddGeneralLedgerEntryForDonationAsync(Donation donation, bool isAddition = true)
+
+
+        // Check if a cash transaction already exists for a donation to prevent duplicates
+        private async Task<bool> CashTransactionExistsForDonation(Guid donationId)
         {
-            var ledgerAccount = await _context.LedgerAccounts.FindAsync(donation.LedgerAccountId);
-            if (ledgerAccount == null)
-            {
-                throw new InvalidOperationException("LedgerAccount cannot be null.");
-            }
-
-            if (donation.LedgerAccountId != Guid.Empty)
-            {
-                if (!donation.LedgerAccountId.HasValue)
-                {
-                    // Handle the null case, for example, throw an exception or return an error
-                    throw new InvalidOperationException("LedgerAccountId cannot be null when creating a GeneralLedgerEntry.");
-                }
-                var ledgerEntry = new GeneralLedgerEntry
-                {
-                    Id = Guid.NewGuid(),
-                    LedgerAccountId = donation.LedgerAccountId.Value,
-                    Date = donation.Date,
-                    Description = $"Donation from {donation.DonorName}",
-                    Credit = isAddition ? Convert.ToDecimal(donation.Amount) : 0,
-                    Debit = isAddition ? 0 : Convert.ToDecimal(donation.Amount),
-                    LedgerAccount = ledgerAccount
-                };
-
-                _context.GeneralLedgerEntries.Add(ledgerEntry);
-                await _context.SaveChangesAsync();
-            }
-            else
-            {
-                throw new Exception("LedgerAccountId is required.");
-            }
+            return await _context.CashTransactions.AnyAsync(ct => ct.DonationId == donationId);
         }
+
 
         // Method to add a cash transaction for a donation
         public async Task AddCashTransactionForDonationAsync(Donation donation, bool isAddition)
@@ -114,74 +170,114 @@ namespace HinduTempleofTriStates.Services
             }
         }
 
-        // Method to add a donation with related entries (transaction and ledger)
-        public async Task<bool> AddDonationAsync(Donation donation)
+        // Method to add a general ledger entry for a donation
+        // Method to add a general ledger entry for a donation
+        public async Task AddGeneralLedgerEntryForDonationAsync(Donation donation, bool isAddition = true)
         {
-            // Call the overloaded version with a default value for isAddition (e.g., true)
-            return await AddDonationAsync(donation, true);
-        }
-
-        public async Task<bool> AddDonationAsync(Donation donation, bool isAddition)
-        {
-            if (ValidateDonation(donation))
+            if (!donation.LedgerAccountId.HasValue)
             {
-                using (var transaction = await _context.Database.BeginTransactionAsync()) // Begin transaction for atomicity
-                {
-                    try
-                    {
-                        // Add donation to the database
-                        await _donationRepository.AddDonationAsync(donation);
-
-                        // Create a new Transaction for the donation
-                        var accountId = donation.LedgerAccountId;
-                        var cashTransaction = new CashTransaction
-                        {
-                            Id = Guid.NewGuid(),
-                            DonationId = donation.Id,
-                            LedgerAccountId = donation.LedgerAccountId ?? Guid.Empty,
-                            AccountId = accountId ?? Guid.Empty,
-                            Amount = (decimal)donation.Amount,
-                            Date = DateTime.UtcNow,
-                            Description = $"Donation by {donation.DonorName}",
-                            TransactionType = isAddition ? TransactionType.Credit : TransactionType.Debit, // Use isAddition here
-                            CreatedBy = "System",
-                            CreatedAt = DateTime.UtcNow
-                        };
-
-                        // Add the transaction to the database
-                        _context.CashTransactions.Add(cashTransaction);
-                        await _context.SaveChangesAsync();
-
-                        // Add to General Ledger Entry
-                        await AddGeneralLedgerEntryForDonationAsync(donation, isAddition);
-
-                        // Update the Cash Transaction
-                        await AddCashTransactionForDonationAsync(donation, isAddition);
-
-                        // Commit transaction to ensure all changes are saved
-                        await transaction.CommitAsync();
-
-                        return true;
-                    }
-                    catch (Exception ex)
-                    {
-                        _logger.LogError(ex, "Error adding donation");
-                        await transaction.RollbackAsync(); // Rollback on failure
-                    }
-                }
+                _logger.LogWarning("Donation's LedgerAccountId is null. Unable to create a General Ledger Entry.");
+                throw new InvalidOperationException("LedgerAccountId cannot be null when creating a GeneralLedgerEntry.");
             }
 
-            return false;
+            var ledgerAccount = await _context.LedgerAccounts.FindAsync(donation.LedgerAccountId.Value);
+            if (ledgerAccount == null)
+            {
+                _logger.LogWarning("LedgerAccount with ID {LedgerAccountId} not found.", donation.LedgerAccountId.Value);
+                throw new InvalidOperationException("LedgerAccount cannot be null.");
+            }
+
+            var ledgerEntry = new GeneralLedgerEntry
+            {
+                Id = Guid.NewGuid(),
+                LedgerAccountId = donation.LedgerAccountId.Value,
+                Date = donation.Date,
+                Description = $"Donation from {donation.DonorName}",
+                Credit = isAddition ? Convert.ToDecimal(donation.Amount) : 0,
+                Debit = isAddition ? 0 : Convert.ToDecimal(donation.Amount),
+                LedgerAccount = ledgerAccount
+            };
+
+            _context.GeneralLedgerEntries.Add(ledgerEntry);
+            await _context.SaveChangesAsync();
+
+            _logger.LogInformation("General ledger entry created for donation with ID {DonationId}", donation.Id);
         }
 
+        // Method to update the ledger account balance
+        public async Task UpdateLedgerAccountBalanceAsync(Guid? ledgerAccountId, double amount, bool isAddition = true)
+        {
+            if (ledgerAccountId.HasValue)
+            {
+                var ledgerAccount = await _context.LedgerAccounts.FindAsync(ledgerAccountId.Value);
+                if (ledgerAccount != null)
+                {
+                    ledgerAccount.Balance += isAddition ? Convert.ToDecimal(amount) : -Convert.ToDecimal(amount);
+                    _context.LedgerAccounts.Update(ledgerAccount);
+                    await _context.SaveChangesAsync();
+
+                    _logger.LogInformation("Ledger account {LedgerAccountId} balance updated by {Amount}.", ledgerAccountId, amount);
+                }
+                else
+                {
+                    _logger.LogWarning("LedgerAccount with ID {LedgerAccountId} not found.", ledgerAccountId.Value);
+                }
+            }
+            else
+            {
+                _logger.LogWarning("LedgerAccountId is null.");
+            }
+        }
+
+        // Method to validate donation data
+        private bool ValidateDonation(Donation donation)
+        {
+            if (donation == null ||
+                string.IsNullOrWhiteSpace(donation.DonorName) ||
+                donation.Amount <= 0 ||
+                donation.Date == DateTime.MinValue ||
+                donation.LedgerAccountId == Guid.Empty)
+            {
+                _logger.LogWarning("Invalid donation data: {DonationData}", donation);
+                return false;
+            }
+
+            return true;
+        }
+
+        // Additional methods for CRUD operations
         public async Task<IEnumerable<Donation>> GetDonationsByLedgerAccountIdAsync(Guid ledgerAccountId)
         {
             return await _context.Donations
-                .Where(d => d.LedgerAccountId == ledgerAccountId && !d.IsDeleted) // Assuming IsDeleted is a soft-delete mechanism
+                .Where(d => d.LedgerAccountId == ledgerAccountId && !d.IsDeleted)
                 .ToListAsync();
         }
 
-        // Method to delete a donation and associated ledger and cash entries
+        public async Task<Donation?> GetDonationByIdAsync(Guid id)
+        {
+            return await _context.Donations.FindAsync(id);
+        }
+
+        public async Task<List<Donation>> GetDonationsAsync()
+        {
+            return await _context.Donations.ToListAsync();
+        }
+
+        public async Task<bool> UpdateDonationAsync(Donation donation)
+        {
+            try
+            {
+                _context.Donations.Update(donation);
+                await _context.SaveChangesAsync();
+                return true;
+            }
+            catch (Exception ex)
+            {
+                _logger.LogError(ex, "Error updating donation.");
+                return false;
+            }
+        }
+
         public async Task<bool> DeleteDonationAsync(Guid id)
         {
             using (var transaction = await _context.Database.BeginTransactionAsync())
@@ -226,49 +322,6 @@ namespace HinduTempleofTriStates.Services
                     return false;
                 }
             }
-        }
-
-        // Method to get donations
-        public async Task<List<Donation>> GetDonationsAsync()
-        {
-            return await _context.Donations.ToListAsync();
-        }
-
-        public async Task<Donation?> GetDonationByIdAsync(Guid id)
-        {
-            return await _context.Donations.FindAsync(id);
-        }
-
-        // Method to update a donation
-        public async Task<bool> UpdateDonationAsync(Donation donation)
-        {
-            try
-            {
-                _context.Donations.Update(donation);
-                await _context.SaveChangesAsync();
-                return true;
-            }
-            catch (Exception ex)
-            {
-                _logger.LogError(ex, "Error updating donation.");
-                return false;
-            }
-        }
-
-        // Validation for donation
-        private bool ValidateDonation(Donation donation)
-        {
-            if (donation == null ||
-                string.IsNullOrWhiteSpace(donation.DonorName) ||
-                donation.Amount <= 0 ||
-                donation.Date == DateTime.MinValue ||
-                donation.LedgerAccountId == Guid.Empty)
-            {
-                _logger.LogWarning("Invalid donation data: {DonationData}", donation);
-                return false;
-            }
-
-            return true;
         }
     }
 }

@@ -8,17 +8,19 @@ using HinduTempleofTriStates.Data;
 using HinduTempleofTriStates.Repositories;
 using HinduTempleofTriStates.Services;
 using Microsoft.AspNetCore.Identity.UI;
+using HinduTempleofTriStates.Hubs;
 
 internal class Program
 {
     private static async Task Main(string[] args)
     {
         var builder = WebApplication.CreateBuilder(args);
+        
 
         // Add services to the container for MVC, Razor Pages, and logging
         builder.Services.AddControllersWithViews();
         builder.Services.AddRazorPages();
-
+        
         // Configure logging
         builder.Logging.ClearProviders();
         builder.Logging.AddConsole();
@@ -39,18 +41,17 @@ internal class Program
         builder.Services.AddScoped<IFundRepository, FundRepository>();
         builder.Services.AddScoped<ICashTransactionRepository, CashTransactionRepository>();
         builder.Services.AddScoped<IFinancialReportService, FinancialReportService>();
-        // Register IInventoryService with its implementation
         builder.Services.AddScoped<IInventoryService, InventoryService>();
-        // Register IInventoryRepository with its implementation (e.g., InventoryRepository)
         builder.Services.AddScoped<IInventoryRepository, InventoryRepository>();
-        // Register ISupplierService and SupplierService
         builder.Services.AddScoped<ISupplierService, SupplierService>();
-        // Register ISupplierRepository and SupplierRepository
         builder.Services.AddScoped<ISupplierRepository, SupplierRepository>();
         builder.Services.Configure<EmailSettings>(builder.Configuration.GetSection("EmailSettings"));
         builder.Services.AddTransient<EmailService>();
-        builder.Services.AddScoped<QuickBooksService>();  // Add QuickBooksService to DI
+        builder.Services.AddScoped<QuickBooksService>(); // Add QuickBooksService to DI
         builder.Services.AddScoped<OAuthService>();
+        builder.Services.Configure<QuickBooksSettings>(builder.Configuration.GetSection("QuickBooks"));
+        builder.Services.AddSession(); // Add this line in the service configuration section
+        builder.Services.AddSignalR();
 
         // Role Management
         builder.Services.AddScoped<RoleService>();
@@ -64,10 +65,10 @@ internal class Program
             options.UseSqlServer(connectionString)
                    .LogTo(Console.WriteLine, LogLevel.Information)); // Log SQL queries for debugging
 
-
         // Register DonationService after ApplicationDbContext
         builder.Services.AddScoped<IDonationService, DonationService>();
-        
+        // Register QuickBooksSettingsService as a scoped service
+        builder.Services.AddScoped<QuickBooksSettingsService>();
         // Add Identity for user authentication and role management
         builder.Services.AddIdentity<IdentityUser, IdentityRole>(options =>
         {
@@ -79,9 +80,10 @@ internal class Program
             options.Password.RequiredLength = 8;
             options.Password.RequiredUniqueChars = 1;
         })
-            .AddEntityFrameworkStores<ApplicationDbContext>()
-            .AddDefaultTokenProviders()
-            .AddDefaultUI();
+        .AddEntityFrameworkStores<ApplicationDbContext>()
+        .AddDefaultTokenProviders()
+        .AddDefaultUI();
+
         // Configure application cookies for login and access control
         builder.Services.ConfigureApplicationCookie(options =>
         {
@@ -94,6 +96,7 @@ internal class Program
             options.Cookie.SameSite = SameSiteMode.Strict; // Strict SameSite policy
             options.Cookie.Name = "YourAppAuthCookie"; // Customize the cookie name if needed
         });
+
         // Authorization policies to restrict access based on roles
         builder.Services.AddAuthorization(options =>
         {
@@ -102,17 +105,17 @@ internal class Program
             options.AddPolicy("RequireCounterRole", policy => policy.RequireRole("Counter"));
             options.AddPolicy("AdminOnly", policy => policy.RequireRole("Admin"));
         });
-
-        // Configure application cookies for login and access control
-        builder.Services.ConfigureApplicationCookie(options =>
+        // Add session services
+        builder.Services.AddDistributedMemoryCache(); // Required for session state
+        builder.Services.AddSession(options =>
         {
-            options.LoginPath = "/Account/Login"; // Redirect to the login page when not authenticated
-            options.AccessDeniedPath = "/Account/AccessDenied"; // Redirect to access denied page when unauthorized
+            options.IdleTimeout = TimeSpan.FromMinutes(30); // Set the session timeout
+            options.Cookie.HttpOnly = true; // Make the session cookie HTTP-only
+            options.Cookie.IsEssential = true; // Make the session cookie essential
         });
-
         // Build the application
-        var app = builder.Build();
 
+        var app = builder.Build();
         // Configure the HTTP request pipeline
         if (!app.Environment.IsDevelopment())
         {
@@ -139,7 +142,8 @@ internal class Program
         app.UseRouting();
         app.UseAuthentication();
         app.UseAuthorization();
-
+        // Use session middleware
+        app.UseSession();
         // Configure cookie policy for security
         app.UseCookiePolicy(new CookiePolicyOptions
         {
@@ -154,6 +158,10 @@ internal class Program
             context.Response.Headers.Append("X-Frame-Options", "DENY");
             await next();
         });
+        app.UsePathBase("/htts");
+
+        app.MapHub<BookingHub>("/bookingHub"); // Map the BookingHub to this route
+        app.MapHub<DonationHub>("/donationHub");  // Map the DonationHub to its route
 
         // Default MVC route
         app.MapControllerRoute(
@@ -163,9 +171,8 @@ internal class Program
         // This is optional, but helpful to define the Admin area specifically.
         app.MapControllerRoute(
             name: "admin",
-            pattern: "{controller=Admin}/{action=ManageUsers}/{id?}"
-        );
-
+            pattern: "{controller=Admin}/{action=ManageUsers}/{id?}");
+        
         // Map Razor Pages routes
         app.MapRazorPages();
 
@@ -175,8 +182,9 @@ internal class Program
             var services = scope.ServiceProvider;
             try
             {
+                var userManager = services.GetRequiredService<UserManager<IdentityUser>>();
                 var roleManager = services.GetRequiredService<RoleManager<IdentityRole>>();
-                await RoleInitializer.Initialize(roleManager); // Ensure roles are seeded
+                await RoleInitializer.Initialize(roleManager, userManager); // Ensure roles and admin user are seeded
             }
             catch (Exception ex)
             {
@@ -190,9 +198,10 @@ internal class Program
     }
 }
 
+// Class to initialize roles and the default admin user
 public static class RoleInitializer
 {
-    public static async Task Initialize(RoleManager<IdentityRole> roleManager)
+    public static async Task Initialize(RoleManager<IdentityRole> roleManager, UserManager<IdentityUser> userManager)
     {
         string[] roleNames = { "Admin", "Accountant", "Counter" };
 
@@ -201,6 +210,27 @@ public static class RoleInitializer
             if (!await roleManager.RoleExistsAsync(roleName))
             {
                 await roleManager.CreateAsync(new IdentityRole(roleName));
+            }
+        }
+
+        // Seed default admin user
+        var adminEmail = "admin@temple.com";
+        var adminUser = await userManager.FindByEmailAsync(adminEmail);
+
+        if (adminUser == null)
+        {
+            var newAdmin = new IdentityUser
+            {
+                UserName = adminEmail,
+                Email = adminEmail,
+                EmailConfirmed = true
+            };
+
+            var result = await userManager.CreateAsync(newAdmin, "Admin@12345"); // Set a secure password
+
+            if (result.Succeeded)
+            {
+                await userManager.AddToRoleAsync(newAdmin, "Admin");
             }
         }
     }

@@ -1,19 +1,15 @@
 ﻿using Microsoft.AspNetCore.Mvc;
-using Intuit.Ipp.OAuth2PlatformClient;
-using System;
-using System.Security.Claims;
-using System.Threading.Tasks;
-using System.Web;
-using System.Configuration;
-using System.Net;
+using HinduTempleofTriStates.Services;
+using Intuit.Ipp.Security;
 using Intuit.Ipp.Core;
 using Intuit.Ipp.Data;
 using Intuit.Ipp.QueryFilter;
-using Intuit.Ipp.Security;
-using System.Linq;
 using Newtonsoft.Json;
-using System.Collections.Generic;
-using HinduTempleofTriStates.Services;
+using static QuickBooksService;
+using Microsoft.AspNetCore.Http;
+using System.Threading.Tasks;
+using Microsoft.EntityFrameworkCore;
+using HinduTempleofTriStates.Data;
 
 [Route("quickbooks")]
 public class QuickBooksController : Controller
@@ -22,48 +18,67 @@ public class QuickBooksController : Controller
     private readonly QuickBooksService _quickBooksService;
     private readonly IDonationService _donationService;
     private readonly LedgerService _ledgerService;
-    public QuickBooksController(QuickBooksService quickBooksService, IDonationService donationService, OAuthService oauthService, LedgerService ledgerService)
+    private readonly ILogger<QuickBooksController> _logger;
+    private readonly IHttpContextAccessor _httpContextAccessor;
+    private readonly ApplicationDbContext _context;
+
+    public QuickBooksController(ApplicationDbContext context, QuickBooksService quickBooksService, IDonationService donationService, OAuthService oauthService, LedgerService ledgerService, ILogger<QuickBooksController> logger, IHttpContextAccessor httpContextAccessor)
     {
         _oauthService = oauthService;
         _quickBooksService = quickBooksService;
         _donationService = donationService;
         _ledgerService = ledgerService ?? throw new ArgumentNullException(nameof(ledgerService)); // Inject LedgerService
+        _logger = logger;  // Initialize ILogger here
+        _httpContextAccessor = httpContextAccessor;  // Assign the injected IHttpContextAccessor
+        _context = context ?? throw new ArgumentNullException(nameof(context));
     }
 
     [HttpGet("connect")]
     public IActionResult Connect()
     {
-        string authorizationUrl = _oauthService.GetAuthorizationUrl();
-        return Redirect(authorizationUrl);
+        // Directly use the IActionResult returned by the StartQuickBooksOAuth method
+        return _oauthService.StartQuickBooksOAuth();
     }
+
 
     [HttpGet("callback")]
-    public async Task<IActionResult> Callback(string AB117264579782W1kQnf2kf8EOdnUZZ1LSzGvTVpPNreXjAMCg)
+    public async Task<IActionResult> Callback(string state, string code, string realmId)
     {
-        if (!string.IsNullOrEmpty(AB117264579782W1kQnf2kf8EOdnUZZ1LSzGvTVpPNreXjAMCg))
+        // Verify that the state matches what was stored in the session
+        var storedState = _httpContextAccessor.HttpContext?.Session.GetString("oauthState");
+        if (storedState != state)
         {
-            var tokens = await _oauthService.GetTokensAsync(AB117264579782W1kQnf2kf8EOdnUZZ1LSzGvTVpPNreXjAMCg);
-            // Save tokens in database for future use
-            return RedirectToAction("QuickBooksSuccess");
-        }
-        return BadRequest("Failed to authenticate with QuickBooks.");
-    }
-    // Manually trigger donation sync to QuickBooks
-    [HttpPost("sync-donation/{id}")]
-    public async Task<IActionResult> SyncDonation(Guid id)
-    {
-        var donation = await _donationService.GetDonationByIdAsync(id);
-        if (donation == null)
-        {
-            return NotFound();
+            _logger.LogError("State mismatch. Potential CSRF attack.");
+            return BadRequest("State validation failed.");
         }
 
-        await _quickBooksService.SyncDonationToQuickBooksAsync(donation);
+        // Ensure realmId is available
+        if (string.IsNullOrEmpty(realmId))
+        {
+            _logger.LogError("Realm ID is missing from the callback.");
+            return BadRequest("Realm ID is missing.");
+        }
 
-        return Ok("Donation synced to QuickBooks successfully.");
+        try
+        {
+            // Exchange the authorization code for tokens
+            var tokens = await _oauthService.ExchangeAuthorizationCodeForTokens(code, realmId);
+            if (tokens == null)
+            {
+                _logger.LogError("Failed to exchange authorization code for tokens.");
+                return StatusCode(500, "Error retrieving tokens from QuickBooks.");
+            }
+
+            // Store the tokens and proceed with your application logic
+            return RedirectToAction("QuickBooksSuccess"); // Or any other relevant action
+        }
+        catch (Exception ex)
+        {
+            _logger.LogError(ex, "Error during QuickBooks authorization callback.");
+            return StatusCode(500, "Error processing QuickBooks callback.");
+        }
     }
-
-    // Manually trigger ledger account sync to QuickBooks
+    
     [HttpPost("sync-ledger/{id}")]
     public async Task<IActionResult> SyncLedger(Guid id)
     {
@@ -77,8 +92,5 @@ public class QuickBooksController : Controller
 
         return Ok("Ledger account synced to QuickBooks successfully.");
     }
-    public IActionResult QuickBooksSuccess()
-    {
-        return View();
-    }
 }
+

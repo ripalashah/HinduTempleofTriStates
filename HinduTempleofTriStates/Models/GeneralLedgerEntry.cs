@@ -20,6 +20,7 @@ namespace HinduTempleofTriStates.Models
         public decimal Credit { get; set; } // Credit amount
 
         public decimal Balance => Credit - Debit; // Computed property to calculate balance
+                
     }
 
     // Class representing each entry in the general ledger report
