@@ -7,9 +7,8 @@ using System.Threading.Tasks;
 
 namespace HinduTempleofTriStates.Controllers
 {
-    [Route("api/device")]
-    [ApiController]
-    public class DeviceIntegrationController : Controller 
+    [Route("HandheldIntegration")]
+    public class DeviceIntegrationController : Controller
     {
         private readonly IDeviceIntegrationService _deviceIntegrationService;
         private readonly ILogger<DeviceIntegrationController> _logger;
@@ -49,17 +48,19 @@ namespace HinduTempleofTriStates.Controllers
             var interactions = await _deviceIntegrationService.GetAllInteractionsAsync();
             return Ok(interactions);
         }
-        // Action to render the Booking Status page for Handheld Integration
-        [HttpGet]
-        public IActionResult RealTimeUpdates()
-        {
-            return View(); // Renders the view named RealTimeUpdates.cshtml
-        }
 
-        [HttpGet]
+        // Action to render the Booking Status page
+        [HttpGet("BookingStatus")]
         public IActionResult BookingStatus()
         {
-            return View(); // Renders the view named BookingStatus.cshtml
+            return View("~/Views/HandheldIntegration/BookingStatus.cshtml"); // Ensure view file exists in Views\HandheldIntegration
+        }
+
+        // Action to render the Real-Time Updates page
+        [HttpGet("RealTimeUpdates")]
+        public IActionResult RealTimeUpdates()
+        {
+            return View("~/Views/HandheldIntegration/RealTimeUpdates.cshtml"); // Ensure view file exists in Views\HandheldIntegration
         }
     }
 }

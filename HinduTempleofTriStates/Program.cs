@@ -52,6 +52,8 @@ internal class Program
         builder.Services.Configure<QuickBooksSettings>(builder.Configuration.GetSection("QuickBooks"));
         builder.Services.AddSession(); // Add this line in the service configuration section
         builder.Services.AddSignalR();
+        builder.Services.AddScoped<IDeviceIntegrationService, DeviceIntegrationService>();
+        builder.Services.AddScoped<IDeviceInteractionRepository, DeviceInteractionRepository>(); // Register the repository
 
         // Role Management
         builder.Services.AddScoped<RoleService>();

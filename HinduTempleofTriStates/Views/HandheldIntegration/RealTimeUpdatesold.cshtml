@@ -1,0 +1,33 @@
+﻿@page "/handheld/real-time-updates"
+
+<h2>Real-Time Updates</h2>
+
+<div id="updates">
+    <p>Waiting for updates...</p>
+</div>
+
+<!-- Ensure the path to SignalR script is correct -->
+<script src="~/lib/microsoft/signalr/dist/browser/signalr.js"></script>
+
+<script>
+    // Establish a connection to the SignalR Hub for real-time updates
+    const connection = new signalR.HubConnectionBuilder()
+        .withUrl("/donationHub") // Ensure this URL matches your configured Hub route
+        .withAutomaticReconnect() // Optional: Adds automatic reconnection
+        .build();
+
+    // Listener for receiving donation updates
+    connection.on("ReceiveDonationUpdate", function (donationId, status) {
+        // Display received updates in the updates div
+        const updatesDiv = document.getElementById("updates");
+        const updateMessage = `<p>Donation ${donationId}: ${status}</p>`;
+        
+        // Append new update instead of replacing to keep the update history
+        updatesDiv.innerHTML += updateMessage;
+    });
+
+    // Start the SignalR connection and handle errors
+    connection.start()
+        .then(() => console.log("Connection to Donation Hub established."))
+        .catch(err => console.error("Error establishing connection: ", err.toString()));
+</script>
