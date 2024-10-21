@@ -10,16 +10,27 @@ Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "Solution Items", "Solution 
 		.editorconfig = .editorconfig
 	EndProjectSection
 EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "HinduTempleofTriStates.Tests", "HinduTempleofTriStates.Tests\HinduTempleofTriStates.Tests.csproj", "{08F4A1A5-F4C7-4388-A1AE-6D999733A1EA}"
+EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
 		Debug|Any CPU = Debug|Any CPU
 		Release|Any CPU = Release|Any CPU
+		x64|Any CPU = x64|Any CPU
 	EndGlobalSection
 	GlobalSection(ProjectConfigurationPlatforms) = postSolution
 		{A81615D0-166D-40EA-AF75-C41953838CD3}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
 		{A81615D0-166D-40EA-AF75-C41953838CD3}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{A81615D0-166D-40EA-AF75-C41953838CD3}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{A81615D0-166D-40EA-AF75-C41953838CD3}.Release|Any CPU.Build.0 = Release|Any CPU
+		{A81615D0-166D-40EA-AF75-C41953838CD3}.x64|Any CPU.ActiveCfg = x64|Any CPU
+		{A81615D0-166D-40EA-AF75-C41953838CD3}.x64|Any CPU.Build.0 = x64|Any CPU
+		{08F4A1A5-F4C7-4388-A1AE-6D999733A1EA}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{08F4A1A5-F4C7-4388-A1AE-6D999733A1EA}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{08F4A1A5-F4C7-4388-A1AE-6D999733A1EA}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{08F4A1A5-F4C7-4388-A1AE-6D999733A1EA}.Release|Any CPU.Build.0 = Release|Any CPU
+		{08F4A1A5-F4C7-4388-A1AE-6D999733A1EA}.x64|Any CPU.ActiveCfg = x64|Any CPU
+		{08F4A1A5-F4C7-4388-A1AE-6D999733A1EA}.x64|Any CPU.Build.0 = x64|Any CPU
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE

@@ -21,6 +21,55 @@ public class QuickBooksService
         _oauthService = oauthService;
         _logger = logger;
     }
+    public async Task<string> CreateQuickBooksInvoiceAsync(Donation donation)
+    {
+        var storedTokens = await _oauthService.GetStoredTokensAsync();
+        if (storedTokens == null || string.IsNullOrEmpty(storedTokens.AccessToken))
+        {
+            throw new InvalidOperationException("Access token is missing or invalid.");
+        }
+
+        var oauthValidator = new OAuth2RequestValidator(storedTokens.AccessToken);
+        var serviceContext = new ServiceContext(storedTokens.RealmId, IntuitServicesType.QBO, oauthValidator);
+        var dataService = new DataService(serviceContext);
+
+        var invoice = new Invoice
+        {
+            DocNumber = donation.ReceiptNumber,
+            TxnDate = donation.Date,
+            DueDate = donation.Date.AddDays(30), // Set due date based on payment terms
+            PrivateNote = $"Donation from {donation.DonorName} - {donation.DonationCategory}",
+            Line = new List<Line>
+        {
+            new Line
+            {
+                Amount = (decimal)donation.Amount,
+                DetailType = LineDetailTypeEnum.SalesItemLineDetail,
+                Description = donation.DonationType,
+                AnyIntuitObject = new SalesItemLineDetail
+                {
+                    ItemRef = new ReferenceType { Value = "1" }, // Replace with actual item reference
+                    Qty = 1,
+                    AnyIntuitObject = (decimal)donation.Amount,
+                    ItemElementName = ItemChoiceType.UnitPrice // Specify the element name for the price
+                }
+            }
+        }.ToArray(),
+            CustomerRef = new ReferenceType { Value = "1" }, // Replace with actual customer reference
+            BillAddr = new PhysicalAddress
+            {
+                Line1 = donation.City,
+                City = donation.City,
+                Country = donation.Country
+            },
+            SalesTermRef = new ReferenceType { Value = "DueOnReceipt" }
+        };
+
+        var addedInvoice = dataService.Add(invoice);
+        _logger.LogInformation("QuickBooks invoice created with ID: {InvoiceId}", addedInvoice.Id);
+        return addedInvoice.Id.ToString(); // Return the invoice ID
+    }
+
 
     public async IAsyncEnumerable<string> SyncDonationToQuickBooksAsync(Donation donation)
     {
@@ -178,7 +227,6 @@ public class QuickBooksService
             }
         }
     }
-
 
 
     //Mapping method to convert TokenResponse to OAuthToken

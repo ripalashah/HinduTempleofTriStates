@@ -149,7 +149,8 @@ namespace HinduTempleofTriStates.Migrations
                     AuthUrl = table.Column<string>(type: "nvarchar(max)", nullable: false),
                     AccessTokenUrl = table.Column<string>(type: "nvarchar(max)", nullable: false),
                     BaseUrl = table.Column<string>(type: "nvarchar(max)", nullable: false),
-                    RealmId = table.Column<string>(type: "nvarchar(max)", nullable: true)
+                    RealmId = table.Column<string>(type: "nvarchar(max)", nullable: true),
+                    Scopes = table.Column<string>(type: "nvarchar(max)", nullable: false)
                 },
                 constraints: table =>
                 {
@@ -465,7 +466,7 @@ namespace HinduTempleofTriStates.Migrations
             migrationBuilder.InsertData(
                 table: "Accounts",
                 columns: new[] { "Id", "AccountName", "AccountType", "Balance", "CreatedDate", "UpdatedDate" },
-                values: new object[] { new Guid("d52e7867-b121-4bfa-afd2-3711b396b91e"), "Default Account", 5, 0m, new DateTime(2024, 9, 23, 15, 34, 39, 68, DateTimeKind.Utc).AddTicks(8923), new DateTime(1, 1, 1, 0, 0, 0, 0, DateTimeKind.Unspecified) });
+                values: new object[] { new Guid("a343ea88-d9b5-4b89-bcd7-7d9d17f2e2d1"), "Default Account", 5, 0m, new DateTime(2024, 10, 20, 0, 7, 42, 145, DateTimeKind.Utc).AddTicks(3756), new DateTime(1, 1, 1, 0, 0, 0, 0, DateTimeKind.Unspecified) });
 
             migrationBuilder.InsertData(
                 table: "AspNetRoles",
@@ -480,17 +481,17 @@ namespace HinduTempleofTriStates.Migrations
             migrationBuilder.InsertData(
                 table: "LedgerAccounts",
                 columns: new[] { "Id", "AccountName", "AccountType", "Balance", "CreatedBy", "CreatedDate", "IsDeleted", "UpdatedBy", "UpdatedDate" },
-                values: new object[] { new Guid("82a965ac-bdb2-4ced-8484-2db559f7be51"), "Default Ledger", 5, 0m, "System", new DateTime(2024, 9, 23, 15, 34, 39, 68, DateTimeKind.Utc).AddTicks(8899), false, "System", new DateTime(2024, 9, 23, 15, 34, 39, 68, DateTimeKind.Utc).AddTicks(8900) });
+                values: new object[] { new Guid("43536213-2bc1-4cca-af2f-50b8760b5d07"), "Default Ledger", 5, 0m, "System", new DateTime(2024, 10, 20, 0, 7, 42, 145, DateTimeKind.Utc).AddTicks(3732), false, "System", new DateTime(2024, 10, 20, 0, 7, 42, 145, DateTimeKind.Utc).AddTicks(3732) });
 
             migrationBuilder.InsertData(
                 table: "QuickBooksSettings",
-                columns: new[] { "Id", "AccessTokenUrl", "AuthUrl", "BaseUrl", "ClientId", "ClientSecret", "Environment", "RealmId", "RedirectUrl" },
-                values: new object[] { new Guid("253d28e2-bf2f-491f-a16c-75804eeef56e"), "https://oauth.platform.intuit.com/oauth2/v1/tokens/bearer", "https://appcenter.intuit.com/connect/oauth2", "https://sandbox-quickbooks.api.intuit.com/", "ABr6v2DHCpvpSWTW2cFS0xYCgypAWm4UpwDWt0Do64gHYztWf7", "lLWFt8xOc1MOW8Djv3hQCZwNF5DlI2BEM0JlZXG0", "sandbox", "9341453104198392", "http://ripalashah.com/htts/callback" });
+                columns: new[] { "Id", "AccessTokenUrl", "AuthUrl", "BaseUrl", "ClientId", "ClientSecret", "Environment", "RealmId", "RedirectUrl", "Scopes" },
+                values: new object[] { new Guid("a5865f9d-bbbf-42e6-901f-a31454d76fbb"), "https://oauth.platform.intuit.com/oauth2/v1/tokens/bearer", "https://appcenter.intuit.com/connect/oauth2", "https://sandbox-quickbooks.api.intuit.com/", "ABr6v2DHCpvpSWTW2cFS0xYCgypAWm4UpwDWt0Do64gHYztWf7", "lLWFt8xOc1MOW8Djv3hQCZwNF5DlI2BEM0JlZXG0", "sandbox", "9341453104198392", "http://ripalashah.com/htts/callback", "com.intuit.quickbooks.accounting openid profile email" });
 
             migrationBuilder.InsertData(
                 table: "Donations",
                 columns: new[] { "Id", "AccountId", "Amount", "CashTransactionId", "CashTransactionId1", "City", "Country", "Date", "DonationCategory", "DonationType", "DonorName", "IsDeleted", "IsSynced", "LedgerAccountId", "Phone", "ReceiptNumber", "State" },
-                values: new object[] { new Guid("82266338-f8f9-4061-b38a-3f090259c109"), null, 100.0, null, null, "Anytown", "Anycountry", new DateTime(2024, 9, 23, 15, 34, 39, 68, DateTimeKind.Utc).AddTicks(8948), "General", "One-Time", "John Doe", false, false, new Guid("82a965ac-bdb2-4ced-8484-2db559f7be51"), "123-456-7890", null, "Anystate" });
+                values: new object[] { new Guid("950e0da3-9f80-400f-a068-0bfaca40bf42"), null, 100.0, null, null, "Anytown", "Anycountry", new DateTime(2024, 10, 20, 0, 7, 42, 145, DateTimeKind.Utc).AddTicks(3785), "General", "One-Time", "John Doe", false, false, new Guid("43536213-2bc1-4cca-af2f-50b8760b5d07"), "123-456-7890", null, "Anystate" });
 
             migrationBuilder.CreateIndex(
                 name: "IX_AspNetRoleClaims_RoleId",

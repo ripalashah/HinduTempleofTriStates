@@ -10,8 +10,12 @@
     public required string AccessTokenUrl { get; set; }  // Add this if needed
     public required string BaseUrl { get; set; }
     public string? RealmId { get; internal set; }
+
+    public required string Scopes { get; set; }
+
     public QuickBooksSettings()
     {
         RealmId = string.Empty; // Or set to a default value if not nullable
+        Scopes = "com.intuit.quickbooks.accounting openid profile email";
     }
 }

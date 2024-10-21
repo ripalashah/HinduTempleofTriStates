@@ -5,6 +5,7 @@
 		<Nullable>enable</Nullable>
 		<ImplicitUsings>enable</ImplicitUsings>
 		<RuntimeIdentifier>win-x64</RuntimeIdentifier>
+		<Configurations>Debug;Release;x64</Configurations>
 	</PropertyGroup>
 
 	<ItemGroup>
@@ -26,9 +27,11 @@
 		  <PrivateAssets>all</PrivateAssets>
 		  <IncludeAssets>runtime; build; native; contentfiles; analyzers; buildtransitive</IncludeAssets>
 		</PackageReference>
+		<PackageReference Include="Moq" Version="4.20.72" />
 		<PackageReference Include="popper.js" Version="1.16.1" />
 		<PackageReference Include="Serilog.Extensions.Logging.File" Version="3.0.0" />
 		<PackageReference Include="System.Configuration.ConfigurationManager" Version="8.0.0" />
+		<PackageReference Include="xunit" Version="2.9.1" />
 	</ItemGroup>
 
 	<ItemGroup>

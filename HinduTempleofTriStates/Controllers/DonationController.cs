@@ -97,7 +97,7 @@ namespace HinduTempleofTriStates.Controllers
                 return View(new Donation());
             }
         }
-                
+
         // Handle the post request to create a new donation
         [HttpPost]
         [ValidateAntiForgeryToken]
@@ -108,13 +108,18 @@ namespace HinduTempleofTriStates.Controllers
             {
                 try
                 {
-                    // Assign a new unique Id to the donation
+                    // Assign a new unique Id and current date to the donation
                     donation.Id = Guid.NewGuid();
                     donation.Date = DateTime.UtcNow;
+
                     // Generate and assign the receipt number
                     donation.ReceiptNumber = await GenerateReceiptNumberAsync();
+
                     // Fetch the related LedgerAccount
-                    var ledgerAccount = await _context.LedgerAccounts.FindAsync(donation.LedgerAccountId);
+                    var ledgerAccount = await _context.LedgerAccounts
+                        .Where(l => l.Id == donation.LedgerAccountId && !l.IsDeleted)
+                        .FirstOrDefaultAsync();
+
                     if (ledgerAccount == null)
                     {
                         _logger.LogWarning("Ledger account not found with ID {LedgerAccountId}", donation.LedgerAccountId);
@@ -122,9 +127,9 @@ namespace HinduTempleofTriStates.Controllers
                         return View(donation);
                     }
 
-                    // Save the Donation first
+                    // Save the Donation to the database first
                     _context.Donations.Add(donation);
-
+                    await _context.SaveChangesAsync();
 
                     // Create corresponding GeneralLedgerEntry and CashTransaction
                     var ledgerEntry = new GeneralLedgerEntry
@@ -149,26 +154,44 @@ namespace HinduTempleofTriStates.Controllers
                         TransactionType = TransactionType.Credit // Ensure the donation is treated as a credit
                     };
 
-                    await _donationService.AddDonationAsync(donation, true); // Pass 'true' for isAddition
+                    // Add and save GeneralLedgerEntry and CashTransaction to the context
+                    _context.GeneralLedgerEntries.Add(ledgerEntry);
+                    _context.CashTransactions.Add(cashTransaction);
 
-                    // Use LedgerService to update the balance
+                    // Update the balance in the ledger account using LedgerService
                     await _ledgerService.UpdateLedgerAccountBalanceAsync(donation.LedgerAccountId, donation.Amount, true);
-                    // Add and save GeneralLedgerEntry and CashTransaction
-                    //_context.GeneralLedgerEntries.Add(ledgerEntry);
-                    //_context.CashTransactions.Add(cashTransaction);
+
+                    // Attempt to create an invoice in QuickBooks for this donation
+                    try
+                    {
+                        var quickBooksInvoiceId = await _quickBooksService.CreateQuickBooksInvoiceAsync(donation);
+                        _logger.LogInformation("Donation invoice synced with QuickBooks. Invoice ID: {QuickBooksInvoiceId}", quickBooksInvoiceId);
+                    }
+                    catch (Exception qbEx)
+                    {
+                        _logger.LogError(qbEx, "Error creating QuickBooks invoice for Donation ID: {DonationId}", donation.Id);
+                        // Optionally, handle rollback or retry logic here
+                    }
+
+                    // Save all changes to the database
                     await _context.SaveChangesAsync();
 
+                    // Redirect to the Index action upon successful completion
                     return RedirectToAction(nameof(Index));
                 }
                 catch (Exception ex)
                 {
                     _logger.LogError(ex, "Error creating donation and related entities");
+                    ModelState.AddModelError(string.Empty, "An error occurred while creating the donation.");
                     return View(donation);
                 }
             }
 
+            // If we got this far, something failed; redisplay form
             return View(donation);
         }
+
+
 
         // Method to generate email body
         private string GenerateEmailBody(Donation donation)

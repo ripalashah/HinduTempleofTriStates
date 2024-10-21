@@ -66,7 +66,7 @@ namespace HinduTempleofTriStates.Data
                 .ToTable("Accounts")
                 .Property(a => a.Balance)
                 .HasColumnType("decimal(18,2)");
-           
+
             modelBuilder.Entity<QuickBooksSettings>()
                 .HasNoKey();
 
@@ -205,7 +205,8 @@ namespace HinduTempleofTriStates.Data
                 AuthUrl = "https://appcenter.intuit.com/connect/oauth2",
                 AccessTokenUrl = "https://oauth.platform.intuit.com/oauth2/v1/tokens/bearer",
                 BaseUrl = "https://sandbox-quickbooks.api.intuit.com/",
-                RealmId = "9341453104198392"
+                RealmId = "9341453104198392",
+                Scopes = "com.intuit.quickbooks.accounting openid profile email" // Add the Scopes property here
             }
             );
 

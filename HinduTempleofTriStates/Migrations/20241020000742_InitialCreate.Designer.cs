@@ -12,7 +12,7 @@ using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 namespace HinduTempleofTriStates.Migrations
 {
     [DbContext(typeof(ApplicationDbContext))]
-    [Migration("20240923153439_InitialCreate")]
+    [Migration("20241020000742_InitialCreate")]
     partial class InitialCreate
     {
         /// <inheritdoc />
@@ -55,11 +55,11 @@ namespace HinduTempleofTriStates.Migrations
                     b.HasData(
                         new
                         {
-                            Id = new Guid("d52e7867-b121-4bfa-afd2-3711b396b91e"),
+                            Id = new Guid("a343ea88-d9b5-4b89-bcd7-7d9d17f2e2d1"),
                             AccountName = "Default Account",
                             AccountType = 5,
                             Balance = 0m,
-                            CreatedDate = new DateTime(2024, 9, 23, 15, 34, 39, 68, DateTimeKind.Utc).AddTicks(8923),
+                            CreatedDate = new DateTime(2024, 10, 20, 0, 7, 42, 145, DateTimeKind.Utc).AddTicks(3756),
                             UpdatedDate = new DateTime(1, 1, 1, 0, 0, 0, 0, DateTimeKind.Unspecified)
                         });
                 });
@@ -221,17 +221,17 @@ namespace HinduTempleofTriStates.Migrations
                     b.HasData(
                         new
                         {
-                            Id = new Guid("82266338-f8f9-4061-b38a-3f090259c109"),
+                            Id = new Guid("950e0da3-9f80-400f-a068-0bfaca40bf42"),
                             Amount = 100.0,
                             City = "Anytown",
                             Country = "Anycountry",
-                            Date = new DateTime(2024, 9, 23, 15, 34, 39, 68, DateTimeKind.Utc).AddTicks(8948),
+                            Date = new DateTime(2024, 10, 20, 0, 7, 42, 145, DateTimeKind.Utc).AddTicks(3785),
                             DonationCategory = "General",
                             DonationType = "One-Time",
                             DonorName = "John Doe",
                             IsDeleted = false,
                             IsSynced = false,
-                            LedgerAccountId = new Guid("82a965ac-bdb2-4ced-8484-2db559f7be51"),
+                            LedgerAccountId = new Guid("43536213-2bc1-4cca-af2f-50b8760b5d07"),
                             Phone = "123-456-7890",
                             State = "Anystate"
                         });
@@ -345,15 +345,15 @@ namespace HinduTempleofTriStates.Migrations
                     b.HasData(
                         new
                         {
-                            Id = new Guid("82a965ac-bdb2-4ced-8484-2db559f7be51"),
+                            Id = new Guid("43536213-2bc1-4cca-af2f-50b8760b5d07"),
                             AccountName = "Default Ledger",
                             AccountType = 5,
                             Balance = 0m,
                             CreatedBy = "System",
-                            CreatedDate = new DateTime(2024, 9, 23, 15, 34, 39, 68, DateTimeKind.Utc).AddTicks(8899),
+                            CreatedDate = new DateTime(2024, 10, 20, 0, 7, 42, 145, DateTimeKind.Utc).AddTicks(3732),
                             IsDeleted = false,
                             UpdatedBy = "System",
-                            UpdatedDate = new DateTime(2024, 9, 23, 15, 34, 39, 68, DateTimeKind.Utc).AddTicks(8900)
+                            UpdatedDate = new DateTime(2024, 10, 20, 0, 7, 42, 145, DateTimeKind.Utc).AddTicks(3732)
                         });
                 });
 
@@ -792,6 +792,10 @@ namespace HinduTempleofTriStates.Migrations
                         .IsRequired()
                         .HasColumnType("nvarchar(max)");
 
+                    b.Property<string>("Scopes")
+                        .IsRequired()
+                        .HasColumnType("nvarchar(max)");
+
                     b.HasKey("Id");
 
                     b.ToTable("QuickBooksSettings");
@@ -799,7 +803,7 @@ namespace HinduTempleofTriStates.Migrations
                     b.HasData(
                         new
                         {
-                            Id = new Guid("253d28e2-bf2f-491f-a16c-75804eeef56e"),
+                            Id = new Guid("a5865f9d-bbbf-42e6-901f-a31454d76fbb"),
                             AccessTokenUrl = "https://oauth.platform.intuit.com/oauth2/v1/tokens/bearer",
                             AuthUrl = "https://appcenter.intuit.com/connect/oauth2",
                             BaseUrl = "https://sandbox-quickbooks.api.intuit.com/",
@@ -807,7 +811,8 @@ namespace HinduTempleofTriStates.Migrations
                             ClientSecret = "lLWFt8xOc1MOW8Djv3hQCZwNF5DlI2BEM0JlZXG0",
                             Environment = "sandbox",
                             RealmId = "9341453104198392",
-                            RedirectUrl = "http://ripalashah.com/htts/callback"
+                            RedirectUrl = "http://ripalashah.com/htts/callback",
+                            Scopes = "com.intuit.quickbooks.accounting openid profile email"
                         });
                 });
 

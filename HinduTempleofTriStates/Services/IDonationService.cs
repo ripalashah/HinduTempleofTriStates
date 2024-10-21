@@ -16,5 +16,6 @@ namespace HinduTempleofTriStates.Services
         Task<IEnumerable<Donation>> GetDonationsByLedgerAccountIdAsync(Guid ledgerAccountId);
         Task UpdateLedgerAccountBalanceAsync(Guid? ledgerAccountId, double amount, bool isAddition = true);
         Task AddGeneralLedgerEntryForDonationAsync(Donation donation, bool isAddition = true);
+        Task<string> CreateQuickBooksInvoiceForDonationAsync(Donation donation);
     }
 }

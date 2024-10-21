@@ -52,7 +52,7 @@ public class OAuthService
         _httpContextAccessor.HttpContext.Session.SetString("oauthState", state);
 
         // Specify required scopes for QuickBooks authorization
-        List<OidcScopes> scopes = new List<OidcScopes> { OidcScopes.Accounting };
+        List<string> scopes = new List<string> { "com.intuit.quickbooks.accounting", "openid", "profile", "email" };
 
         // Generate the authorization URL using OAuth2Client
         string authorizationUrl = _oauthClient.GetAuthorizationURL(scopes, state);
@@ -233,7 +233,7 @@ public class OAuthService
         _httpContextAccessor.HttpContext.Session.SetString("oauthState", state);
 
         // Specify the QuickBooks Accounting scope
-        List<OidcScopes> scopes = new List<OidcScopes> { OidcScopes.Accounting };
+        List<string> scopes = new List<string> { "com.intuit.quickbooks.accounting", "openid", "profile", "email" };
 
         if (_oauthClient == null)
         {

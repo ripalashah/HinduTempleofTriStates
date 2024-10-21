@@ -8,6 +8,10 @@ using HinduTempleofTriStates.Models;
 using HinduTempleofTriStates.Repositories;
 using static System.Runtime.InteropServices.JavaScript.JSType;
 using System.Diagnostics;
+using Intuit.Ipp.Core;
+using Intuit.Ipp.Data;
+using Intuit.Ipp.DataService;
+using Intuit.Ipp.Security;
 
 namespace HinduTempleofTriStates.Services
 {
@@ -16,12 +20,14 @@ namespace HinduTempleofTriStates.Services
         private readonly ApplicationDbContext _context;
         private readonly IDonationRepository _donationRepository;
         private readonly ILogger<DonationService> _logger;
+        private readonly OAuthService _oauthService;
 
-        public DonationService(ApplicationDbContext context, IDonationRepository donationRepository, ILogger<DonationService> logger)
+        public DonationService(ApplicationDbContext context, IDonationRepository donationRepository, ILogger<DonationService> logger, OAuthService oauthService)
         {
             _context = context ?? throw new ArgumentNullException(nameof(context));
             _donationRepository = donationRepository ?? throw new ArgumentNullException(nameof(donationRepository));
             _logger = logger ?? throw new ArgumentNullException(nameof(logger));
+            _oauthService = oauthService ?? throw new ArgumentNullException(nameof(oauthService));
         }
 
         public async Task<bool> AddDonationAsync(Donation donation, bool isAddition)
@@ -130,7 +136,110 @@ namespace HinduTempleofTriStates.Services
             }
         }
 
+        public async Task<string> CreateQuickBooksInvoiceForDonationAsync(Donation donation)
+        {
+            var storedTokens = await _oauthService.GetStoredTokensAsync();
+            if (storedTokens == null || string.IsNullOrEmpty(storedTokens.AccessToken))
+            {
+                throw new InvalidOperationException("Access token is missing or invalid.");
+            }
 
+            var oauthValidator = new OAuth2RequestValidator(storedTokens.AccessToken);
+            var serviceContext = new ServiceContext(storedTokens.RealmId, IntuitServicesType.QBO, oauthValidator);
+            var dataService = new DataService(serviceContext);
+
+            try
+            {
+                var invoice = new Invoice
+                {
+                    DocNumber = donation.ReceiptNumber,
+                    TxnDate = donation.Date,
+                    DueDate = donation.Date.AddDays(30),
+                    PrivateNote = $"Donation from {donation.DonorName}",
+                    Line = new List<Line>
+            {
+                new Line
+                {
+                    Amount = (decimal)donation.Amount,
+                    DetailType = LineDetailTypeEnum.SalesItemLineDetail,
+                    Description = donation.DonationType,
+                    AnyIntuitObject = new SalesItemLineDetail
+                    {
+                        ItemRef = new ReferenceType { Value = "1" }, // Replace with actual item reference
+                        Qty = 1,
+                        ItemElementName = ItemChoiceType.UnitPrice, // Specify the element name for the price
+                        AnyIntuitObject = (decimal)donation.Amount // Set the amount as the unit price
+                    }
+                }
+            }.ToArray(),
+                    CustomerRef = new ReferenceType { Value = "1" } // Replace with actual customer reference
+                };
+
+                var addedInvoice = dataService.Add(invoice);
+                _logger.LogInformation("QuickBooks invoice created with ID: {InvoiceId}", addedInvoice.Id);
+                return addedInvoice.Id.ToString();
+            }
+            catch (Exception ex)
+            {
+                _logger.LogError(ex, "Error creating QuickBooks invoice.");
+                throw new ApplicationException("Failed to create an invoice in QuickBooks.", ex);
+            }
+        }
+
+        public async Task<string> SyncDonationWithInvoiceFieldsAsync(Donation donation)
+        {
+            var storedTokens = await _oauthService.GetStoredTokensAsync();
+            if (storedTokens == null || string.IsNullOrEmpty(storedTokens.AccessToken))
+            {
+                throw new InvalidOperationException("Access token is missing or invalid.");
+            }
+
+            var oauthValidator = new OAuth2RequestValidator(storedTokens.AccessToken);
+            var serviceContext = new ServiceContext(storedTokens.RealmId, IntuitServicesType.QBO, oauthValidator);
+            var dataService = new DataService(serviceContext);
+
+            try
+            {
+                var invoice = new Invoice
+                {
+                    DocNumber = donation.ReceiptNumber,
+                    TxnDate = donation.Date,
+                    DueDate = donation.Date.AddDays(30), // Assume 30-day terms
+                    PrivateNote = $"Donation: {donation.DonationCategory}, Type: {donation.DonationType}",
+                    Line = new[]
+                    {
+                new Line
+                {
+                    Amount = (decimal)donation.Amount,
+                    DetailType = LineDetailTypeEnum.SalesItemLineDetail,
+                    Description = $"Donation from {donation.DonorName}",
+                    AnyIntuitObject = new SalesItemLineDetail
+                    {
+                        ItemRef = new ReferenceType { Value = "1" }, // Replace with actual item reference
+                        Qty = 1,
+                        ItemElementName = ItemChoiceType.UnitPrice, // Specify the element name for the price
+                        AnyIntuitObject = (decimal)donation.Amount // Set the amount as the unit price
+                    }
+                }
+            },
+                    CustomerRef = new ReferenceType { Value = "1" }, // Replace with actual customer reference
+                    BillAddr = new PhysicalAddress
+                    {
+                        Line1 = donation.City,
+                        Country = donation.Country
+                    }
+                };
+
+                var addedInvoice = dataService.Add(invoice);
+                _logger.LogInformation("Invoice created in QuickBooks with ID: {InvoiceId}", addedInvoice.Id);
+                return addedInvoice.Id.ToString();
+            }
+            catch (Exception ex)
+            {
+                _logger.LogError(ex, "Error syncing donation to QuickBooks invoice.");
+                throw new ApplicationException("Failed to create the invoice in QuickBooks.", ex);
+            }
+        }
 
         // Check if a cash transaction already exists for a donation to prevent duplicates
         private async Task<bool> CashTransactionExistsForDonation(Guid donationId)
@@ -140,7 +249,7 @@ namespace HinduTempleofTriStates.Services
 
 
         // Method to add a cash transaction for a donation
-        public async Task AddCashTransactionForDonationAsync(Donation donation, bool isAddition)
+        public async System.Threading.Tasks.Task AddCashTransactionForDonationAsync(Donation donation, bool isAddition)
         {
             _logger.LogInformation("Attempting to add cash transaction for donation with ID {DonationId}", donation.Id);
 
@@ -168,11 +277,12 @@ namespace HinduTempleofTriStates.Services
             {
                 _logger.LogWarning("Donation with ID {DonationId} is not of type 'Cash' or does not have a valid LedgerAccountId", donation.Id);
             }
+
         }
 
         // Method to add a general ledger entry for a donation
         // Method to add a general ledger entry for a donation
-        public async Task AddGeneralLedgerEntryForDonationAsync(Donation donation, bool isAddition = true)
+        public async System.Threading.Tasks.Task AddGeneralLedgerEntryForDonationAsync(Donation donation, bool isAddition = true)
         {
             if (!donation.LedgerAccountId.HasValue)
             {
@@ -205,7 +315,7 @@ namespace HinduTempleofTriStates.Services
         }
 
         // Method to update the ledger account balance
-        public async Task UpdateLedgerAccountBalanceAsync(Guid? ledgerAccountId, double amount, bool isAddition = true)
+        public async System.Threading.Tasks.Task UpdateLedgerAccountBalanceAsync(Guid? ledgerAccountId, double amount, bool isAddition = true)
         {
             if (ledgerAccountId.HasValue)
             {
